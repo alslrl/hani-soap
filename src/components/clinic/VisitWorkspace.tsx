@@ -92,28 +92,11 @@ function PatientRail({
   visit: Visit;
   act: Act;
 }) {
-  const history = state.visits
-    .filter(
-      (item) =>
-        item.patient_id === patient.id &&
-        item.id !== visit.id &&
-        item.scheduled_at < visit.scheduled_at,
-    )
-    .sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at));
-  const [selected, setSelected] = useState(history[0]?.id || "");
   const [notes, setNotes] = useState(patient.notes || "");
   const [isEditing, setIsEditing] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   useLeaveGuard(isEditing && notes !== (patient.notes || ""));
-  const historyVisit = history.find((item) => item.id === selected);
-  const document = selected
-    ? state.soap_documents
-        .filter(
-          (item) => item.visit_id === selected && item.status === "approved",
-        )
-        .sort((a, b) => b.revision - a.revision)[0]
-    : undefined;
   async function saveNote() {
     setBusy(true);
     setError("");
@@ -216,35 +199,6 @@ function PatientRail({
           <p role="alert" className="hs-inline-error">
             {error}
           </p>
-        )}
-      </section>
-      <section className="hs-panel hs-history-panel">
-        {panelTitle(
-          "이전 진료",
-          <span className="hs-muted">{history.length}회</span>,
-        )}
-        {history.length ? (
-          <>
-            <div className="hs-history-dates">
-              {history.map((item) => (
-                <button
-                  className={selected === item.id ? "is-selected" : ""}
-                  key={item.id}
-                  onClick={() => setSelected(item.id)}
-                >
-                  <span>{shortDate(item.scheduled_at)}</span>
-                  <span>{item.visit_no === 1 ? "초진" : "재진"}</span>
-                </button>
-              ))}
-            </div>
-            <div className="hs-history-subtitle">
-              <strong>{historyVisit?.reason}</strong>
-              <Badge tone="green">승인 기록</Badge>
-            </div>
-            <ReadOnlySoap document={document} />
-          </>
-        ) : (
-          <Empty title="이전 진료 기록이 없어요" />
         )}
       </section>
     </aside>
@@ -1198,28 +1152,152 @@ function BriefingResult({
   );
 }
 
+function PastVisitPanel({
+  state,
+  patient,
+  visit,
+  aiAvailable,
+  refresh,
+  needsContact,
+}: {
+  state: State;
+  patient: Patient;
+  visit: Visit;
+  aiAvailable: boolean;
+  refresh: () => unknown;
+  needsContact: boolean;
+}) {
+  const history = state.visits
+    .filter((item) => item.patient_id === patient.id && item.scheduled_at < visit.scheduled_at)
+    .sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at));
+  const [tab, setTab] = useState<"briefing" | "records">("briefing");
+  const [selectedId, setSelectedId] = useState(history[0]?.id || "");
+  const selectedVisit = history.find((item) => item.id === selectedId) || history[0];
+  const document = selectedVisit
+    ? state.soap_documents
+        .filter((item) => item.visit_id === selectedVisit.id && item.status === "approved")
+        .sort((a, b) => b.revision - a.revision)[0]
+    : undefined;
+  const hasSummary = state.jobs.some((job) =>
+    job.visit_id === visit.id && job.kind === "analysis" && job.status === "completed" &&
+    job.result?.task === "briefing" && typeof job.result.summary === "string" && !!job.result.summary.trim(),
+  );
+  const prefix = `past-${visit.id}`;
+  return (
+    <section className="hs-panel hs-past-panel">
+      {panelTitle("진료 이력", <span className="hs-muted">이전 {history.length}회</span>)}
+      <div
+        className="hs-chart-tabs hs-past-tabs"
+        role="tablist"
+        aria-label="이전 진료와 재진 브리핑"
+        onKeyDown={(event) => {
+          const next = event.key === "ArrowRight" || event.key === "ArrowLeft"
+            ? tab === "briefing" ? "records" : "briefing"
+            : event.key === "Home" ? "briefing" : event.key === "End" ? "records" : null;
+          if (next) {
+            event.preventDefault();
+            setTab(next);
+            globalThis.document.getElementById(`${prefix}-tab-${next}`)?.focus();
+          }
+        }}
+      >
+        {(["briefing", "records"] as const).map((value) => (
+          <button
+            key={value}
+            type="button"
+            role="tab"
+            id={`${prefix}-tab-${value}`}
+            aria-controls={`${prefix}-panel-${value}`}
+            aria-selected={tab === value}
+            tabIndex={tab === value ? 0 : -1}
+            className={tab === value ? "is-selected" : ""}
+            onClick={() => setTab(value)}
+          >
+            {value === "briefing" ? "재진 브리핑" : "이전 진료"}
+          </button>
+        ))}
+      </div>
+      <div id={`${prefix}-panel-briefing`} role="tabpanel" aria-labelledby={`${prefix}-tab-briefing`} hidden={tab !== "briefing"}>
+        <div className="hs-briefing-content">
+          <span className="hs-overline">
+            {history[0] ? `${shortDate(history[0].scheduled_at)} 마지막 진료` : "첫 방문"}
+          </span>
+          <h3>{patient.chief_complaint}</h3>
+          {!hasSummary && <p>{history[0]?.summary || "이전 기록이 없어요. 오늘 들은 증상과 관찰 소견부터 기록하세요."}</p>}
+          {history.length > 0 && <BriefingResult state={state} visit={visit} aiAvailable={aiAvailable} refresh={refresh} />}
+        </div>
+      </div>
+      <div id={`${prefix}-panel-records`} role="tabpanel" aria-labelledby={`${prefix}-tab-records`} hidden={tab !== "records"}>
+        {history.length ? <>
+          <div className="hs-history-dates">
+            {history.map((item) => <button
+              type="button"
+              key={item.id}
+              aria-pressed={selectedVisit?.id === item.id}
+              className={selectedVisit?.id === item.id ? "is-selected" : ""}
+              onClick={() => setSelectedId(item.id)}
+            >
+              <span>{shortDate(item.scheduled_at)}</span>
+              <span>{item.visit_no === 1 ? "초진" : "재진"}</span>
+            </button>)}
+          </div>
+          <div className="hs-history-subtitle">
+            <strong>{selectedVisit?.reason}</strong>
+            {document && <Badge tone="green">승인 기록</Badge>}
+          </div>
+          <ReadOnlySoap document={document} />
+        </> : <Empty title="이전 진료 기록이 없어요" />}
+      </div>
+      {needsContact && <div className="hs-past-contact">
+        <Link href="/clinic/care" className="hs-contact-alert">
+          <span>!</span>
+          <div><strong>불편 응답 확인 필요</strong><p>최근 응답과 현재 상태를 확인해 주세요.</p></div>
+          <span aria-hidden="true">↗</span>
+        </Link>
+      </div>}
+    </section>
+  );
+}
+
 function ContextRail({
   state,
   patient,
   visit,
-  act,
   aiAvailable,
   refresh,
 }: {
   state: State;
   patient: Patient;
   visit: Visit;
-  act: Act;
   aiAvailable: boolean;
   refresh: () => unknown;
 }) {
-  const previousVisit = state.visits
-    .filter(
-      (item) =>
-        item.patient_id === patient.id &&
-        item.scheduled_at < visit.scheduled_at,
-    )
-    .sort((a, b) => b.scheduled_at.localeCompare(a.scheduled_at))[0];
+  return (
+    <aside className="hs-context-rail">
+      <PastVisitPanel
+        key={visit.id}
+        state={state}
+        patient={patient}
+        visit={visit}
+        aiAvailable={aiAvailable}
+        refresh={refresh}
+        needsContact={state.contact_tasks.some((item) => item.patient_id === patient.id && item.status === "open")}
+      />
+    </aside>
+  );
+}
+
+function TodayFollowupPanels({
+  state,
+  patient,
+  visit,
+  act,
+}: {
+  state: State;
+  patient: Patient;
+  visit: Visit;
+  act: Act;
+}) {
   const responses = state.care_responses
     .filter((item) => item.patient_id === patient.id)
     .sort((a, b) => b.received_at.localeCompare(a.received_at))
@@ -1237,42 +1315,8 @@ function ContextRail({
     difficulty_taking: "복용하기 어려워요",
     other: "기타 불편",
   };
-  const contacts = state.contact_tasks.filter(
-    (item) => item.patient_id === patient.id && item.status === "open",
-  );
   return (
-    <aside className="hs-context-rail">
-      <section className="hs-panel hs-briefing-panel">
-        {panelTitle("재진 브리핑", <Badge>기록 기반</Badge>)}
-        <div className="hs-briefing-content">
-          <span className="hs-overline">
-            {previousVisit
-              ? `${shortDate(previousVisit.scheduled_at)} 마지막 진료`
-              : "첫 방문"}
-          </span>
-          <h3>{patient.chief_complaint}</h3>
-          <p>
-            {previousVisit?.summary ||
-              "이전 기록이 없어요. 오늘 들은 증상과 관찰 소견부터 기록하세요."}
-          </p>
-          <BriefingResult
-            state={state}
-            visit={visit}
-            aiAvailable={aiAvailable}
-            refresh={refresh}
-          />
-          {!!contacts.length && (
-            <Link href="/clinic/care" className="hs-contact-alert">
-              <span>!</span>
-              <div>
-                <strong>불편 응답 확인 필요</strong>
-                <p>최근 응답과 현재 상태를 확인해 주세요.</p>
-              </div>
-              <span aria-hidden="true">↗</span>
-            </Link>
-          )}
-        </div>
-      </section>
+    <div className="hs-today-followup" aria-label="오늘 경과와 확인 사항">
       {patient.demo_key === "A" ? (
         <NrsPanel state={state} patient={patient} visit={visit} act={act} />
       ) : (
@@ -1323,7 +1367,7 @@ function ContextRail({
           <Empty title="아직 받은 응답이 없어요" />
         )}
       </section>
-    </aside>
+    </div>
   );
 }
 
@@ -1522,12 +1566,18 @@ export default function VisitWorkspace({ visitId }: { visitId: string }) {
             </div>
           </section>
           <TreatmentPane state={state} visit={visit} act={act} />
+          <TodayFollowupPanels
+            key={visitId}
+            state={state}
+            patient={patient}
+            visit={visit}
+            act={act}
+          />
         </section>
         <ContextRail
           state={state}
           patient={patient}
           visit={visit}
-          act={act}
           aiAvailable={data.capabilities.ai}
           refresh={refresh}
         />
