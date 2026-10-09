@@ -16,7 +16,7 @@
   "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
   "modifications": [
     "Exclude detached flat lettering outside the anatomical surface",
-    "Average surface normals at matching vertices",
+    "Average only aligned normals at matching vertices, preserving hard anatomical edges",
     "Use a neutral material and fixed studio lights",
     "Render fixed front/back orthographic views with a transparent background"
   ],
@@ -33,13 +33,13 @@
   "files": [
     {
       "path": "body-front-v2.png",
-      "bytes": 684955,
-      "sha256": "fc2022ec859c425919b1fa13805cac4f168f85b6c23de66eccc70e0252b92f4f"
+      "bytes": 675734,
+      "sha256": "b8d9b1514f8fb97de15ccebe9e612a4e14d343311ee5d890d3e009dd84cb6637"
     },
     {
       "path": "body-back-v2.png",
-      "bytes": 654429,
-      "sha256": "ff895ce8151f175f5f971b87b25d24da90a201302873fadb5f0fd66294890098"
+      "bytes": 648078,
+      "sha256": "3358637a440e3bc7a08511262afbec8f14be38a3fa13555fdb93d09b5138b85a"
     },
     {
       "path": "source/body-skin.glb",
