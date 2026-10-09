@@ -57,6 +57,7 @@ export type Segment = {
   end_ms: number | null;
   source_segment_ids?: string[];
   alignment_status?: 'aligned' | 'review_needed';
+  timing_review?: boolean;
   alignment_method?: 'sentence' | 'model_review' | 'audio_recheck';
   transcription_changed?: boolean;
 };

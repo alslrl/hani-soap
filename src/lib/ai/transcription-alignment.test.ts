@@ -6,6 +6,14 @@ import fixture from './__fixtures__/dual-transcription.json';
 const segment = (text: string, speaker: string, start: number, end: number): Segment => ({ id: randomUUID(), ordinal: 1, speaker: 'unknown', raw_speaker: speaker, text, start_ms: start, end_ms: end });
 
 describe('content-to-speaker alignment', () => {
+  it('isolates overlapping timing without throwing away clear speaker evidence elsewhere', () => {
+    const source=[segment('오늘 어디가 아프세요?','A',0,2000),segment('발목이 아파요.','B',1840,3200),segment('우측 부종은 45cm입니다.','A',3400,5000)];
+    const result=alignTranscriptContent('오늘 어디가 아프세요? 발목이 아파요. 우측 부종은 45cm입니다.',source);
+    expect(result.segments.map(s=>s.raw_speaker)).toEqual(['A','B','A']);
+    expect(result.segments[0].timing_review).toBe(true);expect(result.segments[0].start_ms).toBeNull();
+    expect(result.segments[2].start_ms).toBe(3400);
+    expect(result.unassigned_groups).toBe(0);
+  });
   it('maps the real synthetic ASR pair into intact sentences with eight consecutive speaker groups without losing or rewriting content', () => {
     const source = structuredClone(fixture.diarized) as Segment[]; const before = JSON.stringify(source);
     const result = alignTranscriptContent(fixture.content, source);

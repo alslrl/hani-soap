@@ -25,13 +25,13 @@ export function applyAlignmentReview(alignment: AlignmentResult, source: Segment
     const left = changed.slice(0, targetIndex).reverse().find(s => s.start_ms !== null);
     const right = changed.slice(targetIndex + 1).find(s => s.end_ms !== null);
     if ((left && original.end_ms! < left.start_ms!) || (right && original.start_ms! > right.end_ms!)) continue;
-    target.raw_speaker = original.raw_speaker; target.start_ms = original.start_ms; target.end_ms = original.end_ms;
+    target.raw_speaker = original.raw_speaker; target.start_ms = target.timing_review ? null : original.start_ms; target.end_ms = target.timing_review ? null : original.end_ms;
     target.source_segment_ids = [original.id]; target.alignment_status = 'aligned'; target.alignment_method = 'model_review';
   }
   return changed;
 }
 export function recheckTargets(alignment: AlignmentResult) {
-  return alignment.omissions.filter(s => s.start_ms !== null && s.end_ms !== null && s.raw_speaker && s.end_ms - s.start_ms <= 8_000 && normalizeSpeech(s.text).length >= 3)
+  return alignment.omissions.filter(s => !s.timing_review && s.start_ms !== null && s.end_ms !== null && s.raw_speaker && s.end_ms - s.start_ms <= 8_000 && normalizeSpeech(s.text).length >= 3)
     .sort((a, b) => Number(/아파|괜찮|아니|없|못/.test(b.text)) - Number(/아파|괜찮|아니|없|못/.test(a.text)) || a.start_ms! - b.start_ms!).slice(0, 16);
 }
 export function insertVerifiedReplies(segments: Segment[], source: Segment[], rechecks: AudioRecheck[]) {
