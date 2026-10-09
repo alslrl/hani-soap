@@ -36,5 +36,9 @@
 - 화자 경계에 새 문장이 생긴 경우, 서로 다른 내용, 겹치는 시간, 반복·삭제 구간, 처리 범위 초과 시 미확인으로 보존하는 검사를 수행했다.
 - 실제 격리 저장소에서 두 원본·결합본의 별도 revision, 사용자 역할 수정, 이후 SOAP 입력과 기존 승인 기록 보존을 확인했다.
 - 실제 64초 합성 음성으로 두 전사 API → 화자 역할 → 용어 검토 → SOAP를 다시 실행했다. 새 본문의 ‘김서연’, ‘발을 높여’가 유지됐고, 8개 발화의 역할·현재 통증 5점·발 높이기 안내가 반영됐다. 화자 미대응은 0개, 전체 처리 약 47.6초였다. 합성 사례 한 건의 결과이며 일반 정확도·지연 보장이 아니다.
+- 최신 화면과 합친 프로덕션 빌드의 로컬 브라우저에서 두 원본·표현 비교 표시, 화자 A를 보호자로 변경, 실제 검토 API 저장, 새 검토본 ID로 SOAP 요청, 두 원본·승인 기록 보존을 확인했다. 이 브라우저 검사에서 SOAP 재호출만 대역 처리했고, 모델 호출과 SOAP 저장은 앞선 실제 API 실행으로 별도 확인했다.
+- 구현 커밋의 단위 검사 117개·서버 검사 39개, 최신 UI 병합 후 관련 단위 검사 12개·브라우저 검사 3개·TypeScript·프로덕션 빌드를 통과했다. 운영 배포는 이번 검증에 포함하지 않는다.
+
+관련 검사는 `npm run test -- src/lib/ai/transcription-alignment.test.ts src/lib/ai/transcribe-content.test.ts src/lib/ai/speaker-pipeline.test.ts src/lib/ai/dual-transcription-storage.test.ts`로 실행한다. `tests/e2e/dual-transcription.spec.ts`는 실제 두 전사 결과로 채운 임시 로컬 저장소와 `HANI_DUAL_LIVE_E2E=1`, 해당 `HANI_DATA_DIR`를 명시한 경우에만 실행한다. 모델을 반복 호출하는 기본 테스트가 아니다.
 
 공식 API 기준: [파일 전사와 화자 구분](https://developers.openai.com/api/docs/guides/speech-to-text).

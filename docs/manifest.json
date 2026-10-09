@@ -180,8 +180,8 @@
       "status": "confirmed_contract",
       "updated_on_kst": "2026-10-09",
       "summary": "Storage contract v1 and validated two-patient demo schema",
-      "characters": 4546,
-      "sha256": "2f93939fbf228432bd2edc436716851deb27c1b88047e3e5f4778b5f04bcf6d8"
+      "characters": 5122,
+      "sha256": "3b4d41516df768b5bb364c9562f88745e0b780bf57a5422af5be8d133c5ab54a"
     },
     {
       "path": "deployment-access.md",
@@ -203,8 +203,8 @@
       "path": "implementation-status.md",
       "status": "verified_implementation",
       "updated_on_kst": "2026-10-09",
-      "characters": 3107,
-      "sha256": "c9fdf838a6a1f00dc1c59d67516aef58187bd3849b43b3b5e94b5ab7b7f8957f",
+      "characters": 3569,
+      "sha256": "43a3733de976f8371eeee7b64a9f963c0936c5f0b1f3a88fdc79ca41810cd713",
       "summary": "Implemented features and local, browser, API and deployment evidence; remaining hardware and Kakao checks"
     },
     {
@@ -238,6 +238,14 @@
       "summary": "Bounded text request masking and opaque audio filenames; original audio and image inputs excluded",
       "characters": 2914,
       "sha256": "b5dfd88b0d574801cf90a471b1c666ba4b8f0418d5d44264450fd9025f697085"
+    },
+    {
+      "path": "dual-transcription.md",
+      "status": "locally_verified_implementation",
+      "updated_on_kst": "2026-10-09",
+      "characters": 2945,
+      "sha256": "129ad9d6839df42c6177ccf1559b6a634d236f7af7f213a116908ffd57ac6047",
+      "summary": "Parallel content and speaker transcription, conservative local alignment, immutable original results and clinician review"
     }
   ],
   "reference_collections": [
@@ -298,7 +306,7 @@
       "validator_path": "../scripts/validate_demo_data.py",
       "negative_and_boundary_checks": 30,
       "database_import_status": "applied_and_verified",
-      "schema_sha256": "9b7a6846d26721a6d5481383f8f684affafee07239844addd1c86c4b0cbdf654",
+      "schema_sha256": "6485641c1f582c369d27f26bf30933f76e4c3da5cb2da15bd8378fa38baf3632",
       "database_project_ref": "jolrgsvhgitoajuscdto",
       "database_imported_on_kst": "2026-10-09"
     }
@@ -343,6 +351,23 @@
     "live_provider_tested": false,
     "raw_audio_redaction": false,
     "handwriting_image_redaction": false,
+    "production_deployed_by_this_task": false
+  },
+  "dual_transcription_verification": {
+    "verified_on_kst": "2026-10-09",
+    "version": "dual-asr-v1",
+    "implementation_commit": "a51c9bb",
+    "unit_tests_at_implementation": 117,
+    "server_tests_at_implementation": 39,
+    "focused_unit_tests_after_ui_merge": 12,
+    "browser_e2e_tests": 3,
+    "synthetic_audio_seconds": 64.153,
+    "live_provider_tested": true,
+    "aligned_turns": 8,
+    "unassigned_turns": 0,
+    "original_results_preserved": true,
+    "approved_records_preserved": true,
+    "browser_soap_regeneration_request_stubbed": true,
     "production_deployed_by_this_task": false
   }
 }
