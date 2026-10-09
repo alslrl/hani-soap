@@ -1,3 +1,16 @@
 .env
 .env.*
 !.env.example
+node_modules/
+.next/
+.next-build/
+.next-e2e/
+.vercel/
+.hani-local/
+.hani-data/
+*.tsbuildinfo
+test-results/
+playwright-report/
+.DS_Store
+.vercel
+/.swc

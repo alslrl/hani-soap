@@ -1,0 +1,13 @@
+.env*
+!.env.example
+.hani-data
+.hani-local
+.git
+node_modules
+.next*
+.workflow-data
+test-results
+playwright-report
+docs/audio
+docs/transcripts
+docs/reference/sigmachart/images
