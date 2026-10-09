@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { localDemo, readState, scenario } from "./helpers";
+import { localDemo, readState, scenario , chooseSelect } from "./helpers";
 
 async function openRegion(page: import("@playwright/test").Page, x: number, y: number) {
   await page.getByRole("button", { name: "부위 직접 선택", exact: true }).click();
@@ -23,9 +23,9 @@ test("whole-body selection searches beyond the ankle and preserves per-point sid
   const query = picker.getByRole("searchbox", { name: "혈명·코드 검색" });
   await query.fill("합곡");
   await picker.getByRole("checkbox", { name: /합곡.*LI4/ }).check();
-  await picker.getByLabel("환자 기준 좌우").selectOption("not_applicable");
+  await chooseSelect(page, picker.getByRole("combobox", { name: "환자 기준 좌우" }), "not_applicable");
   await expect(picker.getByRole("button", { name: /^이 부위 추가/ })).toBeDisabled();
-  await picker.getByLabel("환자 기준 좌우").selectOption("left");
+  await chooseSelect(page, picker.getByRole("combobox", { name: "환자 기준 좌우" }), "left");
   await query.fill("GV20");
   await picker.getByRole("checkbox", { name: /백회.*GV20/ }).check();
   await expect(picker.getByRole("button", { name: "합곡 선택 해제", exact: true })).toBeVisible();
@@ -38,7 +38,7 @@ test("whole-body selection searches beyond the ankle and preserves per-point sid
   await openRegion(page, 550, 440);
   await query.fill("신수");
   await picker.getByRole("checkbox", { name: /신수.*BL23/ }).check();
-  await picker.getByLabel("환자 기준 좌우").selectOption("right");
+  await chooseSelect(page, picker.getByRole("combobox", { name: "환자 기준 좌우" }), "right");
   await picker.getByRole("button", { name: /^이 부위 추가/ }).click();
   await page.getByRole("button", { name: "초안 저장", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.treatments.some(item => item.visit_id === visitId && item.modality === "pharmacopuncture" && item.status === "suggested" && item.locations?.some(point => point.acupoint_code === "BL23" && point.body_region === "lower_back" && point.laterality === "right"))).toBe(true);
@@ -64,6 +64,6 @@ test("manual catalog entry opens all 361 codes without an invented body marker",
   await picker.getByRole("searchbox", { name: "혈명·코드 검색" }).fill("合谷");
   await picker.getByRole("checkbox", { name: /합곡.*LI4/ }).check();
   await expect(picker.getByRole("button", { name: /^이 부위 추가/ })).toBeDisabled();
-  await picker.getByLabel("환자 기준 좌우").selectOption("right");
+  await chooseSelect(page, picker.getByRole("combobox", { name: "환자 기준 좌우" }), "right");
   await expect(picker.getByRole("button", { name: /^이 부위 추가/ })).toBeEnabled();
 });

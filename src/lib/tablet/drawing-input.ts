@@ -29,7 +29,7 @@ export class DrawingInput {
       this.tap = { id: event.pointerId, x: event.clientX, y: event.clientY, at: event.timeStamp, moved: 0, point };
       return "tap";
     }
-    if (selectMode && !pen) return "select";
+    if (selectMode) return "select";
     this.stroke = { id: event.pointerId, type: event.pointerType, points: [point] };
     return "ink";
   }

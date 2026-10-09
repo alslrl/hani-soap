@@ -54,8 +54,8 @@ async function addPoint(page: Page, label: RegExp) {
 }
 async function expectRegion(page: Page, side: "left" | "right") {
   await expect(pickerOf(page)).toBeVisible();
-  await expect(pickerOf(page).getByLabel("선택 부위")).toHaveValue("ankle");
-  await expect(pickerOf(page).getByLabel("환자 기준 좌우")).toHaveValue(side);
+  await expect(pickerOf(page).getByRole("combobox", { name: "선택 부위" })).toHaveAttribute("data-value", "ankle");
+  await expect(pickerOf(page).getByRole("combobox", { name: "환자 기준 좌우" })).toHaveAttribute("data-value", side);
 }
 async function capture(page: Page, testInfo: TestInfo, name: string) {
   const path = process.env.HANI_VISUAL_OUTPUT_DIR ? join(process.env.HANI_VISUAL_OUTPUT_DIR, name) : testInfo.outputPath(name);
