@@ -12,6 +12,7 @@ import { useAppState } from "@/lib/client";
 import type { SourceRef, Treatment } from "@/lib/types";
 import AudioControls from "@/components/audio/AudioControls";
 import { FollowupEditor } from "@/components/progress/FollowupEditor";
+import { isCurrentHandwritingDraft } from "@/lib/ai/handwriting-sources";
 import { getTranscriptNrsProposal } from "@/lib/ai/clinical-analysis-drafts";
 import { useLeaveGuard } from "./useLeaveGuard";
 import {
@@ -394,6 +395,10 @@ function SoapEditor({
           </label>
         ))}
       </div>
+      {document && document.status!=="approved" && (()=>{
+        const warnings=state.jobs.find(job=>job.result?.soapId===document?.id)?.result?.warnings;
+        return Array.isArray(warnings)&&warnings.length>0?<div className="hs-warning" role="note">{warnings.filter((warning):warning is string=>typeof warning==="string").map((warning,index)=><p key={index}>{warning}</p>)}</div>:null;
+      })()}
       {!!document?.source_refs.length && (
         <div className="hs-evidence-links">
           <span>기록 근거</span>
@@ -1211,6 +1216,22 @@ function ContextRail({
   );
 }
 
+function HandwritingPanel({state,visitId}:{state:State;visitId:string}) {
+  const notes=state.annotations.filter(row=>row.visit_id===visitId&&row.strokes.some(stroke=>stroke.kind==="memo"));
+  if(!notes.length)return null;
+  return <section className="hs-panel hs-handwriting-panel" aria-label="필기 기록">
+    {panelTitle("필기 기록",<span className="hs-muted">iPad 저장과 동기화</span>)}
+    {notes.map(note=>{
+      const job=[...state.jobs].reverse().find(job=>job.kind==="handwriting"&&job.result?.annotationId===note.id&&job.result?.revision===note.revision);
+      const draft=isCurrentHandwritingDraft(state,note);
+      return <div key={note.id} className="hs-handwriting-entry">
+        <div><strong>{note.technique==="needle_knife"?"도침":modalityLabels[note.modality]} · {note.view==="front"?"앞면":"뒷면"}</strong><Badge tone={note.extraction_reviewed?"green":"blue"}>{note.extraction_reviewed?"판독 확인":draft?"자동 추출 · SOAP 초안 입력":job?.status==="running"?"추출 중":"원본 저장"}</Badge></div>
+        <p>{note.extracted_text??(job?.status==="failed"?"텍스트 추출을 완료하지 못했습니다. iPad에서 저장을 다시 눌러 재시도할 수 있습니다.":job?.status==="running"?"필기 텍스트를 추출하고 있습니다.":"필기 원본이 저장되어 있습니다.")}</p>
+      </div>;
+    })}
+  </section>;
+}
+
 function TodayFollowupPanels({
   state,
   patient,
@@ -1260,6 +1281,7 @@ function TodayFollowupPanels({
           </span>
         </section>
       )}
+      <HandwritingPanel state={state} visitId={visit.id} />
       <section className="hs-panel hs-responses-panel">
         {panelTitle(
           "지난 환자 응답",
