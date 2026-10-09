@@ -11,6 +11,7 @@ import { inkPath, recognizeCheck, type InkPoint } from "@/lib/tablet/geometry";
 import { mapBodyRegion, REGION_LABELS, SIDE_LABELS, type BodyRegion, type BodyView, type RegionMatch } from "@/lib/tablet/regions";
 import { memoImage } from "@/lib/tablet/ink-image";
 import { normalizeStrokes, restoreCanvasStrokes } from "@/lib/tablet/coordinates";
+import { bodyMapVersionForVisit, type BodyMapVersion } from "@/lib/tablet/body-map-version";
 
 const TABS = [
   { id: "needle", label: "침", detail: "일반 침", modality: "acupuncture", technique: "standard_acupuncture" },
@@ -20,7 +21,7 @@ const TABS = [
   { id: "cupping", label: "부항", detail: "부항", modality: "cupping", technique: null },
 ] as const;
 type TabId = typeof TABS[number]["id"];
-type Layer = { id: string; revision: number; strokes: AnnotationStroke[]; dirty: boolean };
+type Layer = { id: string; coordinateVersion: BodyMapVersion; revision: number; strokes: AnnotationStroke[]; dirty: boolean };
 type Draft = { id: string; locations: TreatmentLocation[]; notes: string; confirmed: boolean; dirty: boolean };
 type Layers = Record<string, Layer>;
 type Drafts = Record<TabId, Draft>;
@@ -35,9 +36,10 @@ function initialDrafts(state: AppState, visitId: string): Drafts {
   })) as Drafts;
 }
 function initialLayers(state: AppState, visitId: string): Layers {
+  const visitVersion = bodyMapVersionForVisit(state.annotations, visitId);
   return Object.fromEntries(TABS.flatMap(tab => (["front", "back"] as const).map(view => {
     const row = state.annotations.find(a => a.visit_id === visitId && matchesTab(a, tab) && a.view === view);
-    return [layerKey(tab.id, view), { id: row?.id || uid(), revision: row?.revision || 0, strokes: restoreCanvasStrokes(row?.strokes || []), dirty: false }];
+    return [layerKey(tab.id, view), { id: row?.id || uid(), coordinateVersion: row?.coordinate_version || visitVersion, revision: row?.revision || 0, strokes: restoreCanvasStrokes(row?.strokes || []), dirty: false }];
   })));
 }
 export function TabletVisitList() {
@@ -102,7 +104,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     e.preventDefault();
     const p = point(e);
     if (selectMode || e.pointerType === "touch") {
-      const match = mapBodyRegion(p, view);
+      const match = mapBodyRegion(p, view, layer.coordinateVersion);
       if (match) { setPicker({ match }); setSelectMode(false); }
       return;
     }
@@ -121,7 +123,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     if (!current || current.id !== e.pointerId) return;
     current.points.push(point(e)); pointer.current = null; setActiveInk([]);
     const check = recognizeCheck(current.points, layer.strokes);
-    const match = check ? mapBodyRegion(check.anchor, view) : null;
+    const match = check ? mapBodyRegion(check.anchor, view, layer.coordinateVersion) : null;
     const stroke: AnnotationStroke = { id: uid(), points: current.points, kind: match ? "check" : "memo", created_at: new Date().toISOString() };
     changeInk([...layer.strokes, stroke]);
     if (match) setPicker({ match, strokeId: stroke.id });
@@ -144,7 +146,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         const k = layerKey(tabId, bodyView), current = layers[k];
         // Persist linked layers even when a location was chosen using touch.
         if (!current.dirty && (current.revision > 0 || !draft.locations.some(p => p.annotation_id === current.id))) continue;
-        const result = await act("annotation.save", { visitId, annotation: { id: current.id, scope: "treatment", modality: tab.modality, technique: tab.technique, view: bodyView, coordinate_space: "normalized", coordinate_version: "body-map-v1", canvas_size: { width: 1000, height: 1000 }, strokes: normalizeStrokes(current.strokes), revision: current.revision } });
+        const result = await act("annotation.save", { visitId, annotation: { id: current.id, scope: "treatment", modality: tab.modality, technique: tab.technique, view: bodyView, coordinate_space: "normalized", coordinate_version: current.coordinateVersion, canvas_size: { width: 1000, height: 1000 }, strokes: normalizeStrokes(current.strokes), revision: current.revision } });
         const saved = result.state.annotations.find(a => a.id === current.id)!;
         setLayers(l => ({ ...l, [k]: { ...l[k], revision: saved.revision, dirty: false } }));
       }
@@ -177,18 +179,18 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     catch (err) { setMessage(err instanceof Error ? err.message : "검토 저장에 실패했습니다."); }
     finally { setBusy(false); }
   }
-  function switchTab(id: TabId) { if (busy) return; setTabId(id); setPicker(null); setActiveInk([]); pointer.current = null; setReviewText(null); setMessage(""); }
+  function switchTab(id: TabId) { if (busy) return; setTabId(id); setPicker(null); setZoom(null); setActiveInk([]); pointer.current = null; setReviewText(null); setMessage(""); }
   return <main className="tablet-app">
     <header className="tablet-header"><Link href="/tablet" className="tablet-brand">Hani<span>SOAP</span><small>시술 기록</small></Link><div className="tablet-patient"><img src={`/demo/portraits/${patient.portrait_asset_key}.png`} alt="" /><div><strong>{patient.display_name} <span>가상 환자</span></strong><p>{visit.visit_no}회차 · {visit.reason}</p></div></div><Link href="/tablet" className="tablet-change-visit">방문 변경 <ChevronDown size={15} /></Link></header>
     <div className="tablet-statusbar"><span><i className={audioSession?.status === "recording" ? "is-live" : ""} />{audioSession?.status === "recording" ? "PC에서 녹음 중" : "PC 녹음 대기"}</span><span>{error ? "연결 확인 필요" : "PC와 같은 방문에 연결됨"}</span><span className="tablet-save-indicator">{busy ? "처리 중…" : dirty ? "저장하지 않은 변경" : "저장된 기록"}</span></div>
     <nav className="tablet-tabs" aria-label="시술 종류" role="tablist">{TABS.map(t => <button type="button" key={t.id} role="tab" aria-selected={tabId === t.id} onClick={() => switchTab(t.id)} disabled={busy}><span>{t.label}</span>{drafts[t.id].locations.length > 0 && <small>{drafts[t.id].locations.length}</small>}{(drafts[t.id].dirty || layers[layerKey(t.id, "front")].dirty || layers[layerKey(t.id, "back")].dirty) && <i aria-label="저장 필요" />}</button>)}</nav>
     <div className="tablet-main">
       <section className="tablet-drawing" aria-label="인체 시술 기록">
-        <div className="tablet-canvas-header"><div><span className="tablet-eyebrow">{tab.detail} · 위치와 필기</span><h1>시술한 부위를 표시하세요</h1></div><div className="tablet-view-toggle">{(["front", "back"] as const).map(v => <button key={v} type="button" aria-pressed={view === v} disabled={busy} onClick={() => { setView(v); setPicker(null); setZoom(null); setReviewText(null); }}>{v === "front" ? "앞면" : "뒷면"}</button>)}</div></div>
+        <div className="tablet-canvas-header"><div><span className="tablet-eyebrow">{tab.detail} · 위치와 필기</span><h1>시술한 부위를 표시하세요</h1>{layer.coordinateVersion === "body-map-v1" && <p className="tablet-field-help" data-testid="legacy-body-map-notice">이전 도해로 저장된 필기가 있어 원본 그림을 표시합니다.</p>}</div><div className="tablet-view-toggle">{(["front", "back"] as const).map(v => <button key={v} type="button" aria-pressed={view === v} disabled={busy} onClick={() => { setView(v); setPicker(null); setZoom(null); setReviewText(null); }}>{v === "front" ? "앞면" : "뒷면"}</button>)}</div></div>
         <div className="tablet-canvas-wrap">
-          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, 펜으로 체크하거나 메모하세요`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={() => { pointer.current = null; setActiveInk([]); }}>
+          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, 펜으로 체크하거나 메모하세요`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={() => { pointer.current = null; setActiveInk([]); }}>
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
-            <BodyDiagram view={view} />
+            <BodyDiagram view={view} version={layer.coordinateVersion} />
             {layer.strokes.map(stroke => <path key={stroke.id} data-ink-kind={stroke.kind} d={inkPath(stroke.points)} className={`tablet-ink ${stroke.kind === "check" ? "tablet-check-ink" : ""}`} />)}
             {activeInk.length > 0 && <path d={inkPath(activeInk)} className="tablet-ink" />}
             {picker && <circle className="tablet-selection-ring" cx={picker.match.anchor.x} cy={picker.match.anchor.y} r="23" />}
@@ -211,7 +213,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         {events.length > 0 && <section className="tablet-live-candidates"><span className="tablet-eyebrow">PC 음성에서 온 후보</span>{events.slice(-3).map(event => <div key={event.id}><small>{{ current: "현재 발화", planned: "계획", past: "과거", negated: "부정", unclear: "확인 필요" }[event.context]}</small><p>“{event.text}”</p><div>{event.context !== "past" && event.context !== "negated" && <button type="button" disabled={busy} onClick={() => { void act("live.accept", { eventId: event.id }).then(() => setMessage("음성 후보를 추가했습니다. 부위와 시행 여부를 따로 확인해 주세요.")).catch(() => {}); }}>후보 보관</button>}<button type="button" disabled={busy} onClick={() => { void act("live.dismiss", { eventId: event.id }).catch(() => {}); }}>제외</button></div></div>)}<p className="tablet-field-help">시술과 방문은 자동으로 전환되지 않습니다.</p></section>}
       </aside>
     </div>
-    <footer className="tablet-footer"><Link href={`/clinic/visits/${visitId}`}><ArrowLeft size={14}/> PC 진료 화면</Link><span>{TABS.filter(t => drafts[t.id].locations.length).map(t => `${t.label} ${drafts[t.id].locations.length}`).join(" · ") || "선택한 시술 위치가 여기에 모입니다"}</span><span>가상 진료 데모</span></footer>
+    <footer className="tablet-footer"><Link href={`/clinic/visits/${visitId}`}><ArrowLeft size={14}/> PC 진료 화면</Link><span>{TABS.filter(t => drafts[t.id].locations.length).map(t => `${t.label} ${drafts[t.id].locations.length}`).join(" · ") || "선택한 시술 위치가 여기에 모입니다"}</span><span className="tablet-footer-source">{layer.coordinateVersion === "body-map-v2" && <a href="/demo/anatomy/ATTRIBUTION.html" target="_blank" rel="noreferrer">인체 도해 · Z-Anatomy / CC BY-SA</a>}<span>가상 진료 데모</span></span></footer>
     {(message || error) && <div className={`tablet-toast ${error ? "is-error" : ""}`} role="status">{message || error}<button type="button" aria-label="알림 닫기" onClick={() => setMessage("")}>×</button></div>}
   </main>;
 }

@@ -1,0 +1,57 @@
+{
+  "coordinate_version": "body-map-v2",
+  "created_on_kst": "2026-10-09",
+  "asset_kind": "fixed_orthographic_renders_from_licensed_model",
+  "ai_generated": false,
+  "source_url": "https://acupointatlas.com/models/body-skin.glb",
+  "source_reference_url": "https://acupointatlas.com/3d-atlas/",
+  "original_project": "Z-Anatomy",
+  "original_project_url": "https://github.com/Z-Anatomy/Models-of-human-anatomy",
+  "upstream": "BodyParts3D / DBCLS / CC BY-SA 2.1 Japan",
+  "authors": [
+    "Gauthier Kervyn",
+    "Z-Anatomy contributors"
+  ],
+  "license": "CC-BY-SA-4.0",
+  "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+  "modifications": [
+    "Exclude detached flat lettering outside the anatomical surface",
+    "Average surface normals at matching vertices",
+    "Use a neutral material and fixed studio lights",
+    "Render fixed front/back orthographic views with a transparent background"
+  ],
+  "canvas_registration": {
+    "image_width": 2000,
+    "image_height": 2000,
+    "coordinate_width": 1000,
+    "coordinate_height": 1000,
+    "body_top": 42,
+    "body_bottom": 963
+  },
+  "renderer": "Three.js 0.186.1",
+  "reproduce": "npm run assets:anatomy",
+  "files": [
+    {
+      "path": "body-front-v2.png",
+      "bytes": 684955,
+      "sha256": "fc2022ec859c425919b1fa13805cac4f168f85b6c23de66eccc70e0252b92f4f"
+    },
+    {
+      "path": "body-back-v2.png",
+      "bytes": 654429,
+      "sha256": "ff895ce8151f175f5f971b87b25d24da90a201302873fadb5f0fd66294890098"
+    },
+    {
+      "path": "source/body-skin.glb",
+      "bytes": 144936,
+      "sha256": "889f57018b6614d955248615f1dcfef914cf05aeb9974db3808af7c86a166dd8"
+    },
+    {
+      "path": "source/LICENSE.txt",
+      "bytes": 2754,
+      "sha256": "196b66b56551a862e59872f7cdb70e6d9a6ad84e9105962fca8ec28c14e97520"
+    }
+  ],
+  "silhouette_path": "../../../data/anatomy/body-map-v2-silhouette.json",
+  "silhouette_sha256": "02bb59e892816631927db12eee278da12f1b0850f1f10093d4a99ebfa5848f95"
+}
