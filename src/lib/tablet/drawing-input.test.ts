@@ -22,7 +22,7 @@ describe("pen-first tablet drawing input", () => {
     const input = new DrawingInput();
     const touch = event({ pointerId: 2, pointerType: "touch", width: 12, height: 12 });
     expect(input.down(touch, point(), false)).toBe("tap");
-    expect(input.down(event({ isPrimary: false }), point(), true)).toBe("ink");
+    expect(input.down(event({ isPrimary: false }), point(), false)).toBe("ink");
     expect(input.up(touch, point())).toBeNull();
     expect(input.owns(1)).toBe(true);
   });
@@ -69,5 +69,11 @@ describe("pen-first tablet drawing input", () => {
     expect(input.down(mouse, point(), false)).toBe("ink");
     input.reset();
     expect(input.owns(1)).toBe(false); expect(input.drawing).toBe(false);
+  });
+  it("lets a Pencil tap select a region when the user explicitly chooses direct selection", () => {
+    const input = new DrawingInput();
+    expect(input.down(event(), point(), true)).toBe("select");
+    expect(input.drawing).toBe(false);
+    expect(input.down(event(), point(), false)).toBe("ink");
   });
 });
