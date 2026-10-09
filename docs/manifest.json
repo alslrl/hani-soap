@@ -118,8 +118,8 @@
       "path": "implementation-plan.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 45502,
-      "sha256": "01999d3c09b01506a0707c9815357227e640681523bf4dafbd62252f260efcd2",
+      "characters": 46062,
+      "sha256": "12f1517c207bb5833d7aec908c901356b8c8bfc66ec8a0244fcb41bfe1313163",
       "summary": "Detailed implementation draft and decisions from the current development discussion"
     },
     {
@@ -145,6 +145,27 @@
       "characters": 3119,
       "sha256": "737f73ba950a5dfcf3b44884a8b59abc597bde9428bf2212bdde6e34eae821fd",
       "summary": "Preliminary and final presentation outlines with Codex usage and validation evidence"
+    },
+    {
+      "path": "reference/시술_위치_기록.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 1335,
+      "sha256": "1deb98f7081ad8656342f102e62542a80915fd1115b2fc00ffe8f6492863f5e8"
+    },
+    {
+      "path": "reference/발목_데모_혈자리.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 2246,
+      "sha256": "ec1b4d1fddf420fbd1a69483bdec90b6076d806084c0cd2cfae8601c19ba6f90"
+    },
+    {
+      "path": "verification/데모_정답차팅_초안.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 4636,
+      "sha256": "c164fb9da851645e164e4c4136a70916ffa68f5e9591ffa2feabac2f72ccab99"
     }
   ],
   "reference_collections": [
