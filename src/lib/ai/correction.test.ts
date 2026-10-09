@@ -31,4 +31,20 @@ describe('dictionary correction review', () => {
     expect(validateCorrections(raw, [span], [{ span_id: span.id, decision: 'unclear', candidate_id: null, reason: '불명확' }])[0].replacement).toBeNull();
   });
   it('calculates candidate edit distance without changing the text', () => expect(editDistance('보중이기탕', '보중익기탕')).toBe(1));
+  it('rejects a replacement form not declared by the source candidate', () => {
+    const changed = { ...span, candidates: [{ ...term, matched_form: '임의 처방' }] };
+    expect(() => validateCorrections(raw, [changed], [{ span_id: span.id, decision: 'suggest', candidate_id: term.id, reason: '' }])).toThrow('CORRECTION_FORM_INVALID');
+  });
+  it('protects numbers and explicit laterality even when a candidate ID is valid', () => {
+    for (const [original, replacement] of [['처방1', '처방2'], ['우측발목염자', '좌측발목염좌']]) {
+      const candidate = { ...term, term: replacement };
+      const protectedSpan = { id: 'protected', start: 0, end: original.length, original, candidates: [candidate] };
+      expect(() => validateCorrections(original, [protectedSpan], [{ span_id: 'protected', decision: 'suggest', candidate_id: term.id, reason: '' }])).toThrow('CORRECTION_PROTECTED_VALUE');
+    }
+  });
+  it('makes omitted model decisions explicit and keeps their original wording', () => {
+    const reviewed = validateCorrections(raw, [span], []);
+    expect(reviewed).toMatchObject([{ span_id: span.id, decision: 'unclear', replacement: null, review_status: 'pending' }]);
+    expect(applyAcceptedCorrections(raw, reviewed)).toBe(raw);
+  });
 });
