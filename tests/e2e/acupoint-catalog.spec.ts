@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { localDemo, readState, scenario , chooseSelect } from "./helpers";
 
 async function openRegion(page: import("@playwright/test").Page, x: number, y: number) {
-  await page.getByRole("button", { name: "부위 직접 선택", exact: true }).click();
+  await page.getByRole("radio", { name: "부위 선택", exact: true }).click();
   const point = await page.getByTestId("treatment-canvas").evaluate((element, value) => {
     const result = new DOMPoint(value.x, value.y).matrixTransform((element as SVGSVGElement).getScreenCTM()!);
     return { x: result.x, y: result.y };
