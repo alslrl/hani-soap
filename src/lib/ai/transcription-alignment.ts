@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { Segment } from '@/lib/types';
 
-export const DUAL_TRANSCRIPTION_VERSION = 'dual-asr-v2';
+export const DUAL_TRANSCRIPTION_VERSION = 'dual-asr-v2.1';
 const MAX_CELLS = 16_000_000;
 export type AlignmentCandidate = { segment_id: string; source_ids: string[] };
 export type AlignmentResult = { segments: Segment[]; warnings: string[]; changed_groups: number; unassigned_groups: number; algorithm: typeof DUAL_TRANSCRIPTION_VERSION; candidates: AlignmentCandidate[]; omissions: Segment[] };
@@ -24,6 +24,7 @@ export function alignmentWarnings(segments: Segment[], omissions: Segment[] = []
   const unknown = segments.filter(s => s.alignment_status === 'review_needed').length;
   return [
     ...(changed ? [`두 전사의 표현이 다른 문장 ${changed}개가 있습니다. 숫자·좌우·치료 지시는 원음과 확인해 주세요.`] : []),
+    ...(segments.some(s => s.timing_review) ? ['일부 원음 시간 구간이 겹치거나 불명확하여 해당 문장의 시간 표시를 보류했습니다. 화자 대응은 문장 근거로 별도 검토합니다.'] : []),
     ...(unknown ? [`화자 대응 확인이 필요한 문장 ${unknown}개를 미확인으로 보존했습니다.`] : []),
     ...(omissions.length ? [`화자 전사에만 남은 발화 ${omissions.length}개가 있습니다. 짧은 응답의 누락 여부를 원음으로 확인합니다.`] : []),
   ];
@@ -33,11 +34,12 @@ export function alignTranscriptContent(content: string, source: Segment[]): Alig
   const fallback = (reason: string): AlignmentResult => ({ segments: [{ id: randomUUID(), ordinal: 1, speaker: 'unknown', text: content, start_ms: null, end_ms: null, alignment_status: 'review_needed' }], warnings: [reason], changed_groups: 0, unassigned_groups: 1, algorithm: DUAL_TRANSCRIPTION_VERSION, candidates: [], omissions: [] });
   if (!content.trim()) throw new Error('TRANSCRIPTION_EMPTY');
   const valid = source.filter(s => s.text.trim());
-  let end = -1;
-  for (const s of valid) {
-    if (s.start_ms === null || s.end_ms === null || !Number.isFinite(s.start_ms) || !Number.isFinite(s.end_ms) || s.end_ms < s.start_ms || s.start_ms < end - 100) return fallback('화자 시간 구간이 겹치거나 확인되지 않아 본문을 미확인으로 보존했습니다.');
-    end = s.end_ms;
-  }
+  const unreliableTimes = new Set<string>();
+  valid.forEach((s, i) => {
+    if (s.start_ms === null || s.end_ms === null || !Number.isFinite(s.start_ms) || !Number.isFinite(s.end_ms) || s.start_ms < 0 || s.end_ms < s.start_ms) unreliableTimes.add(s.id);
+    const prior = valid[i - 1];
+    if (prior && s.start_ms !== null && prior.end_ms !== null && s.start_ms < prior.end_ms - 100) { unreliableTimes.add(s.id); unreliableTimes.add(prior.id); }
+  });
   const a: string[] = [], owners: number[] = [];
   valid.forEach((s, i) => { for (const ch of normalizeSpeech(s.text)) { a.push(ch); owners.push(i); } });
   const target = [...content.matchAll(/[\p{L}\p{N}]/gu)];
@@ -83,10 +85,11 @@ export function alignTranscriptContent(content: string, source: Segment[]): Alig
     const refs = safe ? chosen.map(k => valid[k]) : [...indexes].map(k => valid[k]);
     const changed = refs.length > 0 && !normalizeSpeech(refs.map(s => s.text).join('')).includes(normalizeSpeech(span.text));
     const id = randomUUID();
-    segments.push({ id, source_segment_id: id, source_segment_ids: refs.map(s => s.id), ordinal: segments.length + 1, speaker: 'unknown', text: span.text, ...(safe ? { raw_speaker: best![0] } : {}), start_ms: safe ? Math.min(...refs.map(s => s.start_ms!)) : null, end_ms: safe ? Math.max(...refs.map(s => s.end_ms!)) : null, alignment_status: safe ? 'aligned' : 'review_needed', transcription_changed: changed });
+    const timeSafe = refs.length > 0 && refs.every(s => !unreliableTimes.has(s.id));
+    segments.push({ id, source_segment_id: id, source_segment_ids: refs.map(s => s.id), ordinal: segments.length + 1, speaker: 'unknown', text: span.text, ...(safe ? { raw_speaker: best![0] } : {}), start_ms: safe && timeSafe ? Math.min(...refs.map(s => s.start_ms!)) : null, end_ms: safe && timeSafe ? Math.max(...refs.map(s => s.end_ms!)) : null, alignment_status: safe ? 'aligned' : 'review_needed', timing_review: !timeSafe, transcription_changed: changed });
     if (!safe && neighboring.length) candidates.push({ segment_id: id, source_ids: neighboring.map(s => s.id) });
   }
-  const omissions = valid.filter((s, k) => normalizeSpeech(s.text).length >= 2 && sourceHits[k] / normalizeSpeech(s.text).length < .5);
+  const omissions = valid.filter((s, k) => normalizeSpeech(s.text).length >= 2 && sourceHits[k] / normalizeSpeech(s.text).length < .5).map(s => ({ ...s, timing_review: unreliableTimes.has(s.id) }));
   if (segments.map(s => s.text).join('') !== content) return fallback('본문 보존 검사를 통과하지 못해 화자 대응을 보류했습니다.');
   return { segments, candidates, omissions, warnings: alignmentWarnings(segments, omissions), changed_groups: segments.filter(s => s.transcription_changed).length, unassigned_groups: segments.filter(s => s.alignment_status === 'review_needed').length, algorithm: DUAL_TRANSCRIPTION_VERSION };
 }
