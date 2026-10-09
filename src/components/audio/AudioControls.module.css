@@ -63,3 +63,6 @@
 .root .original p { margin:12px 0; }
 @media(max-width:550px) { .review .text { font-size:14px; }.root .reviewFooter .primary { font-size:11px; } }
 .root .speaker p, .root .original p, .root .correctionReason { max-width:88ch; }
+
+.speakerGroups { display:flex; flex-wrap:wrap; gap:16px; margin-bottom:20px; }
+.speakerGroups label { display:flex; flex-direction:column; gap:7px; font-size:12px; }

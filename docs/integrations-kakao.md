@@ -34,3 +34,5 @@ PIN 세션은 기존 `SameSite=Strict` 쿠키를 유지한다. OAuth만 별도 H
 - 운영 OAuth·카카오 API 응답·휴대폰 수신 확인은 각각 확인된 단계만 보고한다.
 
 출처: [카카오 로그인 REST API](https://developers.kakao.com/docs/ko/kakaologin/rest-api), [카카오톡 메시지 REST API](https://developers.kakao.com/docs/ko/kakaotalk-message/rest-api), [텍스트 템플릿](https://developers.kakao.com/docs/ko/message-template/default#text).
+
+운영 검증(2026-10-09): 실제 카카오 OAuth 연결 성공, 승인한 연결 테스트 문안 1건의 카카오 API 전송 성공, 동일 문안 재요청의 추가 전송 차단, 기존 승인 SOAP 보존을 확인했다. 사용자가 휴대폰 나와의 채팅에서 테스트 메시지 도착을 확인했다.
