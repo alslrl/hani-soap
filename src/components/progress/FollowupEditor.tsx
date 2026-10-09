@@ -41,6 +41,13 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
       if (item.subitem_key === item.item_key && !item.answer_text && (group?.subitems.length ?? 0) > 1) continue;
       next[answerKey(item.item_key, item.subitem_key)] = { item_key: item.item_key, subitem_key: item.subitem_key, answer_text: item.answer_text ?? "", change: item.change, confirmation_status: item.confirmation_status, applicability: item.applicability };
     }
+    // Preserve the identity of measured subitems, while today's answers stay blank.
+    for (const observation of state.observations.filter((item) => item.patient_id === visit.patient_id)) {
+      const source = state.followup_answers.find((item) => item.id === observation.followup_answer_id);
+      if (!source) continue;
+      const key = answerKey(source.item_key, source.subitem_key);
+      if (!next[key]) next[key] = { item_key: source.item_key, subitem_key: source.subitem_key, answer_text: "", change: null, confirmation_status: "not_confirmed", applicability: "unknown" };
+    }
     const values: Record<string, string> = {};
     for (const observation of state.observations.filter((item) => item.visit_id === visit.id)) values[observation.series_key] = String(observation.value);
     setDrafts(next);

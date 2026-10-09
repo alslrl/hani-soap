@@ -25,6 +25,7 @@ export async function POST(request: Request) {
     assertSameOrigin(request);
     getApiKey();
     const { visitId, recordingId, kind, transcriptId } = await readBody(request, 8000);
+    if (kind !== undefined && kind !== 'transcription' && kind !== 'soap') throw new AppError(400, 'INVALID_JOB_KIND', '지원하지 않는 AI 작업입니다.');
     const { state, version } = await readState();
     const visit = state.visits.find((item) => item.id === visitId && item.clinic_id === state.clinic.id);
     if (!visit) throw new AppError(404, 'VISIT_NOT_FOUND', '방문을 찾을 수 없습니다.');
