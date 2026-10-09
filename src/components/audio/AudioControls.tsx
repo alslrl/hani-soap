@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
 import { Mic, Square, Upload, RotateCcw, Check, FileText, Download, ArrowRight } from 'lucide-react';
-import type { RuntimeJob, RuntimeRecording, Transcript } from '@/lib/types';
+import { effectiveSpeaker, isSpeakerRole, speakerRoleLabels, withRawSpeakerGroups } from '@/lib/audio/speaker-roles';
+import type { RuntimeJob, RuntimeRecording, Transcript, SpeakerRole } from '@/lib/types';
 import { audioStore, closeRecoveredSession, commitLiveTurn, startRecording, stopRecording, startTranscriptionJob, uploadAudio } from '@/lib/audio/client';
 import { listRecoveries, readRecovery, removeRecovery, type RecoveryMetadata } from '@/lib/audio/recovery';
 import { applyAcceptedCorrections, type CorrectionSpan, type ValidatedCorrection } from '@/lib/ai/correction';
@@ -11,7 +12,7 @@ import styles from './AudioControls.module.css';
 
 type Props = { visitId: string; onChanged?: () => void };
 type JobsResponse = { jobs: RuntimeJob[]; recordings: RuntimeRecording[]; transcripts: Transcript[] };
-const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '화자 분리 전사 중', dictionary_correction: '사전 용어 검토 중', correction_review_needed: '용어 제안 검토 대기', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
+const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '화자 분리 전사 중', speaker_roles: '대화 문맥으로 화자 역할 추론 중', dictionary_correction: '사전 용어 검토 중', correction_review_needed: '용어 제안 검토 대기', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
 const time = (milliseconds: number) => `${Math.floor(milliseconds / 60_000).toString().padStart(2, '0')}:${Math.floor(milliseconds / 1000 % 60).toString().padStart(2, '0')}`;
 async function api<T>(url: string, body?: unknown): Promise<T> {
   const response = await fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
@@ -110,7 +111,15 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
   const [decisions, setDecisions] = useState<Record<string, 'accepted' | 'rejected'>>({});
   const [selections, setSelections] = useState<Record<string, string>>({});
   const [manualText, setManualText] = useState<string | null>(reviewedTranscript?.text ?? null);
-  const [speakers, setSpeakers] = useState<Record<string, string>>(() => reviewedTranscript?.segments.length === transcript.segments.length ? Object.fromEntries(transcript.segments.map((segment, index) => [segment.id, reviewedTranscript.segments[index].speaker])) : {});
+  const roleTranscript = withRawSpeakerGroups(reviewedTranscript ?? transcript, (job.result?.rawSpeakers ?? {}) as Record<string, string>, transcript);
+  const [speakers, setSpeakers] = useState<Record<string, SpeakerRole | null>>({});
+  const [speakerGroups, setSpeakerGroups] = useState<Record<string, SpeakerRole>>({});
+  const groupNames = [...new Set(roleTranscript.segments.flatMap(segment => segment.raw_speaker ? [segment.raw_speaker] : []))];
+  const currentRoles = { ...roleTranscript.speaker_roles, ...Object.fromEntries(Object.entries(speakerGroups).map(([group, role]) => [group, { role, source: 'human' as const }])) };
+  const currentRole = (segment: Transcript['segments'][number]) => {
+    const change = speakers[segment.id];
+    return change === null ? effectiveSpeaker({ ...segment, speaker_override: undefined }, currentRoles) : change ?? effectiveSpeaker(segment, currentRoles);
+  };
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [reviewTab, setReviewTab] = useState<'terms' | 'speakers' | 'text'>(() => candidates.length ? 'terms' : transcript.segments.length ? 'speakers' : 'text');
@@ -119,10 +128,7 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
     return { ...candidate, ...(selected ? { decision: 'suggest' as const, candidate_id: selected.id, candidate: selected, replacement: selected.matched_form ?? selected.term } : {}), review_status: decisions[candidate.span_id] || (selections[candidate.span_id] !== undefined ? 'pending' : candidate.review_status) };
   });
   const corrected = applyAcceptedCorrections(transcript.text, effectiveCorrections);
-  const edited = Object.keys(decisions).length > 0 || Object.keys(selections).length > 0 || (manualText !== null && manualText !== (reviewedTranscript?.text ?? corrected)) || Object.entries(speakers).some(([id, role]) => {
-    const index = transcript.segments.findIndex(segment => segment.id === id);
-    return role !== (reviewedTranscript?.segments[index]?.speaker ?? transcript.segments[index]?.speaker);
-  });
+  const edited = Object.keys(decisions).length > 0 || Object.keys(selections).length > 0 || (manualText !== null && manualText !== (reviewedTranscript?.text ?? corrected)) || Object.keys(speakers).length > 0 || Object.keys(speakerGroups).length > 0;
   const recheck = async () => {
     setBusy(true); setError(null);
     try { await api('/api/jobs', { visitId: transcript.visit_id, transcriptId: reviewedTranscript?.id ?? transcript.id, kind: 'correction' }); onSaved(); }
@@ -132,7 +138,7 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
   const save = async () => {
     setBusy(true); setError(null);
     try {
-      const result = await api<{ transcriptId: string }>('/api/jobs/review', { jobId: job.id, decisions: effectiveCorrections.map(item => ({ span_id: item.span_id, status: item.review_status === 'accepted' ? 'accepted' : 'rejected', ...(item.review_status === 'accepted' && selections[item.span_id] ? { candidate_id: selections[item.span_id] } : {}) })), ...(manualText !== null ? { manualText } : {}), speakers, expectedTranscriptRevision: latestRevision });
+      const result = await api<{ transcriptId: string }>('/api/jobs/review', { jobId: job.id, decisions: effectiveCorrections.map(item => ({ span_id: item.span_id, status: item.review_status === 'accepted' ? 'accepted' : 'rejected', ...(item.review_status === 'accepted' && selections[item.span_id] ? { candidate_id: selections[item.span_id] } : {}) })), ...(manualText !== null ? { manualText } : {}), speakers, speakerGroups, expectedTranscriptRevision: latestRevision });
       await api('/api/jobs', { visitId: transcript.visit_id, transcriptId: result.transcriptId, kind: 'soap' });
       onSaved();
     } catch (failure) { setError(failure instanceof Error ? failure.message : '전사 검토 저장 실패'); }
@@ -148,6 +154,7 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
         <button className={styles.button} disabled={busy || edited || !recheckEnabled} onClick={() => void recheck()}><RotateCcw size={14} /> 저장된 전사로 용어 다시 검사</button>
       </header>
       {edited && <p className={styles.notice}>편집·선택한 내용을 먼저 저장한 뒤 용어를 다시 검사해 주세요.</p>}
+      {typeof job.result?.speaker_role_note === 'string' && <p className={styles.notice}>{job.result.speaker_role_note}</p>}
       {typeof job.result?.correction_note === 'string' && <p className={styles.notice}>{job.result.correction_note}</p>}
       {Array.isArray(job.result?.warnings) && job.result.warnings.map((warning, index) => <p key={index} className={styles.reviewWarning}>검토할 내용: {String(warning)}</p>)}
       <div className={styles.reviewTabs} role="group" aria-label="전사 검토 단계">
@@ -175,9 +182,10 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
         })}</div> : <p className={styles.empty}>검토할 용어 제안이 없습니다. 화자와 전사 내용을 확인해 주세요.</p>}
       </section>}
       {reviewTab === 'speakers' && <section className={styles.reviewPanel} aria-label="화자 확인">
-        <div className={styles.panelIntro}><p>발화를 읽고 화자 역할을 확인해 주세요. A/B 표시는 역할을 자동 확정하지 않습니다.</p></div>
-        <div className={styles.speakerList}>{transcript.segments.length ? transcript.segments.map((segment, index) => <article className={styles.speaker} key={segment.id}>
-          <header><div><strong>구간 {String(index + 1).padStart(2, '0')}</strong>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={speakers[segment.id] || segment.speaker} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select></header>
+        <div className={styles.panelIntro}><p>전체 대화로 역할을 추론했습니다. 그룹 역할을 바꾸면 해당 발화 전체에 반영됩니다. 개별 수정은 그룹을 다시 바꿔도 유지되며, 그룹 역할로 되돌릴 수 있습니다.</p></div>
+        <div className={styles.speakerGroups}>{groupNames.map(group => <label key={group}>화자 {group}<select className={styles.select} aria-label={`화자 ${group} 그룹 역할`} value={currentRoles[group]?.role ?? 'unknown'} onChange={event => { if (isSpeakerRole(event.target.value)) setSpeakerGroups(current => ({ ...current, [group]: event.target.value as SpeakerRole })); }}>{Object.entries(speakerRoleLabels).map(([role, label]) => <option key={role} value={role}>{label} · {group}</option>)}</select></label>)}</div>
+        <div className={styles.speakerList}>{roleTranscript.segments.length ? roleTranscript.segments.map((segment, index) => <article className={styles.speaker} key={segment.id}>
+          <header><div><strong>{speakerRoleLabels[currentRole(segment)]}{segment.raw_speaker ? ` · ${segment.raw_speaker}` : ''}</strong><span>구간 {String(index + 1).padStart(2, '0')}</span>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={currentRole(segment)} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value as SpeakerRole }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select>{(speakers[segment.id] !== null && (speakers[segment.id] !== undefined || segment.speaker_override !== undefined)) && <button type="button" className={styles.button} onClick={() => setSpeakers(current => ({ ...current, [segment.id]: null }))}>그룹 역할로 되돌리기</button>}</header>
           <p>{segment.text}</p>
         </article>) : <p className={styles.empty}>화자별 구간이 없는 전사입니다. 전사 편집에서 전체 내용을 확인해 주세요.</p>}</div>
       </section>}

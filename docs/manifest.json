@@ -306,7 +306,7 @@
     "actual_care_generation": true,
     "actual_briefing_workflow_on_vercel": true,
     "physical_ipad_tested": false,
-    "kakao_real_send_tested": false,
+    "kakao_real_send_tested": true,
     "anatomy_v2_update_e2e_tests": 2,
     "webgl_free_anatomy_verified": true,
     "legacy_annotation_preservation_verified": true,

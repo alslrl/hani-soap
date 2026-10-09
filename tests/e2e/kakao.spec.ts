@@ -25,6 +25,8 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   await expect(page.getByRole('button', { name: '승인 문안 나에게 보내기' })).toBeEnabled();
   await page.getByRole('button', { name: '승인 문안 나에게 보내기' }).click();
   await expect(page.getByText('카카오 본인 발송 완료', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '모의 응답 기록', exact: true })).toHaveCount(0);
+  await expect(page.getByText('카카오톡에서 안내 링크를 열어 응답하면 이력에 표시됩니다.')).toBeVisible();
   const afterSend = await readState(page.request);
   const saved = afterSend.state.care_messages.find((v) => v.approved_body === body)!;
   expect(saved.delivery_mode).toBe('kakao_self'); expect(saved.status).toBe('sent');
