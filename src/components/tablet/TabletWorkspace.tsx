@@ -182,12 +182,10 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   function move(e: PointerSample) {
     if (!input.current.owns(e.pointerId)) return;
     e.preventDefault();
-    const samples = e.nativeEvent?.getCoalescedEvents?.() || [];
-    let points: InkPoint[] | null = null;
-    for (const sample of samples.length ? samples : [e]) {
-      const p = point(sample);
-      if (p) points = input.current.move(sample, p);
-    }
+    // Keep the original event stream that the check detector was tuned against.
+    // Optional coalesced-event metadata must not replace the owning pointer.
+    const p = point(e);
+    const points = p ? input.current.move(e, p) : null;
     if (points) setActiveInk([...points]);
   }
   function end(e: PointerSample) {
@@ -340,7 +338,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         </div>
         {isHistorical && <div className="tablet-history-notice" data-testid="legacy-body-map-notice"><span>{BODY_MAP_LABELS[frameVersion]}에 저장된 원본입니다. 읽기 전용으로 표시합니다.</span>{!portrait && <button type="button" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기 <ArrowRight size={15}/></button>}</div>}
         <div className="tablet-canvas-wrap">
-          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onLostPointerCapture={cancel} onContextMenu={e => e.preventDefault()}>
+          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
             <BodyDiagram view={view} version={layer.coordinateVersion} />
             {!isHistorical && <AcupointReferenceDots view={view} version={layer.coordinateVersion} />}
