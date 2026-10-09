@@ -1,6 +1,10 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import Link from "next/link";
+import { displayRecordText } from "@/lib/presentation";
 import { useState } from "react";
 import { useAppState } from "@/lib/client";
 import {
@@ -93,7 +97,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
             className="hs-button"
             href={`/clinic/patients/${patientId}/progress`}
           >
-            경과 보기 ↗
+            경과 보기 <ActionArrow direction="up-right" />
           </Link>
           {current && (
             <Link
@@ -113,7 +117,6 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
               <div>
                 <strong>{patient.display_name}</strong>
                 <span>차트 {patient.demo_key}</span>
-                <Badge>가상 환자</Badge>
               </div>
             </div>
             <dl className="hs-patient-details">
@@ -200,7 +203,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                 ))}
               </div>
               {!!document.source_refs.length && (
-                <details className="hs-history-source">
+                <Disclosure className="hs-history-source">
                   <summary>기록 근거 {document.source_refs.length}개</summary>
                   {document.source_refs.map((source, index) => (
                     <blockquote key={index}>
@@ -208,20 +211,20 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                       <cite>{source.source_id}</cite>
                     </blockquote>
                   ))}
-                </details>
+                </Disclosure>
               )}
               <div className="hs-history-record-footer">
                 <span>
                   버전 {document.revision} ·{" "}
                   {document.origin === "synthetic_history"
-                    ? "합성 과거 이력"
-                    : "제공 사례 기반 데모 기록"}
+                    ? "이전 진료 기록"
+                    : "진료 기록"}
                 </span>
                 <Link
                   href={`/clinic/visits/${selected.id}`}
                   className="hs-text-link"
                 >
-                  진료 화면 열기 ↗
+                  진료 화면 열기 <ActionArrow direction="up-right" />
                 </Link>
               </div>
             </>
@@ -250,7 +253,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                   href={`/clinic/patients/${patientId}/progress`}
                   className="hs-text-link"
                 >
-                  크게 보기 ↗
+                  크게 보기 <ActionArrow direction="up-right" />
                 </Link>,
               )}
               <div className="hs-history-last-score">
@@ -272,7 +275,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
             {panelTitle(
               "안내·응답 이력",
               <Link href="/clinic/care" className="hs-text-link">
-                후속 관리 ↗
+                후속 관리 <ActionArrow direction="up-right" />
               </Link>,
             )}
             {messages.length ? (
@@ -285,14 +288,10 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                     <div>
                       <span>{shortDate(message.scheduled_at)}</span>
                       <Badge>
-                        {message.delivery_mode === "mock"
-                          ? "모의 발송"
-                          : message.status === "sent"
-                            ? "발송됨"
-                            : "안내 초안"}
+                        {message.status === "sent" ? "발송 이력" : "안내 초안"}
                       </Badge>
                     </div>
-                    <p>{message.approved_body || message.draft_body}</p>
+                    <p>{displayRecordText(message.approved_body || message.draft_body)}</p>
                     {response && (
                       <div className="hs-history-care-response">
                         <span>↳</span>

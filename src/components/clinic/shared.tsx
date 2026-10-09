@@ -114,7 +114,7 @@ export function Portrait({
     <img
       className={`hs-portrait hs-portrait-${size}`}
       src={`/demo/portraits/${patient.portrait_asset_key}.png`}
-      alt={`${patient.display_name} 가상 프로필`}
+      alt={`${patient.display_name} 프로필`}
     />
   ) : (
     <span className={`hs-portrait hs-portrait-${size} hs-portrait-fallback`}>

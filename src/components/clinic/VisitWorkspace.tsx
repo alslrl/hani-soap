@@ -1,10 +1,14 @@
 "use client";
 import { StairDiscomfortPanel } from "./StairDiscomfortPanel";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+import { AppSelect } from '@/components/ui/AppSelect';
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppState } from "@/lib/client";
-import type { FollowupItem, SourceRef, Treatment } from "@/lib/types";
+import type { SourceRef, Treatment } from "@/lib/types";
 import AudioControls from "@/components/audio/AudioControls";
 import { FollowupEditor } from "@/components/progress/FollowupEditor";
 import { getTranscriptNrsProposal } from "@/lib/ai/clinical-analysis-drafts";
@@ -15,7 +19,6 @@ import {
   Empty,
   errorMessage,
   fullDate,
-  itemLabels,
   LoadState,
   modalityLabels,
   NrsSparkline,
@@ -32,6 +35,7 @@ import {
   type State,
   type Visit,
 } from "./shared";
+import { displayRecordText } from "@/lib/presentation";
 import "./clinic.css";
 
 const emptySections: Sections = { s: "", o: "", a: "", p: "" };
@@ -76,7 +80,7 @@ function ReadOnlySoap({ document }: { document?: Soap }) {
       {sectionMeta.map((section) => (
         <div key={section.key}>
           <span>{section.key.toUpperCase()}</span>
-          <p>{document.sections[section.key] || "기록 없음"}</p>
+          <p>{displayRecordText(document.sections[section.key] || "기록 없음")}</p>
         </div>
       ))}
     </div>
@@ -120,7 +124,7 @@ function PatientRail({
             href={`/clinic/patients/${patient.id}`}
             className="hs-text-link"
           >
-            전체 이력 ↗
+            전체 이력 <ActionArrow direction="up-right" />
           </Link>,
         )}
         <div className="hs-identity">
@@ -129,7 +133,7 @@ function PatientRail({
             <strong>{patient.display_name}</strong>
             <span>{demographics(patient, visit.scheduled_at)}</span>
             <span className="hs-muted">
-              차트 {patient.demo_key} · 가상 환자
+              차트 {patient.demo_key}
             </span>
           </div>
         </div>
@@ -529,7 +533,7 @@ function TranscriptEvidence({
         </div>
         <label className="hs-select-label">
           <span className="hs-sr-only">전사 버전</span>
-          <select
+          <AppSelect
             value={transcript.id}
             onChange={(event) => setSelectedId(event.target.value)}
           >
@@ -539,7 +543,7 @@ function TranscriptEvidence({
                 {item.status === "reviewed" ? "검토 전사" : "원문"}
               </option>
             ))}
-          </select>
+          </AppSelect>
         </label>
       </div>
       <div className="hs-transcript-segments">
@@ -623,7 +627,7 @@ function TreatmentPane({
           href={`/tablet/visits/${visit.id}`}
           target="_blank"
         >
-          iPad 화면 열기 ↗
+          iPad 화면 열기 <ActionArrow direction="up-right" />
         </Link>,
       )}
       {treatments.length ? (
@@ -746,144 +750,6 @@ function TreatmentPane({
   );
 }
 
-function PendingChecks({
-  state,
-  patient,
-  visit,
-  act,
-}: {
-  state: State;
-  patient: Patient;
-  visit: Visit;
-  act: Act;
-}) {
-  const items = state.followup_items.filter(
-    (item) =>
-      item.patient_id === patient.id &&
-      item.status === "pending" &&
-      item.source_visit_id !== visit.id &&
-      (state.visits.find((source) => source.id === item.source_visit_id)
-        ?.scheduled_at || "") < visit.scheduled_at,
-  );
-  const nextItems = state.followup_items.filter(
-    (item) =>
-      item.patient_id === patient.id &&
-      item.status === "pending" &&
-      item.source_visit_id === visit.id,
-  );
-  const [busy, setBusy] = useState("");
-  const [error, setError] = useState("");
-  const [adding, setAdding] = useState(false);
-  const [title, setTitle] = useState("");
-  async function resolve(item: FollowupItem) {
-    setBusy(item.id);
-    setError("");
-    try {
-      await act("followup.resolve", { itemId: item.id, visitId: visit.id });
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy("");
-    }
-  }
-  async function add() {
-    if (!title.trim()) return;
-    setBusy("new");
-    setError("");
-    try {
-      await act("followup.create", {
-        visitId: visit.id,
-        title: title.trim(),
-        item_key: "questions_concerns",
-      });
-      setTitle("");
-      setAdding(false);
-    } catch (err) {
-      setError(errorMessage(err));
-    } finally {
-      setBusy("");
-    }
-  }
-  return (
-    <section className="hs-panel hs-checks-panel">
-      {panelTitle(
-        "오늘 확인할 것",
-        <span className="hs-small-count">{items.length}</span>,
-      )}
-      {items.length ? (
-        <ul className="hs-check-list">
-          {items.map((item) => (
-            <li key={item.id}>
-              <button
-                className="hs-check-control"
-                aria-label={`${item.title} 확인 완료`}
-                disabled={busy === item.id}
-                onClick={() => resolve(item)}
-              >
-                <span aria-hidden="true" />
-              </button>
-              <div>
-                <p>{item.title}</p>
-                <span>
-                  {itemLabels[item.item_key]} ·{" "}
-                  {shortDate(
-                    state.visits.find(
-                      (source) => source.id === item.source_visit_id,
-                    )?.scheduled_at || visit.scheduled_at,
-                  )}{" "}
-                  기록
-                </span>
-              </div>
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="hs-muted hs-padding">남은 확인 항목이 없어요.</p>
-      )}
-      {nextItems.length > 0 && (
-        <div className="hs-next-checks">
-          <span className="hs-overline">다음 방문에 확인</span>
-          {nextItems.map((item) => (
-            <p key={item.id}>{item.title}</p>
-          ))}
-        </div>
-      )}
-      {adding ? (
-        <div className="hs-add-check">
-          <label htmlFor="next-check">다음 방문에 확인할 내용</label>
-          <input
-            id="next-check"
-            value={title}
-            onChange={(event) => setTitle(event.target.value)}
-            placeholder="확인할 내용을 입력하세요"
-          />
-          <div>
-            <button className="hs-text-button" onClick={() => setAdding(false)}>
-              취소
-            </button>
-            <button
-              className="hs-button hs-button-small"
-              disabled={!title.trim() || busy === "new"}
-              onClick={add}
-            >
-              추가
-            </button>
-          </div>
-        </div>
-      ) : (
-        <button className="hs-add-check-button" onClick={() => setAdding(true)}>
-          ＋ 확인 항목 추가
-        </button>
-      )}
-      {error && (
-        <p className="hs-inline-error" role="alert">
-          {error}
-        </p>
-      )}
-    </section>
-  );
-}
-
 function NrsPanel({
   state,
   patient,
@@ -980,7 +846,7 @@ function NrsPanel({
           href={`/clinic/patients/${patient.id}/progress`}
           className="hs-text-link"
         >
-          경과 보기 ↗
+          경과 보기 <ActionArrow direction="up-right" />
         </Link>,
       )}
       <p className="hs-metric-context">오른쪽 발목 · 현재 통증</p>
@@ -1186,12 +1052,12 @@ function BriefingResult({
             </div>
           )}
           {missing.length > 0 && (
-            <details>
+            <Disclosure>
               <summary>추가 확인 {missing.length}개</summary>
               {missing.map((item, index) => (
                 <p key={index}>{item}</p>
               ))}
-            </details>
+            </Disclosure>
           )}
         </>
       )}
@@ -1280,7 +1146,7 @@ function PastVisitPanel({
             {history[0] ? `${shortDate(history[0].scheduled_at)} 마지막 진료` : "첫 방문"}
           </span>
           <h3>{patient.chief_complaint}</h3>
-          {!hasSummary && <p>{history[0]?.summary || "이전 기록이 없어요. 오늘 들은 증상과 관찰 소견부터 기록하세요."}</p>}
+          {!hasSummary && <p>{displayRecordText(history[0]?.summary || "이전 기록이 없어요. 오늘 들은 증상과 관찰 소견부터 기록하세요.")}</p>}
           {history.length > 0 && <BriefingResult state={state} visit={visit} aiAvailable={aiAvailable} refresh={refresh} />}
         </div>
       </div>
@@ -1309,7 +1175,7 @@ function PastVisitPanel({
         <Link href="/clinic/care" className="hs-contact-alert">
           <span>!</span>
           <div><strong>불편 응답 확인 필요</strong><p>최근 응답과 현재 상태를 확인해 주세요.</p></div>
-          <span aria-hidden="true">↗</span>
+          <span aria-hidden="true"><ActionArrow direction="up-right" /></span>
         </Link>
       </div>}
     </section>
@@ -1384,7 +1250,7 @@ function TodayFollowupPanels({
               href={`/clinic/patients/${patient.id}/progress`}
               className="hs-text-link"
             >
-              경과 보기 ↗
+              경과 보기 <ActionArrow direction="up-right" />
             </Link>,
           )}
           <p>야뇨 횟수와 수면 변화를 각각 확인하세요.</p>
@@ -1393,12 +1259,11 @@ function TodayFollowupPanels({
           </span>
         </section>
       )}
-      <PendingChecks state={state} patient={patient} visit={visit} act={act} />
       <section className="hs-panel hs-responses-panel">
         {panelTitle(
           "지난 환자 응답",
           <Link href="/clinic/care" className="hs-text-link">
-            전체 보기 ↗
+            전체 보기 <ActionArrow direction="up-right" />
           </Link>,
         )}
         {responses.length ? (
@@ -1409,7 +1274,7 @@ function TodayFollowupPanels({
                 <Badge
                   tone={response.option === "discomfort" ? "amber" : "neutral"}
                 >
-                  모의 응답
+                  {response.source === "kakao_self_link" ? "카카오톡 응답" : "환자 응답"}
                 </Badge>
               </div>
               <strong>

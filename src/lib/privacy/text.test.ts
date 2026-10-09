@@ -32,6 +32,23 @@ describe('bounded text identifiers', () => {
     expect(original.text).toContain('김 서연');
     expect(privacyCount({ soap: privacy.summary() })).toBe(4);
   });
+  it('handles registered names followed by Korean reservation particles', () => {
+    const privacy = new AiTextPrivacy(identities);
+    const raw = '김서연으로 예약했어요. 김서연이라고 합니다.';
+    const masked = privacy.mask(raw);
+    expect(masked).not.toContain('김서연');
+    expect(privacy.restore(masked)).toBe(raw);
+  });
+  it('masks phone separators emitted with extra spaces by actual speech transcription', () => {
+    for (const number of ['010-0000 -0000', '010 - 0000 - 0000', '+82  10 0000 -0000']) {
+      const privacy = new AiTextPrivacy([]);
+      const raw = `연락처는 ${number}이에요. 통증 5점, 하루 3회 식후 30분.`;
+      const masked = privacy.mask(raw);
+      expect(masked).not.toContain(number);
+      expect(masked).toContain('통증 5점, 하루 3회 식후 30분');
+      expect(privacy.restore(masked)).toBe(raw);
+    }
+  });
   it('avoids replacing short clinical words and malformed resident-number shapes', () => {
     const privacy = new AiTextPrivacy([{ value: '이상', kind: 'patient_name' }]);
     expect(privacy.mask('검사 이상 없음. 999999-1234567. 통증 8점.')).toBe('검사 이상 없음. 999999-1234567. 통증 8점.');

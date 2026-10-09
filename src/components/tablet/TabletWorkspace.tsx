@@ -1,4 +1,6 @@
 "use client";
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
@@ -182,12 +184,10 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   function move(e: PointerSample) {
     if (!input.current.owns(e.pointerId)) return;
     e.preventDefault();
-    const samples = e.nativeEvent?.getCoalescedEvents?.() || [];
-    let points: InkPoint[] | null = null;
-    for (const sample of samples.length ? samples : [e]) {
-      const p = point(sample);
-      if (p) points = input.current.move(sample, p);
-    }
+    // Keep the original event stream that the check detector was tuned against.
+    // Optional coalesced-event metadata must not replace the owning pointer.
+    const p = point(e);
+    const points = p ? input.current.move(e, p) : null;
     if (points) setActiveInk([...points]);
   }
   function end(e: PointerSample) {
@@ -291,7 +291,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   useEffect(() => {
     if (!picker && !recordsOpen && !historyOpen) return;
     const escape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") { event.preventDefault(); dismissPanel(); setHistoryOpen(false); }
+      if (event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); dismissPanel(); setHistoryOpen(false); }
     };
     document.addEventListener("keydown", escape);
     return () => document.removeEventListener("keydown", escape);
@@ -340,7 +340,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         </div>
         {isHistorical && <div className="tablet-history-notice" data-testid="legacy-body-map-notice"><span>{BODY_MAP_LABELS[frameVersion]}에 저장된 원본입니다. 읽기 전용으로 표시합니다.</span>{!portrait && <button type="button" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기 <ArrowRight size={15}/></button>}</div>}
         <div className="tablet-canvas-wrap">
-          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onLostPointerCapture={cancel} onContextMenu={e => e.preventDefault()}>
+          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
             <BodyDiagram view={view} version={layer.coordinateVersion} />
             {!isHistorical && <AcupointReferenceDots view={view} version={layer.coordinateVersion} />}
@@ -370,7 +370,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
             return <div className="tablet-location-row" key={`${location.acupoint_code}-${index}`}><span className="tablet-location-check"><Check size={15}/></span><div><strong>{location.label_ko} <small>{location.acupoint_code}</small></strong><p>{SIDE_LABELS[location.laterality]} {REGION_LABELS[location.body_region as BodyRegion] || location.body_region}{!isHistorical && sourceFrame && sourceFrame !== preferredVersion ? " · 이전 도해 위치" : ""}</p>{location.location_note && <p>{location.location_note}</p>}</div>{!isHistorical && <button type="button" className="tablet-remove" aria-label={`${location.label_ko} 삭제`} onClick={() => changeDraft({ locations: draft.locations.filter((_, i) => i !== index) })} disabled={busy}>×</button>}</div>;
           }) : <div className="tablet-empty-locations"><span>✓</span><strong>{isHistorical ? "이 도해에 연결된 위치가 없습니다" : "아직 선택한 위치가 없어요"}</strong><p>{isHistorical ? "원본 필기는 인체 화면에서 확인하세요." : "인체에 체크하거나 부위를 직접 선택해 주세요."}</p></div>}</div>
           {!isHistorical && <><label className="tablet-note-field tablet-treatment-note">시술 메모<textarea value={draft.notes} onChange={e => changeDraft({ notes: e.target.value })} placeholder="확인한 내용을 간단히 남겨주세요" rows={3} disabled={busy}/></label><div className="tablet-save-actions"><button type="button" className="tablet-secondary" onClick={() => void save(false)} disabled={busy}>초안 저장</button><button type="button" className="tablet-primary" onClick={() => void save(true)} disabled={busy || !draft.locations.length}><CheckCheck size={17}/>오늘 시행 확인</button></div><p className="tablet-field-help">위치 선택은 초안입니다. 실제 시행한 시술만 확인하세요.</p></>}
-          <details className="tablet-memo-details"><summary><PenLine size={16}/>필기 원본 · {layer.strokes.filter(s => s.kind === "memo").length}획<ChevronDown size={15}/></summary><p className="tablet-field-help">{tab.detail} · {view === "front" ? "앞면" : "뒷면"} 필기 원본을 보존합니다.</p>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" onClick={() => void extractMemo()} disabled={busy || dirty || !layer.revision || !layer.strokes.some(s => s.kind === "memo")}>필기 텍스트 추출</button>}{annotation?.extracted_text != null && <><label className="tablet-note-field">{annotation.extraction_reviewed ? "검토한 텍스트" : "AI 텍스트 후보 · 검토 필요"}<textarea value={reviewText ?? annotation.extracted_text} readOnly={isHistorical} rows={4} onChange={e => setReviewText(e.target.value)} /></label>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" disabled={busy || dirty} onClick={() => void reviewMemo()}>필기 내용 검토 확인</button>}</>}</details>
+          <Disclosure className="tablet-memo-details"><summary><PenLine size={16}/>필기 원본 · {layer.strokes.filter(s => s.kind === "memo").length}획<ChevronDown size={15}/></summary><p className="tablet-field-help">{tab.detail} · {view === "front" ? "앞면" : "뒷면"} 필기 원본을 보존합니다.</p>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" onClick={() => void extractMemo()} disabled={busy || dirty || !layer.revision || !layer.strokes.some(s => s.kind === "memo")}>필기 텍스트 추출</button>}{annotation?.extracted_text != null && <><label className="tablet-note-field">{annotation.extraction_reviewed ? "검토한 텍스트" : "AI 텍스트 후보 · 검토 필요"}<textarea value={reviewText ?? annotation.extracted_text} readOnly={isHistorical} rows={4} onChange={e => setReviewText(e.target.value)} /></label>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" disabled={busy || dirty} onClick={() => void reviewMemo()}>필기 내용 검토 확인</button>}</>}</Disclosure>
         </>}
         {!isHistorical && events.length > 0 && <section className="tablet-live-candidates"><span className="tablet-eyebrow">PC 음성에서 온 후보</span>{events.slice(-3).map(event => <div key={event.id}><small>{{ current: "현재 발화", planned: "계획", past: "과거", negated: "부정", unclear: "확인 필요" }[event.context]}</small><p>“{event.text}”</p><div>{event.context !== "past" && event.context !== "negated" && <button type="button" disabled={busy} onClick={() => { void act("live.accept", { eventId: event.id }).then(() => setMessage("음성 후보를 추가했습니다. 부위와 시행 여부를 따로 확인해 주세요.")).catch(() => {}); }}>후보 보관</button>}<button type="button" disabled={busy} onClick={() => { void act("live.dismiss", { eventId: event.id }).catch(() => {}); }}>제외</button></div></div>)}<p className="tablet-field-help">시술과 방문은 자동으로 전환되지 않습니다.</p></section>}
         <div className="tablet-sheet-footer"><Link href={`/clinic/visits/${visitId}`}>PC 진료 화면</Link>{frameVersion !== "body-map-v1" && <a href="/demo/anatomy/ATTRIBUTION.html" target="_blank" rel="noreferrer">{frameVersion === "body-map-v3-female" ? "여성 도해 · HRA / CC BY" : "인체 도해 · Z-Anatomy / CC BY-SA"}</a>}</div>

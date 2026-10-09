@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { localDemo, readState, origin, scenario } from './helpers';
+import { localDemo, readState, origin, scenario , chooseSelect } from './helpers';
 
 test('Kakao connection, approved self-send, public response and PC contact form one complete local flow', async ({ page }) => {
   const initial = await localDemo(page);
@@ -11,21 +11,24 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   const state = new URL((await start.json()).url).searchParams.get('state');
   expect((await page.request.get(`/api/auth/kakao/callback?code=qa&state=${state}`)).status()).toBe(200);
   await page.goto('/settings');
-  await expect(page.getByRole('heading', { name: '카카오톡 나에게 보내기' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: '카카오톡 연결' })).toBeVisible();
   await expect(page.getByText('연결됨 · 본인 계정 · …4567')).toBeVisible();
   const { patient_id } = scenario(initial, 'A');
   await page.goto('/clinic/care');
   await page.getByRole('button').filter({ hasText: initial.state.patients.find((v) => v.id === patient_id)!.display_name }).first().click();
   await page.getByRole('button', { name: '＋ 새 안내', exact: true }).click();
-  const body = `가상 환자 카카오 안내 ${Date.now()}. 확인한 생활 관리를 이어가고 불편한 점을 알려 주세요. ` + '승인 문안 전체를 보존합니다. '.repeat(20);
+  const body = `카카오 안내 ${Date.now()}. 확인한 생활 관리를 이어가고 불편한 점을 알려 주세요. ` + '승인 문안 전체를 보존합니다. '.repeat(20);
   await page.getByLabel('안내문 초안').fill(body);
   await page.getByRole('button', { name: '초안 저장', exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_messages.some((v) => v.draft_body === body)).toBe(true);
-  await page.getByRole('button', { name: '문안 승인', exact: true }).click();
-  await expect(page.getByRole('button', { name: '승인 문안 나에게 보내기' })).toBeEnabled();
-  await page.getByRole('button', { name: '승인 문안 나에게 보내기' }).click();
-  await expect(page.getByText('카카오 본인 발송 완료', { exact: true })).toBeVisible();
-  await expect(page.getByRole('button', { name: '모의 응답 기록', exact: true })).toHaveCount(0);
+  await page.getByRole('button', { name: '내용 승인', exact: true }).click();
+  await expect(page.getByRole('button', { name: '카카오톡으로 발송하기' })).toBeEnabled();
+  await expect(page.getByRole('button', { name: '카카오톡으로 발송하기' })).toHaveCount(1);
+  await expect(page.getByRole('button', { name: '승인 문안 모의 발송' })).toHaveCount(0);
+  await expect(page.locator('main').first()).not.toContainText(/모의 발송|모의 응답|가상 환자|데모/, { useInnerText: true });
+  await page.getByRole('button', { name: '카카오톡으로 발송하기' }).click();
+  await expect(page.getByText('카카오톡 발송 완료', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: '응답 기록', exact: true })).toHaveCount(0);
   await expect(page.getByText('카카오톡에서 안내 링크를 열어 응답하면 이력에 표시됩니다.')).toBeVisible();
   const afterSend = await readState(page.request);
   const saved = afterSend.state.care_messages.find((v) => v.approved_body === body)!;
@@ -33,6 +36,7 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   const repeated = await page.request.post(`/api/care-messages/${saved.id}/send-self`, { headers: { Origin: origin }, data: { approvedBody: body } });
   expect((await repeated.json()).duplicate).toBe(true);
   const provider = JSON.parse(await readFile(path.join(process.env.HANI_KAKAO_FIXTURE_DIR!, 'provider-preview.json'), 'utf8'));
+  expect(provider.template.text).toMatch(/^\[HaniSOAP\]/);
   expect(provider.count).toBe(1); expect([...provider.template.text].length).toBeLessThanOrEqual(200);
   const responseURL = provider.template.buttons[1].link.web_url;
   const beforeResponse = await readState(page.request);
@@ -42,7 +46,7 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   expect((await readState(page.request)).version).toBe(beforeResponse.version);
   await responder.getByRole('button', { name: '응답 전달' }).click();
   await expect(responder.getByRole('status')).toContainText('응답을 전달했습니다.');
-  await responder.getByLabel('불편한 점', { exact: true }).selectOption('stomach_discomfort');
+  await chooseSelect(responder, responder.getByRole("combobox", { name: '불편한 점' }), 'stomach_discomfort');
   await responder.getByRole('button', { name: '응답 전달' }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_responses.find((v) => v.message_id === saved.id && v.source === 'kakao_self_link')?.detail).toBe('stomach_discomfort');
   const final = await readState(page.request);
