@@ -55,6 +55,9 @@ export type Segment = {
   text: string;
   start_ms: number | null;
   end_ms: number | null;
+  source_segment_ids?: string[];
+  alignment_status?: 'aligned' | 'review_needed';
+  transcription_changed?: boolean;
 };
 
 export type Transcript = {

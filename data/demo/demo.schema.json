@@ -482,6 +482,23 @@
             "guardian",
             "unknown"
           ]
+        },
+        "source_segment_ids": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true
+        },
+        "alignment_status": {
+          "enum": [
+            "aligned",
+            "review_needed"
+          ]
+        },
+        "transcription_changed": {
+          "type": "boolean"
         }
       }
     },
