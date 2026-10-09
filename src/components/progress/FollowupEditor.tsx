@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useAppState } from "@/lib/client";
 import type { FollowupAnswer, Observation } from "@/lib/types";
 import { CHANGE_LABELS, CONFIRMATION_LABELS, formatClinicDate, QUESTION_GROUPS, type FollowupKey } from "./questions";
+import { ClinicalAnalysisReview } from "./ClinicalAnalysisReview";
 import styles from "./progress.module.css";
 
 type AnswerDraft = Pick<FollowupAnswer, "item_key" | "subitem_key" | "answer_text" | "change" | "confirmation_status" | "applicability">;
@@ -135,6 +136,7 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
 
   return <section className={`${styles.followup} ${compact ? styles.compact : ""}`} aria-label="재진 확인 질문">
     <header className={styles.editorHeader}><div><h2>오늘 확인할 것</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !dirty} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
+    <ClinicalAnalysisReview visitId={visitId} disabled={dirty || busy} />
     {pendingItems.length > 0 && <details className={styles.pending}><summary>이어 확인할 질문 {pendingItems.length}개</summary><ul>{pendingItems.map((item) => <li key={item.id}>{item.title}</li>)}</ul></details>}
     {feedback && <p className={failed ? styles.error : styles.feedback} role={failed ? "alert" : "status"}>{feedback}</p>}
     <div className={styles.questionsLayout}>
