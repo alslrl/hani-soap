@@ -1,6 +1,7 @@
 export const AI_MODELS = {
   live: process.env.OPENAI_MODEL_LIVE || 'gpt-live-transcribe',
-  transcription: process.env.OPENAI_MODEL_TRANSCRIPTION || 'gpt-4o-transcribe-diarize',
+  transcription: process.env.OPENAI_MODEL_TEXT_TRANSCRIPTION || 'gpt-transcribe',
+  diarization: process.env.OPENAI_MODEL_DIARIZATION || process.env.OPENAI_MODEL_TRANSCRIPTION || 'gpt-4o-transcribe-diarize',
   correction: process.env.OPENAI_MODEL_CORRECTION || 'gpt-6.1-sol',
   soap: process.env.OPENAI_MODEL_SOAP || 'gpt-6.1-sol',
   care: process.env.OPENAI_MODEL_CARE || 'gpt-6.1-sol',

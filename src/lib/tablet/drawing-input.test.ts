@@ -7,9 +7,9 @@ const point = (x = 420, y = 600, pressure = .4) => ({ x, y, t: 1000, pressure })
 describe("pen-first tablet drawing input", () => {
   it("keeps pen ink when a palm touches, moves, cancels or lifts", () => {
     const input = new DrawingInput();
-    expect(input.down(event(), point(), false)).toBe("ink");
+    expect(input.down(event(), point(), "pen")).toBe("ink");
     const palm = event({ pointerId: 2, pointerType: "touch", width: 70, height: 50 });
-    expect(input.down(palm, point(), false)).toBeNull();
+    expect(input.down(palm, point(), "pen")).toBeNull();
     expect(input.move(palm, point(440, 610))).toBeNull();
     expect(input.cancel(2)).toBeNull();
     expect(input.up(palm, point())).toBeNull();
@@ -21,59 +21,71 @@ describe("pen-first tablet drawing input", () => {
   it("allows a non-primary pen and gives it priority over a pending touch selection", () => {
     const input = new DrawingInput();
     const touch = event({ pointerId: 2, pointerType: "touch", width: 12, height: 12 });
-    expect(input.down(touch, point(), false)).toBe("tap");
-    expect(input.down(event({ isPrimary: false }), point(), false)).toBe("ink");
+    expect(input.down(touch, point(), "select")).toBe("tap");
+    expect(input.down(event({ isPrimary: false }), point(), "pen")).toBe("ink");
     expect(input.up(touch, point())).toBeNull();
     expect(input.owns(1)).toBe(true);
   });
   it("selects on a short finger tap, while a drag or resting palm never opens a picker", () => {
     const input = new DrawingInput();
     const touch = event({ pointerType: "touch", width: 12, height: 12 });
-    expect(input.down(touch, point(), false)).toBe("tap");
+    expect(input.down(touch, point(), "select")).toBe("tap");
     expect(input.up(event({ ...touch, timeStamp: 1100 }), point())).toEqual({ kind: "select", point: point() });
-    input.down(touch, point(), false);
+    input.down(touch, point(), "select");
     input.move(event({ ...touch, clientY: 660, timeStamp: 1050 }), point(420, 660));
     expect(input.up(event({ ...touch, timeStamp: 1150 }), point())).toBeNull();
-    input.down(touch, point(), false);
+    input.down(touch, point(), "select");
     expect(input.up(event({ ...touch, timeStamp: 1600 }), point())).toBeNull();
-    expect(input.down(event({ ...touch, width: 55 }), point(), false)).toBeNull();
+    expect(input.down(event({ ...touch, width: 55 }), point(), "select")).toBeNull();
   });
   it("suppresses leftover palm taps immediately after a pen stroke", () => {
     const input = new DrawingInput();
-    input.down(event(), point(), false); input.up(event({ timeStamp: 1100 }), point(430, 610));
+    input.down(event(), point(), "pen"); input.up(event({ timeStamp: 1100 }), point(430, 610));
     const touch = event({ pointerType: "touch", width: 12, height: 12, timeStamp: 1200 });
-    expect(input.down(touch, point(), false)).toBeNull();
-    expect(input.down(event({ ...touch, timeStamp: 1800 }), point(), false)).toBe("tap");
+    expect(input.down(touch, point(), "select")).toBeNull();
+    expect(input.down(event({ ...touch, timeStamp: 1800 }), point(), "select")).toBe("tap");
   });
-  it("preserves partial ink on its own capture loss, without classifying an interrupted check", () => {
+  it("preserves partial ink on actual cancellation, without classifying an interrupted check", () => {
     const input = new DrawingInput();
-    input.down(event(), point(), false); input.move(event(), point(430, 610));
+    input.down(event(), point(), "pen"); input.move(event(), point(430, 610));
     expect(input.cancel(1)).toEqual([point(), point(430, 610)]);
     expect(input.drawing).toBe(false);
     expect(input.cancel(1)).toBeNull();
-    input.down(event(), point(), false);
+    input.down(event(), point(), "pen");
     expect(input.cancel(1)).toBeNull();
   });
   it("honors explicit direct selection for a deliberate larger finger tap after writing", () => {
     const input = new DrawingInput();
-    input.down(event(), point(), false); input.up(event({ timeStamp: 1100 }), point(430, 610));
-    const finger = event({ pointerType: "touch", width: 32, height: 30, timeStamp: 1200 });
-    expect(input.down(finger, point(), true)).toBe("tap");
-    expect(input.up(event({ ...finger, timeStamp: 1250 }), point())).toEqual({ kind: "select", point: point() });
+    input.down(event(), point(), "pen"); input.up(event({ timeStamp: 1100 }), point(430, 610));
+    const finger = event({ pointerType: "touch", width: 32, height: 30, timeStamp: 1800 });
+    expect(input.down(finger, point(), "select")).toBe("tap");
+    expect(input.up(event({ ...finger, timeStamp: 1850 }), point())).toEqual({ kind: "select", point: point() });
   });
   it("retains desktop drawing and explicit direct selection, excluding secondary mouse buttons", () => {
     const input = new DrawingInput();
     const mouse = event({ pointerType: "mouse" });
-    expect(input.down(mouse, point(), true)).toBe("select");
-    expect(input.down(event({ ...mouse, button: 2 }), point(), false)).toBeNull();
-    expect(input.down(mouse, point(), false)).toBe("ink");
+    expect(input.down(mouse, point(), "select")).toBe("select");
+    expect(input.down(event({ ...mouse, button: 2 }), point(), "pen")).toBeNull();
+    expect(input.down(mouse, point(), "pen")).toBe("ink");
     input.reset();
     expect(input.owns(1)).toBe(false); expect(input.drawing).toBe(false);
   });
   it("lets a Pencil tap select a region when the user explicitly chooses direct selection", () => {
     const input = new DrawingInput();
-    expect(input.down(event(), point(), true)).toBe("select");
+    expect(input.down(event(), point(), "select")).toBe("select");
     expect(input.drawing).toBe(false);
-    expect(input.down(event(), point(), false)).toBe("ink");
+    expect(input.down(event(), point(), "pen")).toBe("ink");
+  });
+  it("ignores finger contacts in pen and eraser modes", () => {
+    const input = new DrawingInput(), touch = event({ pointerType: "touch", width: 12, height: 12 });
+    expect(input.down(touch, point(), "pen")).toBeNull();
+    expect(input.down(touch, point(), "eraser")).toBeNull();
+  });
+  it("tracks erasing separately from ink and ignores foreign cancellation", () => {
+    const input = new DrawingInput();
+    expect(input.down(event(), point(), "eraser")).toBe("erase");
+    input.move(event(), point(460, 620));
+    expect(input.cancel(99)).toBeNull(); expect(input.drawing).toBe(true);
+    expect(input.up(event(), point(480, 640))).toMatchObject({ kind: "erase", points: [point(), point(460, 620), point(480, 640)] });
   });
 });
