@@ -901,9 +901,14 @@ function NrsPanel({
   const previous = observations
     .filter((item) => item.visit_id !== visit.id)
     .at(-1);
-  const [value, setValue] = useState(today ? String(today.value) : "");
+  const storedValue = today ? String(today.value) : "";
+  const [value, setValue] = useState(storedValue);
+  const [valueEdited, setValueEdited] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  useEffect(() => {
+    if (!valueEdited) setValue(storedValue);
+  }, [storedValue, valueEdited]);
   async function save() {
     if (value === "") return;
     setBusy(true);
@@ -918,6 +923,7 @@ function NrsPanel({
         laterality: previous?.laterality || "right",
         measurement_context: "current_pain",
       });
+      setValueEdited(false);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -977,7 +983,7 @@ function NrsPanel({
             step="1"
             placeholder="미확인"
             value={value}
-            onChange={(event) => setValue(event.target.value)}
+            onChange={(event) => { setValue(event.target.value); setValueEdited(true); }}
           />
           <button
             className="hs-button hs-button-small"
@@ -1562,7 +1568,7 @@ export default function VisitWorkspace({ visitId }: { visitId: string }) {
               aria-labelledby="tab-followup"
               hidden={tab !== "followup"}
             >
-              <FollowupEditor visitId={visitId} />
+              <FollowupEditor visitId={visitId} nrsTarget={patient.demo_key === "A" ? { inputId: "today-nrs", metric_key: "pain_intensity", body_region: "ankle", laterality: "right", activity_key: null, measurement_context: "current_pain" } : undefined} />
             </div>
           </section>
           <TreatmentPane state={state} visit={visit} act={act} />
