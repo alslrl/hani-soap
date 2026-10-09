@@ -236,8 +236,8 @@
       "status": "locally_verified_implementation",
       "updated_on_kst": "2026-10-09",
       "summary": "Bounded text request masking and opaque audio filenames; original audio and image inputs excluded",
-      "characters": 2653,
-      "sha256": "a7281bccc593f37131497ef56f8f6a6c18d54bc23d24dad9e4a7d595a113ae18"
+      "characters": 2914,
+      "sha256": "b5dfd88b0d574801cf90a471b1c666ba4b8f0418d5d44264450fd9025f697085"
     }
   ],
   "reference_collections": [
