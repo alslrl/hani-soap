@@ -13,8 +13,11 @@ describe('recording-scoped audio progress',()=>{
   const files=[file('one','2026-10-09T01:00:00Z')];
   const jobs=[job('source','one',files[0].created_at,{status:'waiting_review',stage:'review_needed',result:{transcriptId:'raw',reviewedTranscriptId:'reviewed'}}),job('soap',null,'2026-10-09T02:00:00Z',{kind:'soap',stage:'soap_draft',result:{transcriptId:'reviewed'}}),job('analysis',null,'2026-10-09T03:00:00Z',{kind:'analysis',result:{task:'clinical_analysis',transcriptId:'reviewed'}})];
   const works=audioWorks(files,jobs);expect(works).toHaveLength(1);expect(works[0].primary!.id).toBe('soap');expect(workStep(works[0])).toBe(4);expect(recordingForTranscript(files,jobs,'reviewed')?.recording?.id).toBe('one');
+  works[0].primary!.stage='queued';expect(workStep(works[0])).toBe(4);expect(workTitle(works[0])).toBe('SOAP 초안 작성 대기 중');
+  works[0].primary={...jobs[0],stage:'queued',result:{task:'correction_recheck'}};expect(workStep(works[0])).toBe(3);expect(workTitle(works[0])).toBe('용어 재검사 대기 중');
  });
  it('shows the newer transcript omission review inside conversation cleanup',()=>{const work=audioWorks([file('one','2026-10-09T01:00:00Z')],[job('current','one','2026-10-09T01:00:00Z',{stage:'alignment_review'})])[0];expect(workTitle(work)).toBe('전사 누락을 확인 중');expect(workStep(work)).toBe(3);});
+ it('shows stored ASR channels as cleanup preparation, including older deployments that briefly repeat the ASR stage',()=>{const work=audioWorks([file('one','2026-10-09T01:00:00Z')],[job('current','one','2026-10-09T01:00:00Z',{result:{contentTranscriptId:'content',diarizedTranscriptId:'speakers'}})])[0];expect(workStep(work)).toBe(3);expect(workTitle(work)).toBe('전사 정리 준비 중');});
  it('does not expose an older success as the result of a new failed attempt and preserves correction review state',()=>{
   const files=[file('one','2026-10-09T01:00:00Z')];
   const jobs=[job('success','one',files[0].created_at,{status:'waiting_review',stage:'review_needed',result:{transcriptId:'raw'}}),job('failure','one','2026-10-09T02:00:00Z',{status:'failed',stage:'failed',result:{failure:{code:'TRANSCRIPTION_EMPTY',stage:'transcribing'}}})];
