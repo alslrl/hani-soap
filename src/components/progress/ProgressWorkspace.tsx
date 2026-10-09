@@ -11,7 +11,7 @@ import styles from "./progress.module.css";
 function metricLabel(observation: Observation) {
   if (observation.instrument === "NRS") return "통증 변화";
   if (observation.instrument === "FREQUENCY") return observation.metric_key === "nocturnal_wetting_frequency" ? "밤중 실수 횟수" : "증상 빈도";
-  const activities: Record<string, string> = { stairs_down: "계단 내려가기", walking: "걷기", arm_raise: "팔 올리기", stair_descent: "계단 내려가기" };
+  const activities: Record<string, string> = { stairs_up: "계단 오르기", stair_ascent: "계단 오르기", stairs_down: "계단 내려가기", walking: "걷기", arm_raise: "팔 올리기", stair_descent: "계단 내려가기" };
   if (observation.instrument === "APP_FUNCTION_DISCOMFORT") return `${activities[observation.activity_key ?? ""] ?? observation.activity_key ?? "활동"} 불편`;
   return "증상 불편 변화";
 }

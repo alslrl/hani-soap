@@ -1,0 +1,9 @@
+.hs-pain-functional-metrics { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px; min-width:0; align-items:stretch; }
+.hs-pain-functional-metrics > .hs-panel { min-width:0; display:flex; flex-direction:column; }
+.hs-pain-functional-metrics .hs-panel-title { align-items:flex-start; gap:12px; }
+.hs-pain-functional-metrics .hs-panel-title h2 { min-width:0; }
+.hs-pain-functional-metrics .hs-text-link { flex-shrink:0; }
+.hs-pain-functional-metrics .hs-nrs-summary { gap:32px; }
+.hs-pain-functional-metrics .hs-nrs-form { flex-wrap:wrap; gap:12px; margin-top:auto; }
+.hs-stair-endpoints { display:flex; justify-content:space-between; gap:12px; padding:0 20px 16px; color:var(--muted); font-size:12px; }
+@media(max-width:1200px) { .hs-pain-functional-metrics { grid-template-columns:minmax(0,1fr); } }
