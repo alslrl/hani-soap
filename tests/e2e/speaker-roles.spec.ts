@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { localDemo, scenario } from './helpers';
+import { localDemo, scenario , chooseSelect } from './helpers';
 import type { Transcript, RuntimeJob } from '../../src/lib/types';
 
 test('inferred group roles, bulk updates and individual overrides flow into a new SOAP revision', async ({ page }) => {
@@ -21,18 +21,18 @@ test('inferred group roles, bulk updates and individual overrides flow into a ne
   const tab = page.getByRole('button', { name: /^화자 확인/ });
   if (await tab.count()) await tab.click();
   await expect(page.locator('strong').filter({ hasText: /^의료진 · A$/ }).first()).toBeVisible();
-  await expect(page.getByLabel('화자 B 그룹 역할')).toHaveValue('guardian');
-  await expect(page.getByLabel('구간 2 화자 역할')).toHaveValue('guardian');
-  await page.getByLabel('화자 B 그룹 역할').selectOption('patient');
-  await expect(page.getByLabel('구간 2 화자 역할')).toHaveValue('patient');
-  await expect(page.getByLabel('구간 3 화자 역할')).toHaveValue('patient');
-  await page.getByLabel('구간 2 화자 역할').selectOption('guardian');
-  await page.getByLabel('화자 B 그룹 역할').selectOption('unknown');
-  await expect(page.getByLabel('구간 2 화자 역할')).toHaveValue('guardian');
-  await expect(page.getByLabel('구간 3 화자 역할')).toHaveValue('unknown');
+  await expect(page.getByRole("combobox", { name: '화자 B 그룹 역할' })).toHaveAttribute("data-value", 'guardian');
+  await expect(page.getByRole("combobox", { name: '구간 2 화자 역할' })).toHaveAttribute("data-value", 'guardian');
+  await chooseSelect(page, page.getByRole("combobox", { name: '화자 B 그룹 역할' }), 'patient');
+  await expect(page.getByRole("combobox", { name: '구간 2 화자 역할' })).toHaveAttribute("data-value", 'patient');
+  await expect(page.getByRole("combobox", { name: '구간 3 화자 역할' })).toHaveAttribute("data-value", 'patient');
+  await chooseSelect(page, page.getByRole("combobox", { name: '구간 2 화자 역할' }), 'guardian');
+  await chooseSelect(page, page.getByRole("combobox", { name: '화자 B 그룹 역할' }), 'unknown');
+  await expect(page.getByRole("combobox", { name: '구간 2 화자 역할' })).toHaveAttribute("data-value", 'guardian');
+  await expect(page.getByRole("combobox", { name: '구간 3 화자 역할' })).toHaveAttribute("data-value", 'unknown');
   await page.getByRole('button', { name: '그룹 역할로 되돌리기', exact: true }).click();
-  await expect(page.getByLabel('구간 2 화자 역할')).toHaveValue('unknown');
-  await page.getByLabel('구간 2 화자 역할').selectOption('guardian');
+  await expect(page.getByRole("combobox", { name: '구간 2 화자 역할' })).toHaveAttribute("data-value", 'unknown');
+  await chooseSelect(page, page.getByRole("combobox", { name: '구간 2 화자 역할' }), 'guardian');
   if (process.env.HANI_VISUAL_OUTPUT_DIR) await page.screenshot({ path: `${process.env.HANI_VISUAL_OUTPUT_DIR}/speaker-roles.png`, fullPage: true });
   await page.getByRole('button', { name: '전사 검토 저장 · SOAP 다시 생성', exact: true }).click();
   await expect.poll(() => reviewBody).toMatchObject({ speakerGroups: { B: 'unknown' }, speakers: { 'synthetic-1': 'guardian' }, expectedTranscriptRevision: 90 });

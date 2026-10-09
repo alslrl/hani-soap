@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { localDemo, scenario } from './helpers';
+import { localDemo, scenario , chooseSelect } from './helpers';
 import { validateCorrections, type DictionaryTerm } from '../../src/lib/ai/correction';
 import type { RuntimeJob, Transcript } from '../../src/lib/types';
 
@@ -34,14 +34,14 @@ test('review steps preserve terminology decisions, speaker roles and edited text
   await page.getByRole('button', { name: '선택 후보 수락', exact: true }).click();
   await page.getByRole('button', { name: /^화자 확인/ }).click();
   await expect(page.getByText(lines[1], { exact: true }).first()).toBeVisible();
-  await page.getByLabel('구간 2 화자 역할').selectOption('patient');
+  await chooseSelect(page, page.getByRole("combobox", { name: '구간 2 화자 역할' }), 'patient');
   await page.getByRole('button', { name: '전사 편집', exact: true }).click();
   const editor = page.getByLabel('검토 전사', { exact: true });
   await expect(editor).toHaveValue(rawText.replace('보중 익기 탕', '보중익기탕'));
   const edited = `${rawText.replace('보중 익기 탕', '보중익기탕')}\n의료진 확인 메모 예시.`;
   await editor.fill(edited);
   await page.getByRole('button', { name: /^화자 확인/ }).click();
-  await expect(page.getByLabel('구간 2 화자 역할')).toHaveValue('patient');
+  await expect(page.getByRole("combobox", { name: '구간 2 화자 역할' })).toHaveAttribute("data-value", 'patient');
   await page.getByRole('button', { name: '전사 편집', exact: true }).click();
   await expect(editor).toHaveValue(edited);
   await page.getByText('보존된 전사 원문', { exact: true }).click();

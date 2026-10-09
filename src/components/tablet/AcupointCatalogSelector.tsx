@@ -1,4 +1,6 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+
 import { useState } from "react";
 import { ACUPOINT_CATALOG, CATALOG_VIEW_LABELS, getCatalogPoint, searchAcupoints } from "@/lib/tablet/acupoint-catalog";
 import type { BodyRegion, BodyView } from "@/lib/tablet/regions";
@@ -23,7 +25,7 @@ export function AcupointCatalogSelector({ region, view, selected, onSelected, in
         <label className="tablet-point-option"><input type="checkbox" checked={selected.includes(point.code)} onChange={event => onSelected(event.target.checked ? [...selected, point.code] : selected.filter(code => code !== point.code))} />
           <span><strong>{point.label_ko} <small>{point.code}</small></strong><span className="tablet-catalog-detail">{point.source_region_label} · {CATALOG_VIEW_LABELS[point.source_view]}{point.laterality === "midline" ? " · 정중선" : ""}</span></span>
         </label>
-        <a href={point.reference_url} target="_blank" rel="noreferrer" aria-label={`${point.label_ko} ${point.code} 위치 참고`}>위치 참고 ↗</a>
+        <a href={point.reference_url} target="_blank" rel="noreferrer" aria-label={`${point.label_ko} ${point.code} 위치 참고`}>위치 참고 <ActionArrow direction="up-right" /></a>
       </div>)}
       {!candidates.length && <div className="tablet-empty-small">일치하는 후보가 없어요.{scope === "region" && <button type="button" className="tablet-text-button tablet-wide" onClick={() => setScope("all")}>전신에서 검색</button>}</div>}
     </div>

@@ -1,4 +1,8 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+import { AppSelect } from '@/components/ui/AppSelect';
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -118,7 +122,7 @@ function PatientRail({
             href={`/clinic/patients/${patient.id}`}
             className="hs-text-link"
           >
-            전체 이력 ↗
+            전체 이력 <ActionArrow direction="up-right" />
           </Link>,
         )}
         <div className="hs-identity">
@@ -514,7 +518,7 @@ function TranscriptEvidence({
         </div>
         <label className="hs-select-label">
           <span className="hs-sr-only">전사 버전</span>
-          <select
+          <AppSelect
             value={transcript.id}
             onChange={(event) => setSelectedId(event.target.value)}
           >
@@ -524,7 +528,7 @@ function TranscriptEvidence({
                 {item.status === "reviewed" ? "검토 전사" : "원문"}
               </option>
             ))}
-          </select>
+          </AppSelect>
         </label>
       </div>
       <div className="hs-transcript-segments">
@@ -608,7 +612,7 @@ function TreatmentPane({
           href={`/tablet/visits/${visit.id}`}
           target="_blank"
         >
-          iPad 화면 열기 ↗
+          iPad 화면 열기 <ActionArrow direction="up-right" />
         </Link>,
       )}
       {treatments.length ? (
@@ -932,7 +936,7 @@ function NrsPanel({
           href={`/clinic/patients/${patient.id}/progress`}
           className="hs-text-link"
         >
-          경과 보기 ↗
+          경과 보기 <ActionArrow direction="up-right" />
         </Link>,
       )}
       <p className="hs-metric-context">오른쪽 발목 · 현재 통증</p>
@@ -1129,12 +1133,12 @@ function BriefingResult({
             </div>
           )}
           {missing.length > 0 && (
-            <details>
+            <Disclosure>
               <summary>추가 확인 {missing.length}개</summary>
               {missing.map((item, index) => (
                 <p key={index}>{item}</p>
               ))}
-            </details>
+            </Disclosure>
           )}
         </>
       )}
@@ -1252,7 +1256,7 @@ function PastVisitPanel({
         <Link href="/clinic/care" className="hs-contact-alert">
           <span>!</span>
           <div><strong>불편 응답 확인 필요</strong><p>최근 응답과 현재 상태를 확인해 주세요.</p></div>
-          <span aria-hidden="true">↗</span>
+          <span aria-hidden="true"><ActionArrow direction="up-right" /></span>
         </Link>
       </div>}
     </section>
@@ -1327,7 +1331,7 @@ function TodayFollowupPanels({
               href={`/clinic/patients/${patient.id}/progress`}
               className="hs-text-link"
             >
-              경과 보기 ↗
+              경과 보기 <ActionArrow direction="up-right" />
             </Link>,
           )}
           <p>야뇨 횟수와 수면 변화를 각각 확인하세요.</p>
@@ -1341,7 +1345,7 @@ function TodayFollowupPanels({
         {panelTitle(
           "지난 환자 응답",
           <Link href="/clinic/care" className="hs-text-link">
-            전체 보기 ↗
+            전체 보기 <ActionArrow direction="up-right" />
           </Link>,
         )}
         {responses.length ? (
