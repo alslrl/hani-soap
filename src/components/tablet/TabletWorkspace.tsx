@@ -10,6 +10,7 @@ import { RegionPicker } from "./RegionPicker";
 import { inkPath, recognizeCheck, type InkPoint } from "@/lib/tablet/geometry";
 import { mapBodyRegion, REGION_LABELS, SIDE_LABELS, type BodyRegion, type BodyView, type RegionMatch } from "@/lib/tablet/regions";
 import { memoImage } from "@/lib/tablet/ink-image";
+import { normalizeStrokes, restoreCanvasStrokes } from "@/lib/tablet/coordinates";
 
 const TABS = [
   { id: "needle", label: "침", detail: "일반 침", modality: "acupuncture", technique: "standard_acupuncture" },
@@ -36,7 +37,7 @@ function initialDrafts(state: AppState, visitId: string): Drafts {
 function initialLayers(state: AppState, visitId: string): Layers {
   return Object.fromEntries(TABS.flatMap(tab => (["front", "back"] as const).map(view => {
     const row = state.annotations.find(a => a.visit_id === visitId && matchesTab(a, tab) && a.view === view);
-    return [layerKey(tab.id, view), { id: row?.id || uid(), revision: row?.revision || 0, strokes: row?.strokes || [], dirty: false }];
+    return [layerKey(tab.id, view), { id: row?.id || uid(), revision: row?.revision || 0, strokes: restoreCanvasStrokes(row?.strokes || []), dirty: false }];
   })));
 }
 export function TabletVisitList() {
@@ -143,7 +144,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         const k = layerKey(tabId, bodyView), current = layers[k];
         // Persist linked layers even when a location was chosen using touch.
         if (!current.dirty && (current.revision > 0 || !draft.locations.some(p => p.annotation_id === current.id))) continue;
-        const result = await act("annotation.save", { visitId, annotation: { id: current.id, scope: "treatment", modality: tab.modality, technique: tab.technique, view: bodyView, coordinate_space: "normalized", coordinate_version: "body-map-v1", canvas_size: { width: 1000, height: 1000 }, strokes: current.strokes, revision: current.revision } });
+        const result = await act("annotation.save", { visitId, annotation: { id: current.id, scope: "treatment", modality: tab.modality, technique: tab.technique, view: bodyView, coordinate_space: "normalized", coordinate_version: "body-map-v1", canvas_size: { width: 1000, height: 1000 }, strokes: normalizeStrokes(current.strokes), revision: current.revision } });
         const saved = result.state.annotations.find(a => a.id === current.id)!;
         setLayers(l => ({ ...l, [k]: { ...l[k], revision: saved.revision, dirty: false } }));
       }

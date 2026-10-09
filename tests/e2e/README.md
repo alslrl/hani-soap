@@ -5,11 +5,12 @@ iPad 시술 기록과 후속 연락을 검사한다. 원본 seed JSON과 클라�
 서버를 자동 시작하거나 저장 데이터를 자동 초기화하지 않는다.
 
 별도 터미널에서 새 임시 디렉터리를 `HANI_DATA_DIR`로 지정해 앱을 실행한다.
-Supabase 자격을 넣지 않은 로컬 환경을 사용한다. 테스트는 `storage: local`과
+`HANI_STORAGE_MODE=local`로 Supabase 설정이 있어도 임시 로컬 저장소를 사용하고,
+`OPENAI_API_KEY`를 빈 값으로 지정해 외부 모델 요청을 차단한다. 테스트는 `storage: local`과
 localhost 주소를 확인한 뒤에만 진료 데이터를 변경한다.
 
 ```sh
-HANI_DATA_DIR="$(mktemp -d /tmp/hani-e2e.XXXXXX)" npm run dev
+HANI_STORAGE_MODE=local OPENAI_API_KEY='' HANI_DATA_DIR="$(mktemp -d /tmp/hani-e2e.XXXXXX)" npm run dev
 ```
 
 브라우저를 설치하고 검증한다.
