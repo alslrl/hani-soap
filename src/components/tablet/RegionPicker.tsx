@@ -35,7 +35,7 @@ export function RegionPicker({ match, onAdd, onClose, onMemo, onZoom, modal = fa
   }
   return <section className="tablet-region-picker" role="dialog" aria-modal={modal} aria-label="부위별 위치 선택">
     <div className="tablet-picker-heading">
-      <div><span className="tablet-eyebrow">{catalogMode ? "혈자리 목록" : "표시한 부위"}</span><h2>{catalogMode ? "전신 혈자리 선택" : `${SIDE_LABELS[side]} ${region ? REGION_LABELS[region] : ""}`}</h2></div>
+      <div><span className="tablet-eyebrow">{catalogMode ? "혈자리 목록" : "선택한 부위"}</span><h2>{catalogMode ? "전신 혈자리 선택" : `${SIDE_LABELS[side]} ${region ? REGION_LABELS[region] : ""}`}</h2></div>
       <button type="button" className="tablet-icon-button" onClick={onClose} aria-label="후보 닫기">×</button>
     </div>
     {onZoom && !catalogMode && <button type="button" className="tablet-picker-zoom" onClick={onZoom}>이 부위 확대 보기</button>}
@@ -56,6 +56,6 @@ export function RegionPicker({ match, onAdd, onClose, onMemo, onZoom, modal = fa
       <textarea rows={3} value={note} onChange={e => setNote(e.target.value)} placeholder={type === "acupoint" ? "추가로 남길 내용" : "예: 우측 외측 발목 전거비인대 부위"} />
     </label>
     <button type="button" className="tablet-primary tablet-wide" onClick={add} disabled={!canAdd}>이 부위 추가{selected.length && type === "acupoint" ? ` · ${selected.length}` : ""}</button>
-    <button type="button" className="tablet-text-button tablet-wide" onClick={catalogMode ? onClose : onMemo}>{catalogMode ? "목록 닫기" : "체크를 메모로 되돌리기"}</button>
+    <button type="button" className="tablet-text-button tablet-wide" onClick={catalogMode ? onClose : onMemo}>{catalogMode ? "목록 닫기" : "선택 취소"}</button>
   </section>;
 }
