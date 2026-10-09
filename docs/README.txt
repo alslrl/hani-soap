@@ -98,3 +98,10 @@ HaniSOAP 문서 및 데모 자료
 - ../data/demo/patients.seed.json: 가상 환자 2명·6방문·안내·응답·연락 상태의 검증된 seed
 - ../scripts/validate_demo_data.py, requirements-demo.txt: 스키마·관계·상태·사진 무결성 검증
   파일 생성·검증과 실제 DB 주입·API 실행·Vercel 배포 완료는 구분합니다.
+
+[Atlas 전신 혈자리 검수]
+- verification/atlas-review/index.html: 그림·데이터를 포함한 독립 검수 화면. 브라우저에서 열어 사용.
+- verification/atlas-review/README.md: 검수·저장·불러오기와 좌표 보정 범위
+- ../output/pdf/atlas_전신_혈자리_검수.pdf: 정규 경혈 361종의 부위별 검수 PDF 72쪽
+  화면·문서 공유는 연화 승인 완료. 정확한 혈자리 위치·환자 기준 좌우는 별도 검수하며, 현재 진료 앱을 교체하지 않습니다.
+- reference/혈자리_밀집구간_선택_제안.md: 밀집된 점을 터치하면 인근 혈명·코드 후보에서 선택하도록 하는 연화 제안 (구현 전)
