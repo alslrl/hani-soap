@@ -2048,3 +2048,7 @@
 }
 
 .hs-soap-source { margin:0 0 12px; color:#777777; font-size:12px; line-height:1.7; }
+.hs-handwriting-entry { padding: 16px 20px; border-top: 1px solid var(--line); }
+.hs-handwriting-entry > div { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+.hs-handwriting-entry strong { font-size: 13px; font-weight: 500; }
+.hs-handwriting-entry p { white-space: pre-wrap; font-size: 13px; line-height: 1.8; margin: 12px 0 0; }

@@ -19,7 +19,7 @@ function docFor(state: AppState, transcript: Transcript): SoapDocument {
   return { id: randomUUID(), clinic_id: state.clinic.id, visit_id: transcript.visit_id, revision: 1, input_transcript_id: transcript.id, input_snapshot: soapInputSnapshot(state, transcript), status: 'draft', sections: { s: '', o: '', a: '', p: '우측 발목 구허에 침 시행 확인.' }, source_refs: [], approved_at: null, approved_by: null, origin: 'manual_demo' };
 }
 describe('confirmed multi-source SOAP inputs', () => {
-  it('excludes unconfirmed procedures, unreviewed handwriting and other visits', () => {
+  it('excludes unconfirmed procedures, unbound handwriting and other visits', () => {
     const { state, visitId, treatment } = fixture();
     state.treatments.push({ ...treatment, id: randomUUID(), status: 'suggested' });
     state.annotations.push({ id: randomUUID(), clinic_id: state.clinic.id, visit_id: visitId, extraction_reviewed: false, extracted_text: '아직 미검토', revision: 2 } as any);
@@ -68,4 +68,14 @@ describe('confirmed multi-source SOAP inputs', () => {
     expect(() => validateSoapEvidence({ ...result, evidence: [{ ...result.evidence[0], section: 'o' }] }, transcript.segments, sources)).toThrow('SOAP_SOURCE_SECTION_INVALID');
     expect(() => validateSoapEvidence({ ...result, sections: { ...result.sections, p: '침 3회 시행 확인.' } }, transcript.segments, sources)).toThrow('SOAP_NUMBER_UNSUPPORTED');
   });
+});
+
+it('includes only the current successful AI extraction as a draft source and warns before SOAP approval',()=>{
+ const {state,visitId,transcript}=fixture();const id=randomUUID();
+ state.annotations.push({id,clinic_id:state.clinic.id,visit_id:visitId,revision:2,extraction_reviewed:false,extracted_text:'우측 발목 부종 관찰'} as any);
+ state.jobs.push({id:randomUUID(),clinic_id:state.clinic.id,visit_id:visitId,kind:'handwriting',status:'waiting_review',stage:'review_needed',input_hash:'memo',created_at:'now',updated_at:'now',result:{annotationId:id,revision:2,text:'우측 발목 부종 관찰',stale_input:false}});
+ const sources=collectClinicalSoapSources(state,visitId),note=sources.find(source=>source.record_id===id)!;
+ expect(note.review_status).toBe('ai_draft');const result=validateSoapEvidence({sections:{s:'',o:'우측 발목 부종 관찰.',a:'',p:''},evidence:[{section:'o',segment_id:note.id,quote:'우측 발목 부종 관찰'}],warnings:[],followup_questions:[]},transcript.segments,sources);
+ expect(result.warnings.join(' ')).toContain('SOAP 승인 전에');
+ state.annotations.at(-1)!.revision=3;expect(collectClinicalSoapSources(state,visitId).some(source=>source.record_id===id)).toBe(false);
 });

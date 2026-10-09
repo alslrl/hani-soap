@@ -132,7 +132,7 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await expect(canvas).toHaveAttribute("data-readonly", "true");
   await expect(canvas.locator('[data-ink-kind="check"]')).toHaveAttribute("d", "M430.00,875.00 L446.00,894.00 L481.00,843.00");
   await expect(page.getByTestId("legacy-body-map-notice")).toContainText("읽기 전용");
-  await expect(page.getByRole("button", { name: "초안 저장", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "저장", exact: true })).toHaveCount(0);
   await expect(page.getByRole("button", { name: "필기 작업 되돌리기", exact: true })).toHaveCount(0);
   await draw(page, check(419, 894));
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(1);
@@ -155,7 +155,7 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await expect(page.locator(".tablet-records-toggle")).toBeFocused();
   records = await openRecords(page);
   await expect(records.getByLabel("시술 메모")).toHaveValue("여성 도해의 우측 발목 위치와 원본 필기 확인");
-  await records.getByRole("button", { name: "초안 저장", exact: true }).click();
+  await records.getByRole("button", { name: "저장", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.annotations.some(row => row.visit_id === visitId && row.coordinate_version === femaleVersion && row.view === "front" && row.modality === "acupuncture")).toBe(true);
   await closeRecords(page); await dismissToast(page);
   await draw(page, [[480, 400], [500, 400], [520, 400]]);
@@ -289,14 +289,14 @@ test("male portrait keeps v2 gestures, zoom coordinates and separate front/back 
         const records = await openRecords(page);
         await expect(records).toHaveAttribute("aria-modal", "true");
         expect(await canvas.boundingBox()).toEqual(beforeSheet);
-        await reachable(page, records.getByRole("button", { name: "초안 저장", exact: true }));
+        await reachable(page, records.getByRole("button", { name: "저장", exact: true }));
         await reachable(page, records.getByRole("button", { name: "오늘 시행 확인", exact: true }));
         await page.keyboard.press("Escape");
         await expect(recordsOf(page)).toHaveCount(0);
         await expect(page.locator(".tablet-records-toggle")).toBeFocused();
       } else {
         await expect(page.locator(".tablet-inspector")).toBeVisible();
-        await reachable(page, page.locator(".tablet-inspector").getByRole("button", { name: "초안 저장", exact: true }));
+        await reachable(page, page.locator(".tablet-inspector").getByRole("button", { name: "저장", exact: true }));
         await reachable(page, page.locator(".tablet-inspector").getByRole("button", { name: "오늘 시행 확인", exact: true }));
       }
       await directSelection(page, female ? [419, 894] : [446, 894]);

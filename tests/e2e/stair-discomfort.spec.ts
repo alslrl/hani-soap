@@ -8,7 +8,8 @@ test('stair ascent is beside pain and persists independently without inventing h
   await page.goto(`/clinic/visits/${visitId}`);
   const panel = page.getByRole('region', { name: '계단 오를 때 불편함', exact: true });
   await expect(panel).toBeVisible();
-  await expect(panel.getByText('아직 확인한 계단 오르기 점수가 없어요', {exact:true})).toBeVisible();
+  await expect(panel.getByRole('img',{name:/계단 오를 때 불편함 경과/})).toBeVisible();
+  await expect(panel.locator('.hs-nrs-summary > div').nth(1)).toContainText('4');
   const score = panel.getByLabel('오늘 확인한 불편 점수');
   await expect(score).toHaveValue('');
   await expect(panel.getByRole('button',{name:'저장',exact:true})).toBeDisabled();
