@@ -1263,16 +1263,40 @@ function ContextRail({
   state,
   patient,
   visit,
-  act,
   aiAvailable,
   refresh,
 }: {
   state: State;
   patient: Patient;
   visit: Visit;
-  act: Act;
   aiAvailable: boolean;
   refresh: () => unknown;
+}) {
+  return (
+    <aside className="hs-context-rail">
+      <PastVisitPanel
+        key={visit.id}
+        state={state}
+        patient={patient}
+        visit={visit}
+        aiAvailable={aiAvailable}
+        refresh={refresh}
+        needsContact={state.contact_tasks.some((item) => item.patient_id === patient.id && item.status === "open")}
+      />
+    </aside>
+  );
+}
+
+function TodayFollowupPanels({
+  state,
+  patient,
+  visit,
+  act,
+}: {
+  state: State;
+  patient: Patient;
+  visit: Visit;
+  act: Act;
 }) {
   const responses = state.care_responses
     .filter((item) => item.patient_id === patient.id)
@@ -1291,20 +1315,8 @@ function ContextRail({
     difficulty_taking: "복용하기 어려워요",
     other: "기타 불편",
   };
-  const contacts = state.contact_tasks.filter(
-    (item) => item.patient_id === patient.id && item.status === "open",
-  );
   return (
-    <aside className="hs-context-rail">
-      <PastVisitPanel
-        key={visit.id}
-        state={state}
-        patient={patient}
-        visit={visit}
-        aiAvailable={aiAvailable}
-        refresh={refresh}
-        needsContact={contacts.length > 0}
-      />
+    <div className="hs-today-followup" aria-label="오늘 경과와 확인 사항">
       {patient.demo_key === "A" ? (
         <NrsPanel state={state} patient={patient} visit={visit} act={act} />
       ) : (
@@ -1355,7 +1367,7 @@ function ContextRail({
           <Empty title="아직 받은 응답이 없어요" />
         )}
       </section>
-    </aside>
+    </div>
   );
 }
 
@@ -1554,12 +1566,18 @@ export default function VisitWorkspace({ visitId }: { visitId: string }) {
             </div>
           </section>
           <TreatmentPane state={state} visit={visit} act={act} />
+          <TodayFollowupPanels
+            key={visitId}
+            state={state}
+            patient={patient}
+            visit={visit}
+            act={act}
+          />
         </section>
         <ContextRail
           state={state}
           patient={patient}
           visit={visit}
-          act={act}
           aiAvailable={data.capabilities.ai}
           refresh={refresh}
         />
