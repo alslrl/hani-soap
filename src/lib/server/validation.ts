@@ -4,6 +4,7 @@ import seedSchema from '../../../data/demo/demo.schema.json';
 import type { AppState } from '../types';
 import { FIXED_CLINIC_ID } from './config';
 import { AppError, invariant } from './errors';
+import { BODY_MAP_VERSIONS } from '../tablet/body-map-version';
 
 const ajv = new Ajv2020({ allErrors: true, strict: false });
 addFormats(ajv);
@@ -92,12 +93,12 @@ export function validateState(state: AppState) {
       invariant(row.clinic_id === FIXED_CLINIC_ID && visits.has(row.visit_id), '실행 데이터의 방문과 기관을 확인해 주세요.');
     }
   }
-  const visitCoordinateVersions = new Map<string, string>();
+  const annotationSlots = new Set<string>();
   for (const annotation of state.annotations) {
-    invariant(annotation.coordinate_space === 'normalized' && ['body-map-v1', 'body-map-v2'].includes(annotation.coordinate_version), '필기 좌표 형식이 맞지 않습니다.');
-    const priorVersion = visitCoordinateVersions.get(annotation.visit_id);
-    invariant(!priorVersion || priorVersion === annotation.coordinate_version, '같은 방문에 서로 다른 인체 좌표 버전이 있습니다.');
-    visitCoordinateVersions.set(annotation.visit_id, annotation.coordinate_version);
+    invariant(annotation.coordinate_space === 'normalized' && BODY_MAP_VERSIONS.some(version => version === annotation.coordinate_version), '필기 좌표 형식이 맞지 않습니다.');
+    const slot = [annotation.visit_id,annotation.modality,annotation.technique,annotation.view,annotation.coordinate_version].join(':');
+    invariant(!annotationSlots.has(slot), '같은 도해와 시술의 필기 레이어가 중복되었습니다.');
+    annotationSlots.add(slot);
     invariant(Array.isArray(annotation.strokes) && annotation.strokes.length <= 2000, '필기 획이 너무 많거나 형식이 잘못되었습니다.');
     invariant(Number.isFinite(annotation.canvas_size.width) && Number.isFinite(annotation.canvas_size.height) && annotation.canvas_size.width > 0 && annotation.canvas_size.height > 0, '필기 화면 크기가 잘못되었습니다.');
     invariant(new Set(annotation.strokes.map((v) => v.id)).size === annotation.strokes.length, '중복된 필기 획이 있습니다.');

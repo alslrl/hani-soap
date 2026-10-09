@@ -268,7 +268,7 @@ export type AnnotationStroke = {
 export type RuntimeAnnotation = {
   id: string; clinic_id: string; visit_id: string;
   scope: 'treatment'; modality: Treatment['modality']; technique: Treatment['technique'];
-  view: 'front' | 'back'; coordinate_space: 'normalized'; coordinate_version: 'body-map-v1' | 'body-map-v2';
+  view: 'front' | 'back'; coordinate_space: 'normalized'; coordinate_version: 'body-map-v1' | 'body-map-v2' | 'body-map-v3-female';
   canvas_size: { width: number; height: number }; strokes: AnnotationStroke[];
   revision: number; updated_at: string; extracted_text?: string | null;
   extraction_reviewed?: boolean;

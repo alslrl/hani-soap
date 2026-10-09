@@ -22,7 +22,7 @@ export function LegacyBodyDiagram({ view }: { view: BodyView }) {
 export function BodyDiagram({ view, version = "body-map-v1" }: { view: BodyView; version?: BodyMapVersion }) {
   if (version === "body-map-v1") return <LegacyBodyDiagram view={view} />;
   return <g className="tablet-body-anatomy" aria-hidden="true" data-body-map-version={version}>
-    <image href={`/demo/anatomy/body-${view}-v2.png`} x="0" y="0" width="1000" height="1000" preserveAspectRatio="xMidYMid meet" />
+    <image href={`/demo/anatomy/body-${view}-${version === "body-map-v3-female" ? "v3-female" : "v2"}.png`} x="0" y="0" width="1000" height="1000" preserveAspectRatio="xMidYMid meet" />
     <text x="305" y="270" className="tablet-side-label">{view === "front" ? "환자 우측" : "환자 좌측"}</text>
     <text x="695" y="270" className="tablet-side-label">{view === "front" ? "환자 좌측" : "환자 우측"}</text>
   </g>;
