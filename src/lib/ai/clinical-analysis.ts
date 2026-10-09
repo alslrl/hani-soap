@@ -1,3 +1,4 @@
+import { sourceMeasurementConditions } from './clinical-measurement-conditions';
 import { createHash } from 'node:crypto';
 import { z } from 'zod';
 import { QUESTION_GROUPS } from '@/components/progress/questions';
@@ -93,7 +94,7 @@ export function validateClinicalAnalysis(output: ClinicalAnalysisOutput, transcr
   }
   for (const item of output.measurements) {
     if (!validField(item.item_key, item.subitem_key) || item.temporal !== 'current' || !grounded(item.evidence, transcript, true) || !measuredNumber(item, transcript)) { rejected.push('measurement_boundary'); continue; }
-    candidates.push({ ...base('measurement', item), kind: 'measurement', item_key: item.item_key as FollowupAnswer['item_key'], subitem_key: item.subitem_key, instrument: item.instrument, value: item.value, unit: item.unit === 'count_per_night' ? 'episodes_per_night' : item.unit, body_region: item.body_region, laterality: item.laterality, activity_key: item.activity_key, measurement_context: item.measurement_context });
+    candidates.push({ ...base('measurement', item), kind: 'measurement', item_key: item.item_key as FollowupAnswer['item_key'], subitem_key: item.subitem_key, instrument: item.instrument, value: item.value, unit: item.unit === 'count_per_night' ? 'episodes_per_night' : item.unit, ...sourceMeasurementConditions(item,transcript) });
   }
   for (const item of output.signals) {
     if (!grounded(item.evidence, transcript) || !item.evidence.some(ref => signalPatterns[item.category](ref.quote))) { rejected.push('signal_boundary'); continue; }

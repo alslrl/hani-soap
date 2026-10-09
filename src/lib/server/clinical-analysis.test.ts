@@ -28,7 +28,7 @@ beforeEach(async () => {
   const login = await unlock(request({}), '1234'); cookie = `${SESSION_COOKIE}=${login.token}`;
   const { state } = await readState(); visitId = state.scenario_inputs[0].current_visit_id;
   raw = { id: randomUUID(), clinic_id: state.clinic.id, visit_id: visitId, revision: 1, status: 'raw', source_asset_key: 'manual_seed', text: '보중익기탕을 처방합니다.', segments: [{ id: randomUUID(), ordinal: 1, speaker: 'unknown', text: '보중익기탕을 처방합니다.', start_ms: 0, end_ms: 1000 }], origin: 'manual_demo' };
-  raw.text = '현재 통증은 0점이에요. 약이 효과가 있을지 걱정돼요.';
+  raw.text = '현재 오른쪽 발목 통증은 0점이에요. 약이 효과가 있을지 걱정돼요.';
   raw.segments = [{ ...raw.segments[0], text: raw.text, speaker: 'patient' }];
   const evidence = [{ segment_id: raw.segments[0].id, quote: raw.text }];
   const output: ClinicalAnalysisOutput = { answers: [{ item_key: 'pain', subitem_key: 'current_pain', text: raw.text, change: null, temporal: 'current', evidence }], measurements: [{ item_key: 'pain', subitem_key: 'current_pain', instrument: 'NRS', value: 0, unit: 'score', body_region: 'ankle', laterality: 'right', activity_key: null, measurement_context: 'current_pain', temporal: 'current', evidence }], signals: [{ category: 'worry', topic: '효과 걱정', evidence }], missing_questions: [] };
