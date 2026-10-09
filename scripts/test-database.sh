@@ -42,6 +42,12 @@ try:
  check(sql(commit(seed,0)).stdout.strip()=='1','initial commit version')
  sql((root/'supabase/tests/security.test.sql').read_text())
  check(True,'RLS/grants/bucket/count assertions')
+ sql(f"insert into public.kakao_private_state(clinic_id,payload) values ('{CLINIC}', '{{\"connection\":null,\"oauth\":[],\"deliveries\":[]}}'::jsonb);")
+ check(sql(f"set role service_role; update public.kakao_private_state set version=version+1 where clinic_id='{CLINIC}' and version=1 returning version;").stdout.strip()=='2','integration version compare-and-swap')
+ check(sql(f"set role service_role; update public.kakao_private_state set version=version+1 where clinic_id='{CLINIC}' and version=1 returning version;").stdout.strip()=='','stale integration claim has no winner')
+ for role in ['anon','authenticated']:
+  denial=sql(f'set role {role}; select payload from public.kakao_private_state;',expect=False)
+  check(denial.returncode!=0 and 'permission denied' in denial.stderr,f'{role} cannot read integration credentials')
  for role in ['anon','authenticated']:
   denial=sql(f'set role {role}; select * from public.patients;',expect=False)
   check(denial.returncode!=0 and 'permission denied' in denial.stderr,f'{role} cannot read patients')
