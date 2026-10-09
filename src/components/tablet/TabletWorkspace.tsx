@@ -4,19 +4,21 @@ import { Disclosure } from '@/components/ui/Disclosure';
 
 import Link from "next/link";
 import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
-import { ArrowLeft, ArrowRight, Check, CheckCheck, ChevronDown, Hand, History, NotebookPen, X, PenLine, RotateCcw, Undo2, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCheck, ChevronDown, History, NotebookPen, X, PenLine, RotateCcw, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 import { useAppState } from "@/lib/client";
 import type { AnnotationStroke, AppState, StateEnvelope, Treatment, TreatmentLocation } from "@/lib/types";
 import { BodyDiagram } from "./BodyDiagram";
 import { AcupointReferenceDots } from "./AcupointReferenceDots";
 import { RegionPicker } from "./RegionPicker";
-import { inkPath, recognizeCheck, type InkPoint } from "@/lib/tablet/geometry";
+import { TabletToolSelector } from "./TabletToolSelector";
+import { inkPath, type InkPoint } from "@/lib/tablet/geometry";
 import { mapBodyRegion, REGION_LABELS, SIDE_LABELS, type BodyRegion, type BodyView, type RegionMatch } from "@/lib/tablet/regions";
 import { memoImage } from "@/lib/tablet/ink-image";
 import { normalizeStrokes, restoreCanvasStrokes } from "@/lib/tablet/coordinates";
 import { BODY_MAP_VERSIONS, BODY_MAP_LABELS, preferredBodyMapVersionForSex, historicalBodyMapVersions, type BodyMapVersion } from "@/lib/tablet/body-map-version";
 import { bodyCanvasViewBox, svgViewBox } from "@/lib/tablet/viewport";
 import { DrawingInput, type CanvasPointer } from "@/lib/tablet/drawing-input";
+import { editInk, eraseInkAlongPath, initialInkEditor, undoInk, type DrawingTool, type InkEditorState } from "@/lib/tablet/ink-editor";
 import "./tablet-input.css";
 
 const TABS = [
@@ -27,7 +29,7 @@ const TABS = [
   { id: "cupping", label: "부항", detail: "부항", modality: "cupping", technique: null },
 ] as const;
 type TabId = typeof TABS[number]["id"];
-type Layer = { id: string; coordinateVersion: BodyMapVersion; revision: number; strokes: AnnotationStroke[]; dirty: boolean };
+type Layer = InkEditorState & { id: string; coordinateVersion: BodyMapVersion; revision: number; dirty: boolean };
 type Draft = { id: string; locations: TreatmentLocation[]; notes: string; confirmed: boolean; dirty: boolean };
 type Layers = Record<string, Layer>;
 type Drafts = Record<TabId, Draft>;
@@ -57,7 +59,7 @@ function initialDrafts(state: AppState, visitId: string): Drafts {
 function initialLayers(state: AppState, visitId: string): Layers {
   return Object.fromEntries(BODY_MAP_VERSIONS.flatMap(version => TABS.flatMap(tab => (["front", "back"] as const).map(view => {
     const row = state.annotations.find(a => a.visit_id === visitId && matchesTab(a, tab) && a.view === view && a.coordinate_version === version);
-    return [layerKey(tab.id, view, version), { id: row?.id || uid(), coordinateVersion: version, revision: row?.revision || 0, strokes: restoreCanvasStrokes(row?.strokes || []), dirty: false }];
+    return [layerKey(tab.id, view, version), { ...initialInkEditor(restoreCanvasStrokes(row?.strokes || [])), id: row?.id || uid(), coordinateVersion: version, revision: row?.revision || 0, dirty: false }];
   }))));
 }
 
@@ -96,10 +98,12 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   const [view, setView] = useState<BodyView>("front");
   const [layers, setLayers] = useState<Layers>(() => initialLayers(state, visitId));
   const [drafts, setDrafts] = useState<Drafts>(() => initialDrafts(state, visitId));
-  const [picker, setPicker] = useState<{ match: RegionMatch; strokeId?: string } | null>(null);
+  const [picker, setPicker] = useState<{ match: RegionMatch } | null>(null);
   const [activeInk, setActiveInk] = useState<InkPoint[]>([]);
   const [zoom, setZoom] = useState<RegionMatch | null>(null);
-  const [selectMode, setSelectMode] = useState(false);
+  const [tool, setTool] = useState<DrawingTool>("select");
+  const [eraserCursor, setEraserCursor] = useState<(InkPoint & { radius: number }) | null>(null);
+  const eraseSession = useRef<{ id: number; layerKey: string; gestureId: string; last: InkPoint; radius: number } | null>(null);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
   const [reviewText, setReviewText] = useState<string | null>(null);
@@ -109,6 +113,8 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   const tab = TABS.find(t => t.id === tabId)!;
   const key = layerKey(tabId, view, frameVersion);
   const layer = layers[key];
+  const strokeActive = activeInk.length > 0 || eraserCursor !== null;
+  const toolHint = tool === "select" ? "부위를 톡 눌러 혈자리를 선택하세요" : tool === "pen" ? "체크·동그라미·글씨 모두 메모로 기록됩니다" : "필기 획을 문질러 지우세요 · 되돌리기로 복구";
   const draft = drafts[tabId];
   const dirty = layer.dirty || drafts[tabId].dirty || layers[layerKey(tabId, view === "front" ? "back" : "front", frameVersion)].dirty;
   const annotation = state.annotations.find(a => a.id === layer.id);
@@ -143,11 +149,26 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     return () => window.removeEventListener("beforeunload", warn);
   }, [layers, drafts]);
   function changeDraft(update: Partial<Draft>) { if (isHistorical) return; setDrafts(d => ({ ...d, [tabId]: { ...d[tabId], ...update, dirty: true, confirmed: false } })); setMessage(""); }
-  function changeInk(strokes: AnnotationStroke[]) { if (isHistorical) return; setLayers(l => ({ ...l, [key]: { ...l[key], strokes, dirty: true } })); setMessage(""); }
   function appendInk(stroke: AnnotationStroke) {
     if (isHistorical) return;
-    setLayers(l => ({ ...l, [key]: { ...l[key], strokes: [...l[key].strokes, stroke], dirty: true } }));
+    setLayers(l => ({ ...l, [key]: { ...editInk(l[key], [...l[key].strokes, stroke], stroke.id), dirty: true } }));
     setMessage("");
+  }
+  function eraseAt(p: InkPoint) {
+    const session = eraseSession.current;
+    if (!session || isHistorical) return;
+    const path = [session.last, p]; session.last = p;
+    setLayers(l => {
+      const current = l[session.layerKey];
+      const next = editInk(current, eraseInkAlongPath(current.strokes, path, session.radius), session.gestureId);
+      return next === current ? l : { ...l, [session.layerKey]: { ...next, dirty: true } };
+    });
+    setEraserCursor({ ...p, radius: session.radius }); setMessage("");
+  }
+  function changeTool(next: DrawingTool) {
+    if (busy || isHistorical || input.current.drawing) return;
+    input.current.reset(); eraseSession.current = null;
+    setTool(next); setActiveInk([]); setEraserCursor(null); setPicker(null); setMessage("");
   }
   function point(e: Pick<globalThis.PointerEvent, "clientX" | "clientY" | "pressure">): AnnotationStroke["points"][number] | null {
     const matrix = strokeMatrix.current;
@@ -165,30 +186,38 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     if (!input.current.owns(e.pointerId)) {
       const matrix = svgRef.current?.getScreenCTM();
       if (!matrix) return;
-      if (e.pointerType !== "touch") strokeMatrix.current = matrix.inverse();
-      else strokeMatrix.current = matrix.inverse();
+      strokeMatrix.current = matrix.inverse();
     }
     const p = point(e);
     if (!p) return;
-    const kind = input.current.down(e, p, selectMode);
+    const kind = input.current.down(e, p, tool);
     if (!kind) return;
     if (kind === "select") {
       const match = mapBodyRegion(p, view, layer.coordinateVersion);
-      if (match) { setPicker({ match }); setSelectMode(false); }
+      if (match) setPicker({ match });
+      else setMessage("인체 안의 부위를 눌러 주세요.");
       return;
     }
     try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Window handlers finish a contact if capture is unavailable. */ }
-    if (kind === "ink") { setSelectMode(false); setActiveInk([p]); }
+    if (kind === "ink") setActiveInk([p]);
+    if (kind === "erase") {
+      const matrix = strokeMatrix.current!;
+      const radius = 14 * Math.max(Math.hypot(matrix.a, matrix.b), Math.hypot(matrix.c, matrix.d));
+      eraseSession.current = { id: e.pointerId, layerKey: key, gestureId: uid(), last: p, radius };
+      eraseAt(p);
+    }
   }
   type PointerSample = CanvasPointer & Pick<globalThis.PointerEvent, "pressure" | "preventDefault"> & { nativeEvent?: globalThis.PointerEvent };
   function move(e: PointerSample) {
     if (!input.current.owns(e.pointerId)) return;
     e.preventDefault();
-    // Keep the original event stream that the check detector was tuned against.
-    // Optional coalesced-event metadata must not replace the owning pointer.
+    // Use the owning pointer event, preserving the validated Pencil input path.
     const p = point(e);
     const points = p ? input.current.move(e, p) : null;
-    if (points) setActiveInk([...points]);
+    if (points && p) {
+      if (eraseSession.current?.id === e.pointerId) eraseAt(p);
+      else setActiveInk([...points]);
+    }
   }
   function end(e: PointerSample) {
     if (!input.current.owns(e.pointerId)) return;
@@ -199,20 +228,20 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     if (!result) return;
     if (result.kind === "select") {
       const match = mapBodyRegion(result.point, view, layer.coordinateVersion);
-      if (match) { setPicker({ match }); setSelectMode(false); }
+      if (match) setPicker({ match });
+      else setMessage("인체 안의 부위를 눌러 주세요.");
       return;
     }
+    if (result.kind === "erase") { eraseAt(p); eraseSession.current = null; setEraserCursor(null); return; }
     setActiveInk([]);
-    const check = recognizeCheck(result.points, layer.strokes);
-    const match = check ? mapBodyRegion(check.anchor, view, layer.coordinateVersion) : null;
-    const stroke: AnnotationStroke = { id: uid(), points: result.points, kind: match ? "check" : "memo", created_at: new Date().toISOString() };
+    const stroke: AnnotationStroke = { id: uid(), points: result.points, kind: "memo", created_at: new Date().toISOString() };
     appendInk(stroke);
-    if (match) setPicker({ match, strokeId: stroke.id });
   }
   function cancel(e: Pick<CanvasPointer, "pointerId">) {
     if (!input.current.owns(e.pointerId)) return;
     const points = input.current.cancel(e.pointerId);
     setActiveInk([]);
+    if (eraseSession.current?.id === e.pointerId) { eraseSession.current = null; setEraserCursor(null); return; }
     if (points) appendInk({ id: uid(), points, kind: "memo", created_at: new Date().toISOString() });
   }
   const inputHandlers = useRef({ move, end, cancel });
@@ -226,11 +255,12 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     window.addEventListener("pointercancel", interrupted);
     return () => { window.removeEventListener("pointermove", outsideMove); window.removeEventListener("pointerup", finish); window.removeEventListener("pointercancel", interrupted); };
   }, []);
-  function undo() { changeInk(layer.strokes.slice(0, -1)); setPicker(null); }
-  function toMemo() {
-    if (picker?.strokeId) changeInk(layer.strokes.map(s => s.id === picker.strokeId ? { ...s, kind: "memo" } : s));
-    setPicker(null);
+  function undo() {
+    if (busy || isHistorical || input.current.drawing) return;
+    setLayers(l => { const next = undoInk(l[key]); return next === l[key] ? l : { ...l, [key]: { ...next, dirty: true } }; });
+    setPicker(null); setMessage("");
   }
+  function toMemo() { setPicker(null); }
   function addLocations(locations: TreatmentLocation[], match: RegionMatch) {
     const existing = draft.locations;
     const additions = locations.map(p => ({ ...p, annotation_id: layer.id })).filter(p => !existing.some(q => q.location_type === p.location_type && q.acupoint_code === p.acupoint_code && q.body_region === p.body_region && q.laterality === p.laterality && q.location_note === p.location_note && q.annotation_id === p.annotation_id));
@@ -238,7 +268,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     setPicker(null); setMessage(`현재 시술에 ${additions.length}개 위치 추가`);
   }
   async function save(confirmed = false) {
-    if (isHistorical) return;
+    if (isHistorical || input.current.drawing) return;
     setBusy(true); setMessage("");
     try {
       for (const bodyView of ["front", "back"] as const) {
@@ -279,10 +309,10 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     catch (err) { setMessage(err instanceof Error ? err.message : "검토 저장에 실패했습니다."); }
     finally { setBusy(false); }
   }
-  function switchTab(id: TabId) { if (busy) return; input.current.reset(); setTabId(id); setPicker(null); setZoom(null); setActiveInk([]); setReviewText(null); setMessage(""); }
+  function switchTab(id: TabId) { if (busy || input.current.drawing) return; input.current.reset(); setTabId(id); setPicker(null); setZoom(null); setActiveInk([]); setEraserCursor(null); setReviewText(null); setMessage(""); }
   function changeFrame(version: BodyMapVersion) {
-    if (busy) return;
-    input.current.reset(); setFrameVersion(version); setShowFullCanvas(false); setPicker(null); setZoom(null); setRecordsOpen(false); setHistoryOpen(false); setSelectMode(false); setReviewText(null); setActiveInk([]);
+    if (busy || input.current.drawing) return;
+    input.current.reset(); setFrameVersion(version); setShowFullCanvas(false); setPicker(null); setZoom(null); setRecordsOpen(false); setHistoryOpen(false); setReviewText(null); setActiveInk([]); setEraserCursor(null);
   }
   function dismissPanel() {
     if (picker) toMemo();
@@ -322,47 +352,51 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
       <span>{error ? "연결 확인 필요" : "PC와 같은 방문에 연결됨"}</span>
       <span className="tablet-save-indicator">{isHistorical ? "이전 원본 · 읽기 전용" : busy ? "처리 중…" : dirty ? "저장하지 않은 변경" : "저장된 기록"}</span>
     </div>
-    <nav className="tablet-tabs" aria-label="시술 종류" role="tablist" inert={sheetOpen || undefined}>{TABS.map(t => <button type="button" key={t.id} role="tab" aria-selected={tabId === t.id} onClick={() => switchTab(t.id)} disabled={busy}>
+    <nav className="tablet-tabs" aria-label="시술 종류" role="tablist" inert={sheetOpen || undefined}>{TABS.map(t => <button type="button" key={t.id} role="tab" aria-selected={tabId === t.id} onClick={() => switchTab(t.id)} disabled={busy || strokeActive}>
       <span>{t.label}</span>{drafts[t.id].locations.length > 0 && <small>{drafts[t.id].locations.length}</small>}
       {!isHistorical && (drafts[t.id].dirty || layers[layerKey(t.id, "front", frameVersion)].dirty || layers[layerKey(t.id, "back", frameVersion)].dirty) && <i aria-label="저장 필요" />}
     </button>)}</nav>
     <div className="tablet-main">
       <section className="tablet-drawing" aria-label="인체 시술 기록" inert={sheetOpen || undefined}>
         <div className="tablet-canvas-header">
-          <div><span className="tablet-eyebrow">{tab.detail} · {isHistorical ? "이전 도해 원본" : "위치와 필기 · 혈자리 참고점 (검수 전)"}</span><h1>{isHistorical ? "이전 도해 기록" : "시술한 부위를 표시하세요"}</h1></div>
+          <div><span className="tablet-eyebrow">{tab.detail} · {isHistorical ? "이전 도해 원본" : "혈자리 참고점 (검수 전)"}</span><h1>{isHistorical ? "이전 도해 기록" : tool === "select" ? "부위를 눌러 위치를 선택하세요" : tool === "pen" ? "진료 메모를 자유롭게 적으세요" : "지울 필기를 문질러 주세요"}</h1></div>
           <div className="tablet-canvas-navigation">
+            <div className="tablet-frame-controls">
             {historicalVersions.length > 0 && !isHistorical && <div className="tablet-history-control">
-              <button type="button" className="tablet-history-toggle" aria-label="이전 도해 기록" onClick={() => historicalVersions.length === 1 ? changeFrame(historicalVersions[0]) : setHistoryOpen(value => !value)} disabled={busy}><History size={16}/><span>이전 도해 기록</span></button>
+              <button type="button" className="tablet-history-toggle" aria-label="이전 도해 기록" onClick={() => historicalVersions.length === 1 ? changeFrame(historicalVersions[0]) : setHistoryOpen(value => !value)} disabled={busy || strokeActive}><History size={16}/><span>이전 도해 기록</span></button>
               {historyOpen && <div className="tablet-history-menu">{historicalVersions.map(version => <button type="button" key={version} onClick={() => changeFrame(version)}>{BODY_MAP_LABELS[version]}</button>)}</div>}
             </div>}
-            <div className="tablet-view-toggle">{(["front", "back"] as const).map(v => <button key={v} type="button" aria-pressed={view === v} disabled={busy} onClick={() => { setView(v); setPicker(null); setZoom(null); setReviewText(null); }}>{v === "front" ? "앞면" : "뒷면"}</button>)}</div>
+            <div className="tablet-view-toggle">{(["front", "back"] as const).map(v => <button key={v} type="button" aria-pressed={view === v} disabled={busy || strokeActive} onClick={() => { input.current.reset(); setView(v); setPicker(null); setZoom(null); setReviewText(null); }}>{v === "front" ? "앞면" : "뒷면"}</button>)}</div>
+            </div>
+            <TabletToolSelector value={tool} onChange={changeTool} disabled={busy || isHistorical || strokeActive}/>
           </div>
         </div>
         {isHistorical && <div className="tablet-history-notice" data-testid="legacy-body-map-notice"><span>{BODY_MAP_LABELS[frameVersion]}에 저장된 원본입니다. 읽기 전용으로 표시합니다.</span>{!portrait && <button type="button" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기 <ArrowRight size={15}/></button>}</div>}
         <div className="tablet-canvas-wrap">
-          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
+          <svg ref={svgRef} className="tablet-canvas" data-tool={tool} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : toolHint}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onContextMenu={e => e.preventDefault()}>
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
             <BodyDiagram view={view} version={layer.coordinateVersion} />
             {!isHistorical && <AcupointReferenceDots view={view} version={layer.coordinateVersion} />}
             {layer.strokes.map(stroke => <path key={stroke.id} data-ink-kind={stroke.kind} d={inkPath(stroke.points)} className={`tablet-ink ${stroke.kind === "check" ? "tablet-check-ink" : ""}`} />)}
             {activeInk.length > 0 && <path d={inkPath(activeInk)} className="tablet-ink" />}
+            {eraserCursor && <circle className="tablet-eraser-cursor" cx={eraserCursor.x} cy={eraserCursor.y} r={eraserCursor.radius}/>}
             {picker && picker.match.selectionSource !== "catalog" && <circle className="tablet-selection-ring" cx={picker.match.anchor.x} cy={picker.match.anchor.y} r="23" />}
           </svg>
           {portrait && !isHistorical && !zoom && (hasInkOutsidePortrait || showFullCanvas) && <button type="button" className="tablet-full-canvas-toggle" onClick={() => setShowFullCanvas(value => !value)}>{showFullCanvas ? "인체 크게 보기" : "전체 필기 보기"}</button>}
-          {!zoom && !isHistorical && <div className="tablet-canvas-guide"><span className="tablet-check-sample">✓</span><strong>체크하면 부위 선택</strong><span>동그라미와 글씨는 그대로 메모</span></div>}
-          <div className="tablet-canvas-corner"><PenLine size={14}/><span>{isHistorical ? `${layer.strokes.length}획 · 저장 당시 도해에 원본 표시` : "체크는 부위 선택 · 글씨와 동그라미는 메모"}</span></div>
+          {!zoom && !isHistorical && <div className="tablet-canvas-guide"><strong>{tool === "select" ? "눌러서 부위 선택" : tool === "pen" ? "모든 획은 메모" : "필기만 지우기"}</strong><span>{toolHint}</span></div>}
+          <div className="tablet-canvas-corner"><PenLine size={14}/><span>{isHistorical ? `${layer.strokes.length}획 · 저장 당시 도해에 원본 표시` : toolHint}</span></div>
           <div className="tablet-zoom-controls"><button type="button" className="tablet-icon-button" aria-label={zoom ? "전체 인체 보기" : "선택 부위 확대"} disabled={!zoom && (!picker || picker.match.selectionSource === "catalog")} onClick={() => setZoom(zoom ? null : picker?.match || null)}>{zoom ? <ZoomOut size={19}/> : <ZoomIn size={19}/>}</button>{zoom && <button type="button" className="tablet-icon-button" aria-label="확대 초기화" onClick={() => setZoom(null)}><RotateCcw size={17}/></button>}</div>
         </div>
         <div className="tablet-drawing-tools">
-          {!isHistorical && <><button type="button" onClick={() => setSelectMode(value => !value)} aria-pressed={selectMode} disabled={busy}><Hand size={17}/><span>{selectMode ? "부위를 누르세요" : "부위 직접 선택"}</span></button><button type="button" className="tablet-manual-list" onClick={() => setPicker({ match: { region: "head", laterality: "not_applicable", anchor: { x: 500, y: 500 }, view, selectionSource: "catalog" } })} disabled={busy}>목록에서 선택</button><button type="button" className="tablet-undo" aria-label="마지막 필기 취소" disabled={!layer.strokes.length || busy} onClick={undo}><Undo2 size={18}/><span>되돌리기</span></button></>}
-          <button type="button" className="tablet-records-toggle" aria-expanded={recordsOpen} onClick={() => setRecordsOpen(value => !value)}><NotebookPen size={18}/><span>기록</span>{draft.locations.length > 0 && <small>{draft.locations.length}</small>}</button>
-          {!isHistorical && <button type="button" className="tablet-toolbar-save" onClick={() => void save(false)} disabled={busy}>초안 저장</button>}
+          {!isHistorical && <><button type="button" className="tablet-manual-list" onClick={() => setPicker({ match: { region: "head", laterality: "not_applicable", anchor: { x: 500, y: 500 }, view, selectionSource: "catalog" } })} disabled={busy || strokeActive}>목록에서 선택</button><button type="button" className="tablet-undo" aria-label="필기 작업 되돌리기" disabled={(!layer.strokes.length && !layer.undoStack.length) || busy || strokeActive} onClick={undo}><Undo2 size={18}/><span>되돌리기</span></button></>}
+          <button type="button" className="tablet-records-toggle" aria-expanded={recordsOpen} disabled={busy || strokeActive} onClick={() => setRecordsOpen(value => !value)}><NotebookPen size={18}/><span>기록</span>{draft.locations.length > 0 && <small>{draft.locations.length}</small>}</button>
+          {!isHistorical && <button type="button" className="tablet-toolbar-save" onClick={() => void save(false)} disabled={busy || strokeActive}>초안 저장</button>}
           {isHistorical && <button type="button" className="tablet-toolbar-return" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기</button>}
         </div>
       </section>
       {sheetOpen && <button type="button" className="tablet-sheet-backdrop" aria-label="패널 닫기" tabIndex={-1} onClick={dismissPanel}/>}
       <aside ref={inspectorRef} className={`tablet-inspector ${sheetOpen ? "is-sheet-open" : ""}`} aria-label="오늘 시술과 선택 후보" role={portrait && recordsOpen && !picker ? "dialog" : undefined} aria-modal={portrait && recordsOpen && !picker ? true : undefined}>
-        {picker ? <RegionPicker key={`${key}:${picker.strokeId || `${picker.match.region}-${picker.match.laterality}`}`} match={picker.match} onClose={toMemo} onMemo={toMemo} onAdd={addLocations} modal={portrait} onZoom={() => { setZoom(picker.match); setPicker(null); }} /> : <>
+        {picker ? <RegionPicker key={`${key}:${picker.match.region}-${picker.match.laterality}`} match={picker.match} onClose={toMemo} onMemo={toMemo} onAdd={addLocations} modal={portrait} onZoom={() => { setZoom(picker.match); setPicker(null); }} /> : <>
           <div className="tablet-sheet-heading"><span>{isHistorical ? "이전 도해 기록" : "오늘 시술 기록"}</span><button type="button" className="tablet-icon-button" aria-label="기록 닫기" onClick={() => setRecordsOpen(false)}><X size={18}/></button></div>
           <div className="tablet-inspector-heading"><span className="tablet-eyebrow">{isHistorical ? "원본 보존 · 읽기 전용" : "오늘 시술"}</span><h2>{tab.detail}<span className={draft.confirmed ? "tablet-confirmed-badge" : "tablet-draft-badge"}>{isHistorical ? "이전 기록" : draft.confirmed ? "시행 확인" : "초안"}</span></h2><p>{isHistorical ? "이 도해에 연결된 필기와 위치를 확인하세요." : "선택한 위치를 확인하고 저장하세요."}</p></div>
           <div className="tablet-selected-locations">{visibleLocations.length ? visibleLocations.map(({ location, index }) => {
