@@ -34,6 +34,7 @@ import {
   type State,
   type Visit,
 } from "./shared";
+import { displayRecordText } from "@/lib/presentation";
 import "./clinic.css";
 
 const emptySections: Sections = { s: "", o: "", a: "", p: "" };
@@ -78,7 +79,7 @@ function ReadOnlySoap({ document }: { document?: Soap }) {
       {sectionMeta.map((section) => (
         <div key={section.key}>
           <span>{section.key.toUpperCase()}</span>
-          <p>{document.sections[section.key] || "기록 없음"}</p>
+          <p>{displayRecordText(document.sections[section.key] || "기록 없음")}</p>
         </div>
       ))}
     </div>
@@ -131,7 +132,7 @@ function PatientRail({
             <strong>{patient.display_name}</strong>
             <span>{demographics(patient, visit.scheduled_at)}</span>
             <span className="hs-muted">
-              차트 {patient.demo_key} · 가상 환자
+              차트 {patient.demo_key}
             </span>
           </div>
         </div>
@@ -1227,7 +1228,7 @@ function PastVisitPanel({
             {history[0] ? `${shortDate(history[0].scheduled_at)} 마지막 진료` : "첫 방문"}
           </span>
           <h3>{patient.chief_complaint}</h3>
-          {!hasSummary && <p>{history[0]?.summary || "이전 기록이 없어요. 오늘 들은 증상과 관찰 소견부터 기록하세요."}</p>}
+          {!hasSummary && <p>{displayRecordText(history[0]?.summary || "이전 기록이 없어요. 오늘 들은 증상과 관찰 소견부터 기록하세요.")}</p>}
           {history.length > 0 && <BriefingResult state={state} visit={visit} aiAvailable={aiAvailable} refresh={refresh} />}
         </div>
       </div>
@@ -1356,7 +1357,7 @@ function TodayFollowupPanels({
                 <Badge
                   tone={response.option === "discomfort" ? "amber" : "neutral"}
                 >
-                  모의 응답
+                  {response.source === "kakao_self_link" ? "카카오톡 응답" : "환자 응답"}
                 </Badge>
               </div>
               <strong>

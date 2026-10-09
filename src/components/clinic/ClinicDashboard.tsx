@@ -97,7 +97,6 @@ export default function ClinicDashboard() {
         <span className="hs-muted">
           환자를 선택하면 진료 기록을 확인할 수 있어요.
         </span>
-        <Badge tone="blue">가상 환자 데모</Badge>
       </div>
       {error && (
         <p className="hs-inline-error" role="alert">
@@ -221,10 +220,6 @@ export default function ClinicDashboard() {
           <p className="hs-muted">현재 열린 연락 업무가 없어요.</p>
         )}
       </section>
-      <footer className="hs-page-footnote">
-        합성 프로필·방문 이력으로 구성한 데모입니다. 실제 진료와 발송 기록은
-        포함하지 않습니다.
-      </footer>
     </div>
   );
 }
