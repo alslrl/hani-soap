@@ -1,0 +1,1673 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://hani-soap.example/schemas/demo-v1.json",
+  "title": "HaniSOAP demo data v1",
+  "description": "Authoritative seed format for exactly two fictional patients. No API secrets, access PIN, real contact details or fabricated API run results.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "meta",
+    "clinic",
+    "patients",
+    "visits",
+    "transcripts",
+    "soap_documents",
+    "treatments",
+    "followup_answers",
+    "observations",
+    "followup_items",
+    "medication_courses",
+    "care_messages",
+    "care_responses",
+    "contact_tasks",
+    "scenario_inputs"
+  ],
+  "properties": {
+    "meta": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "schema_version",
+        "is_demo",
+        "timezone",
+        "demo_today",
+        "generated_at",
+        "origin_note"
+      ],
+      "properties": {
+        "schema_version": {
+          "const": "1.0.0"
+        },
+        "is_demo": {
+          "const": true
+        },
+        "timezone": {
+          "const": "Asia/Seoul"
+        },
+        "demo_today": {
+          "const": "2026-10-09"
+        },
+        "generated_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "origin_note": {
+          "type": "string"
+        }
+      }
+    },
+    "clinic": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "name",
+        "timezone"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "timezone": {
+          "const": "Asia/Seoul"
+        }
+      }
+    },
+    "patients": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/patient"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    },
+    "visits": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/visit"
+      },
+      "minItems": 4
+    },
+    "transcripts": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/transcript"
+      }
+    },
+    "soap_documents": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/soap_document"
+      }
+    },
+    "treatments": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/treatment"
+      }
+    },
+    "followup_answers": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/followup_answer"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      }
+    },
+    "followup_items": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/followup_item"
+      }
+    },
+    "medication_courses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/medication_course"
+      }
+    },
+    "care_messages": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/care_message"
+      }
+    },
+    "care_responses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/care_response"
+      }
+    },
+    "contact_tasks": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/contact_task"
+      }
+    },
+    "scenario_inputs": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/scenario_input"
+      },
+      "minItems": 2,
+      "maxItems": 2
+    }
+  },
+  "$defs": {
+    "source_ref": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "source_id",
+        "quote",
+        "origin"
+      ],
+      "properties": {
+        "kind": {
+          "enum": [
+            "provided_transcript",
+            "demo_transcript",
+            "manual",
+            "care_response",
+            "seed_snapshot"
+          ]
+        },
+        "source_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "quote": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "patient": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "demo_key",
+        "display_name",
+        "sex",
+        "birth_date",
+        "chief_complaint",
+        "portrait_asset_key",
+        "guardian",
+        "contact_phone",
+        "contact_email",
+        "notes",
+        "is_demo"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "demo_key": {
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "display_name": {
+          "type": "string"
+        },
+        "sex": {
+          "enum": [
+            "female",
+            "male",
+            "unspecified"
+          ]
+        },
+        "birth_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "chief_complaint": {
+          "type": "string"
+        },
+        "portrait_asset_key": {
+          "enum": [
+            "demo-adult-01",
+            "demo-child-01"
+          ]
+        },
+        "guardian": {
+          "anyOf": [
+            {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "display_name",
+                "relationship"
+              ],
+              "properties": {
+                "display_name": {
+                  "type": "string"
+                },
+                "relationship": {
+                  "type": "string"
+                }
+              }
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "contact_phone": {
+          "type": "null"
+        },
+        "contact_email": {
+          "type": "null"
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "is_demo": {
+          "const": true
+        }
+      }
+    },
+    "visit": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "visit_no",
+        "scheduled_at",
+        "started_at",
+        "completed_at",
+        "workflow_status",
+        "record_status",
+        "reason",
+        "summary",
+        "origin",
+        "is_demo"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_no": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "scheduled_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "started_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "completed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "workflow_status": {
+          "enum": [
+            "waiting",
+            "in_progress",
+            "completed"
+          ]
+        },
+        "record_status": {
+          "enum": [
+            "empty",
+            "draft",
+            "review_needed",
+            "approved"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "summary": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        },
+        "is_demo": {
+          "const": true
+        }
+      }
+    },
+    "segment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "ordinal",
+        "speaker",
+        "text",
+        "start_ms",
+        "end_ms"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "ordinal": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "speaker": {
+          "enum": [
+            "clinician",
+            "patient",
+            "guardian",
+            "unknown"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "start_ms": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "end_ms": {
+          "anyOf": [
+            {
+              "type": "number",
+              "minimum": 0
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      }
+    },
+    "transcript": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "visit_id",
+        "revision",
+        "status",
+        "source_asset_key",
+        "text",
+        "segments",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "status": {
+          "enum": [
+            "raw",
+            "reviewed"
+          ]
+        },
+        "source_asset_key": {
+          "enum": [
+            "video1",
+            "video2",
+            "revisit_script",
+            "manual_seed"
+          ]
+        },
+        "text": {
+          "type": "string"
+        },
+        "segments": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/segment"
+          },
+          "minItems": 1
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "soap_document": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "visit_id",
+        "revision",
+        "input_transcript_id",
+        "status",
+        "sections",
+        "source_refs",
+        "approved_at",
+        "approved_by",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "revision": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "input_transcript_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "approved"
+          ]
+        },
+        "sections": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "s",
+            "o",
+            "a",
+            "p"
+          ],
+          "properties": {
+            "s": {
+              "type": "string"
+            },
+            "o": {
+              "type": "string"
+            },
+            "a": {
+              "type": "string"
+            },
+            "p": {
+              "type": "string"
+            }
+          }
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "approved_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "approved_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "treatment": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "visit_id",
+        "modality",
+        "technique",
+        "body_region",
+        "laterality",
+        "acupoints",
+        "status",
+        "source",
+        "notes",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "modality": {
+          "enum": [
+            "acupuncture",
+            "pharmacopuncture",
+            "moxibustion",
+            "cupping",
+            "tuina"
+          ]
+        },
+        "technique": {
+          "anyOf": [
+            {
+              "enum": [
+                "standard_acupuncture",
+                "needle_knife",
+                "other"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "body_region": {
+          "type": "string"
+        },
+        "laterality": {
+          "enum": [
+            "left",
+            "right",
+            "bilateral",
+            "midline",
+            "not_applicable"
+          ]
+        },
+        "acupoints": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "code",
+              "label_ko"
+            ],
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "label_ko": {
+                "type": "string"
+              }
+            }
+          }
+        },
+        "status": {
+          "enum": [
+            "suggested",
+            "confirmed"
+          ]
+        },
+        "source": {
+          "enum": [
+            "manual",
+            "realtime_candidate",
+            "carried_over"
+          ]
+        },
+        "notes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/treatment_location"
+          },
+          "description": "Optional explicit coded or uncoded locations. acupoints is a legacy coded projection; do not invent codes for ashi or tenderness."
+        }
+      }
+    },
+    "followup_answer": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "visit_id",
+        "item_key",
+        "subitem_key",
+        "question_text",
+        "answer_text",
+        "change",
+        "confirmation_status",
+        "applicability",
+        "comparison_visit_id",
+        "source_refs",
+        "review_status",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "item_key": {
+          "enum": [
+            "chief_complaint",
+            "pain",
+            "function_daily",
+            "treatment_response",
+            "medication",
+            "discomfort",
+            "sleep",
+            "appetite_digestion",
+            "bowel_urine",
+            "temperature_sweat_energy",
+            "lifestyle",
+            "questions_concerns"
+          ]
+        },
+        "subitem_key": {
+          "type": "string"
+        },
+        "question_text": {
+          "type": "string"
+        },
+        "answer_text": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "change": {
+          "anyOf": [
+            {
+              "enum": [
+                "improved",
+                "same",
+                "worsened",
+                "unclear"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "confirmation_status": {
+          "enum": [
+            "confirmed",
+            "mentioned_only",
+            "not_confirmed"
+          ]
+        },
+        "applicability": {
+          "enum": [
+            "applicable",
+            "not_applicable",
+            "unknown"
+          ]
+        },
+        "comparison_visit_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "review_status": {
+          "enum": [
+            "draft",
+            "reviewed"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "visit_id",
+        "followup_answer_id",
+        "metric_key",
+        "series_key",
+        "instrument",
+        "value",
+        "unit",
+        "scale_min",
+        "scale_max",
+        "body_region",
+        "laterality",
+        "activity_key",
+        "measurement_context",
+        "measured_at",
+        "review_status",
+        "source_refs",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "followup_answer_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "metric_key": {
+          "type": "string"
+        },
+        "series_key": {
+          "type": "string"
+        },
+        "instrument": {
+          "enum": [
+            "NRS",
+            "APP_FUNCTION_DISCOMFORT",
+            "SYMPTOM_BOTHER",
+            "FREQUENCY"
+          ]
+        },
+        "value": {
+          "type": "number"
+        },
+        "unit": {
+          "type": "string"
+        },
+        "scale_min": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "scale_max": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "body_region": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "laterality": {
+          "anyOf": [
+            {
+              "enum": [
+                "left",
+                "right",
+                "bilateral",
+                "midline",
+                "not_applicable"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "activity_key": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "measurement_context": {
+          "type": "string"
+        },
+        "measured_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "review_status": {
+          "enum": [
+            "draft",
+            "reviewed"
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "followup_item": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "source_visit_id",
+        "item_key",
+        "title",
+        "status",
+        "resolved_visit_id",
+        "source_refs",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "item_key": {
+          "enum": [
+            "chief_complaint",
+            "pain",
+            "function_daily",
+            "treatment_response",
+            "medication",
+            "discomfort",
+            "sleep",
+            "appetite_digestion",
+            "bowel_urine",
+            "temperature_sweat_energy",
+            "lifestyle",
+            "questions_concerns"
+          ]
+        },
+        "title": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "pending",
+            "resolved"
+          ]
+        },
+        "resolved_visit_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_refs": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/source_ref"
+          }
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "medication_course": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "source_visit_id",
+        "medication_name",
+        "start_date",
+        "end_date",
+        "daily_frequency",
+        "instructions",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "source_visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "medication_name": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "start_date": {
+          "type": "string",
+          "format": "date"
+        },
+        "end_date": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "daily_frequency": {
+          "anyOf": [
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "instructions": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "care_message": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "visit_id",
+        "medication_course_id",
+        "stage",
+        "scheduled_at",
+        "draft_body",
+        "approved_body",
+        "approved_at",
+        "delivered_at",
+        "delivery_mode",
+        "status",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "medication_course_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "stage": {
+          "enum": [
+            "visit_summary",
+            "day3",
+            "week1",
+            "end_minus3"
+          ]
+        },
+        "scheduled_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "draft_body": {
+          "type": "string"
+        },
+        "approved_body": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "approved_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delivered_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "delivery_mode": {
+          "enum": [
+            "preview",
+            "mock",
+            "kakao_self"
+          ]
+        },
+        "status": {
+          "enum": [
+            "draft",
+            "approved",
+            "sent",
+            "failed",
+            "unknown"
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "care_response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "message_id",
+        "option",
+        "detail",
+        "received_at",
+        "source",
+        "event_key",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "message_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "option": {
+          "enum": [
+            "taking_well",
+            "discomfort",
+            "improving",
+            "unsure",
+            "will_book",
+            "will_wait"
+          ]
+        },
+        "detail": {
+          "anyOf": [
+            {
+              "enum": [
+                "stomach_discomfort",
+                "difficulty_taking",
+                "other"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "received_at": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "source": {
+          "enum": [
+            "demo_simulation",
+            "kakao_self_link"
+          ]
+        },
+        "event_key": {
+          "type": "string"
+        },
+        "origin": {
+          "const": "synthetic_response"
+        }
+      }
+    },
+    "contact_task": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "clinic_id",
+        "patient_id",
+        "response_id",
+        "reason",
+        "status",
+        "resolution_note",
+        "closed_by",
+        "closed_at",
+        "origin"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "clinic_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "response_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "open",
+            "closed"
+          ]
+        },
+        "resolution_note": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "closed_by": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "closed_at": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "date-time"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "origin": {
+          "enum": [
+            "provided_case",
+            "synthetic_history",
+            "synthetic_response",
+            "manual_demo"
+          ]
+        }
+      }
+    },
+    "scenario_input": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "demo_key",
+        "patient_id",
+        "current_visit_id",
+        "provided_audio_key",
+        "followup_script_key",
+        "source_documents"
+      ],
+      "properties": {
+        "demo_key": {
+          "enum": [
+            "A",
+            "B"
+          ]
+        },
+        "patient_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "current_visit_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "provided_audio_key": {
+          "enum": [
+            "video1",
+            "video2"
+          ]
+        },
+        "followup_script_key": {
+          "anyOf": [
+            {
+              "enum": [
+                "revisit_script"
+              ]
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "source_documents": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      }
+    },
+    "treatment_location": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "location_type",
+        "acupoint_code",
+        "label_ko",
+        "body_region",
+        "laterality",
+        "location_note",
+        "annotation_id",
+        "finding_ref"
+      ],
+      "properties": {
+        "location_type": {
+          "enum": [
+            "acupoint",
+            "ashi",
+            "tenderness_point"
+          ]
+        },
+        "acupoint_code": {
+          "anyOf": [
+            {
+              "type": "string",
+              "minLength": 1
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "label_ko": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "body_region": {
+          "type": "string"
+        },
+        "laterality": {
+          "enum": [
+            "left",
+            "right",
+            "bilateral",
+            "midline",
+            "not_applicable"
+          ]
+        },
+        "location_note": {
+          "type": "string"
+        },
+        "annotation_id": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "finding_ref": {
+          "anyOf": [
+            {
+              "type": "string",
+              "format": "uuid"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "location_type": {
+                "const": "acupoint"
+              }
+            }
+          },
+          "then": {
+            "properties": {
+              "acupoint_code": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          },
+          "else": {
+            "properties": {
+              "acupoint_code": {
+                "type": "null"
+              },
+              "location_note": {
+                "type": "string",
+                "minLength": 1
+              }
+            }
+          }
+        }
+      ]
+    }
+  }
+}

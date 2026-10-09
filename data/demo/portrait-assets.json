@@ -1,0 +1,34 @@
+{
+  "generated_on_kst": "2026-10-09",
+  "generation_method": "built-in image_gen",
+  "kind": "synthetic_demo_portrait_assets",
+  "patient_schema_finalized": true,
+  "assets": [
+    {
+      "asset_key": "demo-adult-01",
+      "path": "public/demo/portraits/demo-adult-01.png",
+      "public_path": "/demo/portraits/demo-adult-01.png",
+      "synthetic": true,
+      "profile_binding": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visual_brief": "Fictional Korean adult woman, mid-twenties, front-facing studio portrait",
+      "prompt": "Use case: photorealistic-natural. Asset type: fictional patient profile photo for a Korean clinic software demo. Generate one entirely fictional Korean woman in her mid-twenties, with no resemblance to any referenced real person. Korean studio ID-photo style, straight-on head and shoulders, eye-level camera, centered and symmetrical, a natural neutral expression with a faint closed-mouth smile, realistic skin texture, tidy dark hair with the face clearly visible, simple navy everyday top without logos. Soft even studio lighting, clean very light gray background. Portrait 3:4 composition, with enough headroom and side margins for later circular avatar display. One person only. No document, no ID card, no text, no letters, no watermark, no border, no props. This is a synthetic UI avatar asset, not an identification document.",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 2168942,
+      "sha256": "07d79152cf20c3cc61e84c2f310fc2d415cf03fb9dccd5bbbb85b0866031340d"
+    },
+    {
+      "asset_key": "demo-child-01",
+      "path": "public/demo/portraits/demo-child-01.png",
+      "public_path": "/demo/portraits/demo-child-01.png",
+      "synthetic": true,
+      "profile_binding": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visual_brief": "Fictional Korean child, around six, front-facing studio portrait",
+      "prompt": "Use case: photorealistic-natural. Asset type: fictional pediatric patient profile photo for a Korean clinic software demo. Generate one entirely fictional Korean child around six years old, with no resemblance to any referenced real person. Korean studio ID-photo style, straight-on head and shoulders, eye-level camera, centered and symmetrical, relaxed neutral expression with a slight closed-mouth smile, natural child proportions and realistic skin texture, tidy short dark hair, simple light gray crewneck shirt without logos. Soft even studio lighting, clean very light gray background. Portrait 3:4 composition, with enough headroom and side margins for later circular avatar display. One child only. No school uniform, no school name, no document, no ID card, no text, no letters, no watermark, no border, no props. This is a synthetic UI avatar asset, not an identification document.",
+      "width": 1086,
+      "height": 1448,
+      "bytes": 2189098,
+      "sha256": "bd8467d84e218f21c27183ef260217a574498ef7461e1804f334ca9f7411b839"
+    }
+  ]
+}

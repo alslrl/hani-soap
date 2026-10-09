@@ -1,0 +1,2363 @@
+{
+  "meta": {
+    "schema_version": "1.0.0",
+    "is_demo": true,
+    "timezone": "Asia/Seoul",
+    "demo_today": "2026-10-09",
+    "generated_at": "2026-10-09T00:30:00Z",
+    "origin_note": "모든 인물·생년월일·진료일·연락 상태는 합성 데모이며 실명·실제 연락처를 사용하지 않았다. provided_case는 제공된 모의 진료 사례에 있는 내용, synthetic_history는 합성 과거 방문·시점, synthetic_response는 모의 버튼 응답, manual_demo는 초기 화면용 설정이다. 원음 전사·LLM 실행·실제 승인·실제 발송 결과가 아니다. A의 NRS 8→7→6만 과거 값으로 준비하고 오늘 5점과 이후 답변은 새 녹음/입력에서 생성한다. B의 호전 응답은 합성이며 야간 배뇨 횟수가 줄었다는 수치는 생성하지 않았다. A의 3일차 안내는 10/4에 모의 발송됐지만 환자는 10/8 20:15 KST에 늦게 응답한 합성 설정이다. 오늘 10/9 연락 필요 목록은 이 늦은 응답으로 구성한다. 두 초진 사례의 예상 SOAP와 제공 사례 근거는 2026-10-09 연화 검수 문서에 맞췄으며, 소아 사례의 과민성 방광염은 의료진 발화의 기록이고 감염성 방광염 확진을 뜻하지 않는다."
+  },
+  "clinic": {
+    "id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+    "name": "HaniSOAP 가상 한의원",
+    "timezone": "Asia/Seoul"
+  },
+  "patients": [
+    {
+      "id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "demo_key": "A",
+      "display_name": "김서연",
+      "sex": "female",
+      "birth_date": "2001-05-14",
+      "chief_complaint": "오른쪽 발목 염좌",
+      "portrait_asset_key": "demo-adult-01",
+      "guardian": null,
+      "contact_phone": null,
+      "contact_email": null,
+      "notes": "이름·생년월일은 합성. 제공된 성인 발목 염좌 모의 진료를 연결한 가상 25세 여성. 초진 통증 NRS 8은 연화가 검수한 데모 정답 차팅 기준을 따른다. 원본 자료의 VAS 표기는 원본에서 보존한다.",
+      "is_demo": true
+    },
+    {
+      "id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "demo_key": "B",
+      "display_name": "이도윤",
+      "sex": "male",
+      "birth_date": "2020-03-12",
+      "chief_complaint": "소아 야뇨",
+      "portrait_asset_key": "demo-child-01",
+      "guardian": {
+        "display_name": "이도윤 보호자",
+        "relationship": "보호자"
+      },
+      "contact_phone": null,
+      "contact_email": null,
+      "notes": "이름·생년월일은 합성. 제공된 보호자 동반 소아 야뇨 모의 진료를 연결한 가상 6세 남아. 안내 수신·응답 주체는 보호자이며 실제 연락처는 없다.",
+      "is_demo": true
+    }
+  ],
+  "visits": [
+    {
+      "id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_no": 1,
+      "scheduled_at": "2026-10-02T00:30:00Z",
+      "started_at": "2026-10-02T00:32:00Z",
+      "completed_at": "2026-10-02T00:50:00Z",
+      "workflow_status": "completed",
+      "record_status": "approved",
+      "reason": "오른쪽 발목 염좌 초진",
+      "summary": "제공 사례를 합성 10/2 방문에 연결. 초기 NRS 8. 주 3회 치료와 생활관리 안내를 받은 설정.",
+      "origin": "synthetic_history",
+      "is_demo": true
+    },
+    {
+      "id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_no": 2,
+      "scheduled_at": "2026-10-04T01:00:00Z",
+      "started_at": "2026-10-04T01:02:00Z",
+      "completed_at": "2026-10-04T01:17:00Z",
+      "workflow_status": "completed",
+      "record_status": "review_needed",
+      "reason": "오른쪽 발목 염좌 2회차 경과 확인",
+      "summary": "합성 과거 방문. NRS 7, 일상 이동 불편이 남아 있음. 방문은 완료됐지만 기록 초안은 검토 필요 상태인 예시.",
+      "origin": "synthetic_history",
+      "is_demo": true
+    },
+    {
+      "id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_no": 3,
+      "scheduled_at": "2026-10-07T01:00:00Z",
+      "started_at": "2026-10-07T01:01:00Z",
+      "completed_at": "2026-10-07T01:15:00Z",
+      "workflow_status": "completed",
+      "record_status": "approved",
+      "reason": "오른쪽 발목 염좌 3회차 경과 확인",
+      "summary": "합성 과거 방문. NRS 6, 계단 이용 불편 보고. 복약 후 불편감은 이 방문에서 별도로 확인하지 않았으며, 3일차 안내에 대한 늦은 모의 응답은 이후 10/8 저녁에 들어오는 설정.",
+      "origin": "synthetic_history",
+      "is_demo": true
+    },
+    {
+      "id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_no": 4,
+      "scheduled_at": "2026-10-09T01:00:00Z",
+      "started_at": null,
+      "completed_at": null,
+      "workflow_status": "waiting",
+      "record_status": "empty",
+      "reason": "오른쪽 발목 염좌 네 번째 방문",
+      "summary": null,
+      "origin": "manual_demo",
+      "is_demo": true
+    },
+    {
+      "id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_no": 1,
+      "scheduled_at": "2026-10-02T01:30:00Z",
+      "started_at": "2026-10-02T01:32:00Z",
+      "completed_at": "2026-10-02T01:45:00Z",
+      "workflow_status": "completed",
+      "record_status": "approved",
+      "reason": "보호자 동반 소아 야뇨 초진",
+      "summary": "제공 사례를 합성 10/2 방문에 연결. 보중익기탕·이침과 2주 뒤 재내원 안내. 가상 승인 스냅샷.",
+      "origin": "synthetic_history",
+      "is_demo": true
+    },
+    {
+      "id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_no": 2,
+      "scheduled_at": "2026-10-09T01:30:00Z",
+      "started_at": null,
+      "completed_at": null,
+      "workflow_status": "waiting",
+      "record_status": "empty",
+      "reason": "보호자 요청 복약·야뇨 중간 경과 상담",
+      "summary": "초진 1주 뒤 보호자 요청 조기 상담을 합성한 방문. 제공 사례의 2주 뒤 재내원 계획과 구분하며 오늘 답변은 아직 없음.",
+      "origin": "manual_demo",
+      "is_demo": true
+    }
+  ],
+  "transcripts": [],
+  "soap_documents": [
+    {
+      "id": "e9c057cb-159f-52cc-bae7-a3d58b043a90",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "revision": 1,
+      "input_transcript_id": null,
+      "status": "approved",
+      "sections": {
+        "s": "어제 계단을 내려가다 오른쪽 발목이 안쪽으로 꺾인 뒤 외측 복숭아뼈 통증과 걷기 어려움을 호소. 같은 쪽 염좌 과거력. 현재 통증 NRS 8/10. 이전 정형외과 X-ray에서 뼈에 문제가 없다는 설명을 들었다고 보고. 저녁 걷기 운동 지속 가능 여부를 질문함.",
+        "o": "제공 사례에서 의료진이 우측 외과 아래 부종, 발목 둘레 좌 43cm·우 45cm, 우측 배굴 10°·저굴 25°와 좌측 배굴 20°·저굴 35°를 설명함. 맥진·설진, 보행 평가, 오타와 관련 촉진, 인대 촉진·불안정성 검사 시행 과정이 전사되었으나 개별 검사 양성·음성이나 인대별 압통 결과는 확정하지 않음. 의료진이 영상 재검토 후 골절·탈구 소견이 없다고 설명한 기록이며 이 seed에서 영상을 직접 판독한 것이 아님.",
+        "a": "제공 사례에서 오른쪽 발목 2도 염좌로 설명함.",
+        "p": "제공 사례의 치료 계획과 안내: 주 3회 침·약침·한약·뜸 치료 병행, 회복 약 4~8주와 만성 불안정성 가능성을 설명. 초기 48시간 냉찜질 후 온찜질, 누울 때 발 높이기, 체중 부하가 있는 무리한 운동과 당분간 걷기 자제, 누워서 가벼운 스트레칭 안내. 실제 시술 완료·혈자리·한약 처방명은 미확인. 걷기 질문에는 안내가 있었으며 재진에서 실천·이해 여부를 확인."
+      },
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "어제 계단을 내려가다 잘못 착지하면서 오른쪽 발목이 안쪽으로 꺾임.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "현재 통증 NRS 8/10.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "부종 측정값 좌 43cm, 우 45cm.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "저녁 걷기 운동을 계속해도 되는지 질문.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "걷기 질문에 체중 부하가 있는 무리한 운동과 당분간 걷기를 삼가고 누워서 가벼운 스트레칭을 하도록 답변함.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "개별 검사 양성·음성 및 인대별 압통 결과는 현재 자료로 확정하지 않음.",
+          "origin": "provided_case"
+        }
+      ],
+      "approved_at": "2026-10-02T00:48:00Z",
+      "approved_by": "demo_seed_clinician",
+      "origin": "provided_case"
+    },
+    {
+      "id": "48ca601b-877b-5361-bef0-b31ed67e6f29",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "revision": 1,
+      "input_transcript_id": null,
+      "status": "draft",
+      "sections": {
+        "s": "합성 과거 이력: 오른쪽 발목 통증 NRS 7. 초진보다 덜 아프지만 이동할 때 불편함이 남아 있다고 보고.",
+        "o": "이번 방문의 발목 둘레·관절 각도는 미확인.",
+        "a": "발목 염좌 경과 확인을 위한 합성 기록. 점수 변화만으로 치료 효과를 단정하지 않음.",
+        "p": "기존 생활관리 이행과 걷기 운동 재개 시점을 다음 방문에 확인할 계획. 실제 시행 시술·처방명·복용 횟수는 추가하지 않음."
+      },
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
+          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "seed_snapshot",
+          "source_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+          "quote": "이동할 때 불편함이 남아 있다고 보고.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "approved_at": null,
+      "approved_by": null,
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "edd9ed84-9f38-5710-8857-900aeb0e9b4e",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "revision": 1,
+      "input_transcript_id": null,
+      "status": "approved",
+      "sections": {
+        "s": "합성 과거 이력: 오른쪽 발목 통증 NRS 6. 계단 내려갈 때 불편이 남아 있다고 보고.",
+        "o": "이번 방문의 발목 둘레·관절 각도는 미확인.",
+        "a": "발목 염좌 경과 확인을 위한 합성 기록.",
+        "p": "생활관리와 걷기 운동 재개 여부를 다음 방문에 확인. 복약 후 불편감은 이 방문에서 별도로 확인하지 않았고 해결됐다고 기록하지 않음. 이 합성 방문 시점에는 3일차 안내에 대한 모의 응답이 아직 들어오지 않음."
+      },
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
+          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "seed_snapshot",
+          "source_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+          "quote": "계단 내려갈 때 불편이 남아 있다고 보고.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "approved_at": "2026-10-07T01:14:00Z",
+      "approved_by": "demo_seed_clinician",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "e8d390f7-4e5a-53f2-8415-f6af5be7823f",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "revision": 1,
+      "input_transcript_id": null,
+      "status": "approved",
+      "sections": {
+        "s": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편. 야뇨 후 잠에서 깨서 알게 된다고 답함. 깨어서 화장실에 두 번 간 것으로 바꾸지 않음. 식욕 저하·설사·추위를 탐. 수면은 잘 자고 코골이는 없다고 답변. 입을 벌리고 자는지는 질문에 포함됐으나 개별 답변을 확정하지 않음. 통증이나 기능 점수는 미확인.",
+        "o": "의료진 발화상 맥이 약하고 혀가 약간 부어 있으며 설태가 있음. 설태 두께나 확인되지 않은 소변검사·영상검사·복진 결과는 추가하지 않음.",
+        "a": "의료진이 발화한 평가명은 과민성 방광염이며 연화가 실제 영상 표현으로 확인함. 설명한 한의학적 변증은 비폐기허. 발화된 평가의 기록으로, 감염성 방광염 확진이나 진단의 임상적 타당성 검증을 의미하지 않음.",
+        "p": "제공 사례의 계획·안내: 이침 치료 계획, 보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도, 2주 뒤 재내원 안내. 실제 이침 시행 여부·부위, 처방 일수·복용 시작일·회당 용량은 원문에서 확인되지 않음. 보호자에게 아이가 편안한 환경을 유지하도록 돕고 스트레스·수면 부족 시 증상이 나타날 수 있다고 안내한 내용. seed의 별도 복약 시작일과 후속 응답은 합성 이력임."
+      },
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도를 설명함.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "의료진이 발화한 평가명: 과민성 방광염. 연화가 실제 영상 표현으로 확인함.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "의료진이 설명한 한의학적 변증: 비폐기허.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "이침 치료 계획을 설명함. 실제 시행 여부·이침 부위는 확인되지 않음.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "발화된 평가의 기록이며 감염성 방광염 확진 또는 특정 진단의 임상적 타당성 검증을 의미하지 않음.",
+          "origin": "provided_case"
+        }
+      ],
+      "approved_at": "2026-10-02T01:43:00Z",
+      "approved_by": "demo_seed_clinician",
+      "origin": "provided_case"
+    }
+  ],
+  "treatments": [
+    {
+      "id": "c220510b-634b-50be-9dc5-8532bff060dd",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "modality": "acupuncture",
+      "technique": "standard_acupuncture",
+      "body_region": "ankle",
+      "laterality": "right",
+      "acupoints": [],
+      "status": "suggested",
+      "source": "manual",
+      "notes": "제공 사례의 치료 계획에서 가져온 후보. 실제 시행·혈자리 선택 완료로 표시하지 않음. 오늘 방문에는 복사하지 않음.",
+      "origin": "provided_case"
+    },
+    {
+      "id": "10d93f9b-13fd-5f62-8544-4cb5402d361c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "modality": "pharmacopuncture",
+      "technique": null,
+      "body_region": "ankle",
+      "laterality": "right",
+      "acupoints": [],
+      "status": "suggested",
+      "source": "manual",
+      "notes": "제공 사례의 치료 계획에서 가져온 후보. 실제 시행·혈자리 선택 완료로 표시하지 않음. 오늘 방문에는 복사하지 않음.",
+      "origin": "provided_case"
+    },
+    {
+      "id": "958131ad-25ba-5954-a8c9-5ddf06e324e1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "modality": "moxibustion",
+      "technique": null,
+      "body_region": "ankle",
+      "laterality": "right",
+      "acupoints": [],
+      "status": "suggested",
+      "source": "manual",
+      "notes": "제공 사례의 치료 계획에서 가져온 후보. 실제 시행·혈자리 선택 완료로 표시하지 않음. 오늘 방문에는 복사하지 않음.",
+      "origin": "provided_case"
+    }
+  ],
+  "followup_answers": [
+    {
+      "id": "7d69a925-b5d3-5363-bcd9-aaf3f9a66c23",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "chief_complaint",
+      "subitem_key": "symptom_course",
+      "question_text": "지난 진료 이후 주로 불편했던 증상은 어떻게 달라졌나요? 새로 생긴 증상도 있나요?",
+      "answer_text": "계단에서 오른쪽 발목이 안쪽으로 꺾인 뒤 통증. 같은 쪽 염좌 과거력이 있음.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "어제 계단을 내려가다 잘못 착지하면서 오른쪽 발목이 안쪽으로 꺾임.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "현재 통증 NRS 8/10.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "a6d1793c-1e36-55ed-8fe6-d8a0d4edb9f5",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "pain",
+      "subitem_key": "current_pain",
+      "question_text": "지금 통증은 어느 정도인가요? 어디가, 언제, 어떻게 아픈가요?",
+      "answer_text": "오른쪽 발목의 현재 통증 NRS 8/10. 연화 검수 차팅 기준값.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "현재 통증 NRS 8/10.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "8222b3c8-4765-5cbc-8ec9-f2c016ddab5a",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "function_daily",
+      "subitem_key": "daily_activity",
+      "question_text": "지난번 어려웠던 동작이나 일상생활은 지금 어떤가요?",
+      "answer_text": "오른쪽 외측 복숭아뼈 통증으로 걷기 어려움을 호소. 기능 점수는 확인하지 않음.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "오른쪽 외측 복숭아뼈 통증으로 걷기 어려움을 호소. 현재 통증 NRS 8/10.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "ae46c530-738d-504b-b81c-d645bdc59af9",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "treatment_response",
+      "subitem_key": "response_duration",
+      "question_text": "지난 치료 뒤 어떤 변화가 있었나요? 얼마나 유지됐나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "32553043-901b-5399-bed4-b7ce87781055",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "medication",
+      "subitem_key": "adherence",
+      "question_text": "약은 어떻게 드셨나요? 빠뜨리거나 중단한 적이 있나요?",
+      "answer_text": "한약을 포함한 치료 계획 안내. 실제 복용 여부·횟수·처방명은 아직 미확인.",
+      "change": null,
+      "confirmation_status": "mentioned_only",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "4c7b8036-c575-586e-b7fc-09a8540432fc",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "discomfort",
+      "subitem_key": "current_discomfort",
+      "question_text": "약을 먹거나 치료받은 뒤 불편한 점이 있었나요? 지금도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "7910948b-e6d5-558e-8abe-5b2b380b4bae",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "sleep",
+      "subitem_key": "sleep_quality",
+      "question_text": "잠드는 것, 자다가 깨는 것, 아침에 일어났을 때 느낌은 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "26cce898-6ca7-5d6a-83e1-fd2e16537f77",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "appetite_digestion",
+      "subitem_key": "appetite_digestion",
+      "question_text": "식욕과 식사량은 어떤가요? 식후 불편은 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "cdc47f38-89a2-55c6-a1fc-adec4d0a5fe1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "bowel_urine",
+      "subitem_key": "bowel_urine",
+      "question_text": "대변·소변 상태나 지난번 불편은 어떻게 달라졌나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "52f9eb4a-e77f-5903-b485-35deeadc3469",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "temperature_sweat_energy",
+      "question_text": "추위·열감·땀·피로는 지난번과 비교해 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "1e45d984-1694-5f54-8008-56dfb3bd7b26",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "lifestyle",
+      "subitem_key": "self_care",
+      "question_text": "지난번 안내드린 관리를 해보셨나요? 어려운 점은 무엇인가요?",
+      "answer_text": "냉·온찜질, 발 높이기, 걷기 운동 자제 안내를 받음. 실천 여부는 이후 확인.",
+      "change": null,
+      "confirmation_status": "mentioned_only",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "cf22ac1f-fb36-529f-97d2-8e5d99e71aa1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "questions_concerns",
+      "subitem_key": "open_questions",
+      "question_text": "아직 궁금하거나 걱정되는 점이 있나요? 지난 설명 중 다시 듣고 싶은 것이 있나요?",
+      "answer_text": "저녁 걷기 운동을 계속해도 되나요?",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "저녁 걷기 운동을 계속해도 되는지 질문.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "13ad73d6-5ee9-5d6f-b881-345f50d166c5",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "chief_complaint",
+      "subitem_key": "symptom_course",
+      "question_text": "지난 진료 이후 주로 불편했던 증상은 어떻게 달라졌나요? 새로 생긴 증상도 있나요?",
+      "answer_text": "전보다 발목 통증은 줄었지만 불편함은 남아 있음. 합성 과거 답변.",
+      "change": "improved",
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+          "quote": "전보다 발목 통증은 줄었지만 불편함은 남아 있음.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "ba31d926-ec26-528a-9593-9bc1e8710f7b",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "pain",
+      "subitem_key": "current_pain",
+      "question_text": "지금 통증은 어느 정도인가요? 어디가, 언제, 어떻게 아픈가요?",
+      "answer_text": "오른쪽 발목의 현재 통증 7점. 합성 과거 NRS 답변.",
+      "change": "improved",
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
+          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "4dfb01a6-caed-504c-adaa-feec75ee5f5c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "function_daily",
+      "subitem_key": "daily_activity",
+      "question_text": "지난번 어려웠던 동작이나 일상생활은 지금 어떤가요?",
+      "answer_text": "일상 이동할 때 오른쪽 발목 불편이 남아 있다고 보고. 기능 점수는 측정하지 않음.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+          "quote": "일상 이동할 때 오른쪽 발목 불편이 남아 있다고 보고.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "ae67f748-d16e-58b4-94a0-ca7c16a6c296",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "treatment_response",
+      "subitem_key": "response_duration",
+      "question_text": "지난 치료 뒤 어떤 변화가 있었나요? 얼마나 유지됐나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "830be8aa-5cce-5753-8143-68e6c1130d07",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "medication",
+      "subitem_key": "adherence",
+      "question_text": "약은 어떻게 드셨나요? 빠뜨리거나 중단한 적이 있나요?",
+      "answer_text": "한약 복용을 시작했다고 언급. 구체적 횟수·누락·처방명은 미확인. 합성 과거 답변.",
+      "change": null,
+      "confirmation_status": "mentioned_only",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+          "quote": "한약 복용을 시작했다고 언급.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "0c864e71-6f55-538b-a2e6-784db0cb31fe",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "discomfort",
+      "subitem_key": "current_discomfort",
+      "question_text": "약을 먹거나 치료받은 뒤 불편한 점이 있었나요? 지금도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "24bc66d2-68a3-55e9-9690-951342d976aa",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "sleep",
+      "subitem_key": "sleep_quality",
+      "question_text": "잠드는 것, 자다가 깨는 것, 아침에 일어났을 때 느낌은 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "bdd58d7b-814d-505b-bfb4-2608e59a0a5d",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "appetite_digestion",
+      "subitem_key": "appetite_digestion",
+      "question_text": "식욕과 식사량은 어떤가요? 식후 불편은 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "b808a7cc-ecb6-55ea-8f0b-29cf3a88f255",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "bowel_urine",
+      "subitem_key": "bowel_urine",
+      "question_text": "대변·소변 상태나 지난번 불편은 어떻게 달라졌나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "94441e96-39f0-5541-8c32-1b9878c242aa",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "temperature_sweat_energy",
+      "question_text": "추위·열감·땀·피로는 지난번과 비교해 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "c5ff3150-9304-5fda-be4a-445b7466138d",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "lifestyle",
+      "subitem_key": "self_care",
+      "question_text": "지난번 안내드린 관리를 해보셨나요? 어려운 점은 무엇인가요?",
+      "answer_text": "걷기 운동은 쉬고 있고, 안내받은 찜질을 하고 있다고 보고. 합성 과거 답변.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+          "quote": "걷기 운동은 쉬고 있고, 안내받은 찜질을 하고 있다고 보고.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "199365b1-d310-5eda-8329-7f510a172e43",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "item_key": "questions_concerns",
+      "subitem_key": "open_questions",
+      "question_text": "아직 궁금하거나 걱정되는 점이 있나요? 지난 설명 중 다시 듣고 싶은 것이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "1bc4ec27-acd1-5650-bcc9-a4b741bcf764",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "chief_complaint",
+      "subitem_key": "symptom_course",
+      "question_text": "지난 진료 이후 주로 불편했던 증상은 어떻게 달라졌나요? 새로 생긴 증상도 있나요?",
+      "answer_text": "전보다 발목 통증은 줄었지만 불편함은 남아 있음. 합성 과거 답변.",
+      "change": "improved",
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+          "quote": "전보다 발목 통증은 줄었지만 불편함은 남아 있음.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "f242f078-bfdb-5525-824b-fa235fc03e11",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "pain",
+      "subitem_key": "current_pain",
+      "question_text": "지금 통증은 어느 정도인가요? 어디가, 언제, 어떻게 아픈가요?",
+      "answer_text": "오른쪽 발목의 현재 통증 6점. 합성 과거 NRS 답변.",
+      "change": "improved",
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
+          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "e39dd5f0-2b9d-582a-9722-9d1264c3e979",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "function_daily",
+      "subitem_key": "daily_activity",
+      "question_text": "지난번 어려웠던 동작이나 일상생활은 지금 어떤가요?",
+      "answer_text": "계단 내려갈 때 오른쪽 발목 불편이 남아 있다고 보고. 기능 점수는 측정하지 않음.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+          "quote": "계단 내려갈 때 오른쪽 발목 불편이 남아 있다고 보고.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "1960d029-a7f2-5084-abf8-0de0b62d88d3",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "treatment_response",
+      "subitem_key": "response_duration",
+      "question_text": "지난 치료 뒤 어떤 변화가 있었나요? 얼마나 유지됐나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "6ce23fe9-2c6e-5ba5-8ea3-27daafd76f48",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "medication",
+      "subitem_key": "adherence",
+      "question_text": "약은 어떻게 드셨나요? 빠뜨리거나 중단한 적이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "1268bf2d-9abc-52d9-99b0-8a59cab79e7e",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "discomfort",
+      "subitem_key": "current_discomfort",
+      "question_text": "약을 먹거나 치료받은 뒤 불편한 점이 있었나요? 지금도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "9db274a0-b7d0-54f6-ae58-eb45d23fd6ea",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "sleep",
+      "subitem_key": "sleep_quality",
+      "question_text": "잠드는 것, 자다가 깨는 것, 아침에 일어났을 때 느낌은 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "b28e36af-b853-5800-ad6e-fd34e10ad5b1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "appetite_digestion",
+      "subitem_key": "appetite_digestion",
+      "question_text": "식욕과 식사량은 어떤가요? 식후 불편은 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "869689ab-7d6c-5261-bac8-1409891c16a7",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "bowel_urine",
+      "subitem_key": "bowel_urine",
+      "question_text": "대변·소변 상태나 지난번 불편은 어떻게 달라졌나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "44d23f0a-2d13-5cdf-b008-b616eb402ba6",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "temperature_sweat_energy",
+      "question_text": "추위·열감·땀·피로는 지난번과 비교해 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "818208d3-9fbe-569b-bb90-f04b8b860f3a",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "lifestyle",
+      "subitem_key": "self_care",
+      "question_text": "지난번 안내드린 관리를 해보셨나요? 어려운 점은 무엇인가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "e51785c6-4375-532c-9928-d46a7eb2c0c7",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "item_key": "questions_concerns",
+      "subitem_key": "open_questions",
+      "question_text": "아직 궁금하거나 걱정되는 점이 있나요? 지난 설명 중 다시 듣고 싶은 것이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "7e88b6b7-61d6-5845-aad1-2695485dc7f7",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "chief_complaint",
+      "subitem_key": "symptom_course",
+      "question_text": "지난 진료 이후 주로 불편했던 증상은 어떻게 달라졌나요? 새로 생긴 증상도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "fb8fce96-daf9-5fa0-afa5-9b8337e41635",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "pain",
+      "subitem_key": "current_pain",
+      "question_text": "지금 통증은 어느 정도인가요? 어디가, 언제, 어떻게 아픈가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "90d39869-f4a1-5104-9182-d20562abbb49",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "function_daily",
+      "subitem_key": "daily_activity",
+      "question_text": "지난번 어려웠던 동작이나 일상생활은 지금 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "4e8d419c-2384-5867-8e4f-f9308aa5dd35",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "treatment_response",
+      "subitem_key": "response_duration",
+      "question_text": "지난 치료 뒤 어떤 변화가 있었나요? 얼마나 유지됐나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "fc2640a8-d9fc-5db8-96da-c4e19af70336",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "medication",
+      "subitem_key": "adherence",
+      "question_text": "약은 어떻게 드셨나요? 빠뜨리거나 중단한 적이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "06791ad3-8386-5429-aa32-43f532be203d",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "discomfort",
+      "subitem_key": "current_discomfort",
+      "question_text": "약을 먹거나 치료받은 뒤 불편한 점이 있었나요? 지금도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "c00ff7aa-3db8-5036-9e76-d208452e9660",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "sleep",
+      "subitem_key": "sleep_quality",
+      "question_text": "잠드는 것, 자다가 깨는 것, 아침에 일어났을 때 느낌은 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "9f361385-42e0-57c3-a255-d50a6d4359f0",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "appetite_digestion",
+      "subitem_key": "appetite_digestion",
+      "question_text": "식욕과 식사량은 어떤가요? 식후 불편은 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "218b8410-697e-5e3e-82b1-99b96e036e4b",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "bowel_urine",
+      "subitem_key": "bowel_urine",
+      "question_text": "대변·소변 상태나 지난번 불편은 어떻게 달라졌나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "e36b8adf-d70b-52f2-b8c7-b51e77c771ec",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "temperature_sweat_energy",
+      "question_text": "추위·열감·땀·피로는 지난번과 비교해 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "6642721c-2018-5409-86f4-a536fb0f5464",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "lifestyle",
+      "subitem_key": "self_care",
+      "question_text": "지난번 안내드린 관리를 해보셨나요? 어려운 점은 무엇인가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "a3ada444-6059-5e69-b8f1-697fc06baf0c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "item_key": "questions_concerns",
+      "subitem_key": "open_questions",
+      "question_text": "아직 궁금하거나 걱정되는 점이 있나요? 지난 설명 중 다시 듣고 싶은 것이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "f5dc5ec2-2be7-5d6c-9765-4cd4cf8ac438",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "chief_complaint",
+      "subitem_key": "symptom_course",
+      "question_text": "지난 진료 이후 주로 불편했던 증상은 어떻게 달라졌나요? 새로 생긴 증상도 있나요?",
+      "answer_text": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편. 야뇨 후 잠에서 깨서 알게 됨.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "f1a91e20-e8fc-5b6b-8b9c-3a747b96b57c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "pain",
+      "subitem_key": "current_pain",
+      "question_text": "지금 통증은 어느 정도인가요? 어디가, 언제, 어떻게 아픈가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "6bb4dc81-9985-52b8-97bc-ef0dc5ee5cd2",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "function_daily",
+      "subitem_key": "daily_activity",
+      "question_text": "지난번 어려웠던 동작이나 일상생활은 지금 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "2dc5419c-17ce-5ec3-89c1-608f0cf6684c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "treatment_response",
+      "subitem_key": "response_duration",
+      "question_text": "지난 치료 뒤 어떤 변화가 있었나요? 얼마나 유지됐나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "2f3759c7-d6a7-502b-bd38-01940fd9148c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "medication",
+      "subitem_key": "adherence",
+      "question_text": "약은 어떻게 드셨나요? 빠뜨리거나 중단한 적이 있나요?",
+      "answer_text": "보중익기탕 하루 3회 식후 30분 복용 안내. 실제 복약 이행은 이후 확인.",
+      "change": null,
+      "confirmation_status": "mentioned_only",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도를 설명함.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "ac4a2acb-0e81-58a9-b51c-c70f6a4a96ae",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "discomfort",
+      "subitem_key": "current_discomfort",
+      "question_text": "약을 먹거나 치료받은 뒤 불편한 점이 있었나요? 지금도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "b930d549-5639-5959-8d20-b972727a0b11",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "sleep",
+      "subitem_key": "sleep_quality",
+      "question_text": "잠드는 것, 자다가 깨는 것, 아침에 일어났을 때 느낌은 어떤가요?",
+      "answer_text": "보호자 보고: 수면은 잘 자고 코골이는 없음. 야뇨 후 잠에서 깨서 알게 됨. 입을 벌리고 자는지는 질문에 포함됐으나 개별 답변을 확정하지 않음.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "수면은 잘 자고 코골이는 없다고 답변.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "b7427f53-eb3a-55fc-bf11-15ee19f4bb3a",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "lifestyle",
+      "subitem_key": "self_care",
+      "question_text": "지난번 안내드린 관리를 해보셨나요? 어려운 점은 무엇인가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "552fde98-92b9-580b-a788-63da43e65fdc",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "questions_concerns",
+      "subitem_key": "open_questions",
+      "question_text": "아직 궁금하거나 걱정되는 점이 있나요? 지난 설명 중 다시 듣고 싶은 것이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "3084ffcc-a22f-5f3d-addd-aa024fbec08e",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "chief_complaint",
+      "subitem_key": "symptom_course",
+      "question_text": "지난 진료 이후 주로 불편했던 증상은 어떻게 달라졌나요? 새로 생긴 증상도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "a0cd30c1-7a14-55bf-b282-29cc5f30c42a",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "pain",
+      "subitem_key": "current_pain",
+      "question_text": "지금 통증은 어느 정도인가요? 어디가, 언제, 어떻게 아픈가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "15eba540-697f-5b08-8fea-d4e7fabdd807",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "function_daily",
+      "subitem_key": "daily_activity",
+      "question_text": "지난번 어려웠던 동작이나 일상생활은 지금 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "e9addf82-ffb2-56e4-b90c-5ba7c3ad4e70",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "treatment_response",
+      "subitem_key": "response_duration",
+      "question_text": "지난 치료 뒤 어떤 변화가 있었나요? 얼마나 유지됐나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "c2349bb9-c9e6-5bbf-9261-8ddf5309b21d",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "medication",
+      "subitem_key": "adherence",
+      "question_text": "약은 어떻게 드셨나요? 빠뜨리거나 중단한 적이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "8028823c-1e4e-522d-baca-fdf6f32c8f43",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "discomfort",
+      "subitem_key": "current_discomfort",
+      "question_text": "약을 먹거나 치료받은 뒤 불편한 점이 있었나요? 지금도 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "96b93d90-0dfc-5c57-90d2-4e26dc3384c0",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "sleep",
+      "subitem_key": "sleep_quality",
+      "question_text": "잠드는 것, 자다가 깨는 것, 아침에 일어났을 때 느낌은 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "4da4830d-e496-5738-8406-7bb2990fbc5f",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "appetite_digestion",
+      "subitem_key": "appetite_digestion",
+      "question_text": "식욕과 식사량은 어떤가요? 식후 불편은 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "4b6c0981-bcd0-556d-9a0b-32a449d6442b",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "bowel_urine",
+      "subitem_key": "bowel_urine",
+      "question_text": "대변·소변 상태나 지난번 불편은 어떻게 달라졌나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "ef32cef4-e8d5-5fdd-939d-6b04109228be",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "temperature_sweat_energy",
+      "question_text": "추위·열감·땀·피로는 지난번과 비교해 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "d415c418-c1b0-54ee-827b-826817bb767f",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "lifestyle",
+      "subitem_key": "self_care",
+      "question_text": "지난번 안내드린 관리를 해보셨나요? 어려운 점은 무엇인가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "87b2262f-c9af-5652-b3f7-d69838454246",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "item_key": "questions_concerns",
+      "subitem_key": "open_questions",
+      "question_text": "아직 궁금하거나 걱정되는 점이 있나요? 지난 설명 중 다시 듣고 싶은 것이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "draft",
+      "origin": "manual_demo"
+    },
+    {
+      "id": "bc897e97-b362-574e-9b7a-dadb28c1bbb6",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "appetite_digestion",
+      "subitem_key": "appetite",
+      "question_text": "식욕과 식사량은 어떤가요?",
+      "answer_text": "식욕 저하를 보고함.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "5e7ed459-d7f9-5948-8bb3-057757100ff1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "appetite_digestion",
+      "subitem_key": "digestion",
+      "question_text": "식후 더부룩함·속쓰림·오심이 있나요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "afeb7874-c3a0-52e8-84c1-8dfa39a38a0d",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "bowel_urine",
+      "subitem_key": "stool",
+      "question_text": "대변 상태는 어떤가요?",
+      "answer_text": "설사를 보고함.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "4dd56a1b-450f-5fab-8a98-abe1d848244e",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "bowel_urine",
+      "subitem_key": "nocturnal_wetting",
+      "question_text": "밤에 소변을 지리는 횟수와 시점·양상은 어떤가요? 야뇨 후 깨는 양상도 알려 주세요.",
+      "answer_text": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편. 야뇨 후 잠에서 깨서 알게 됨.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "283d2292-e69d-56a3-8c9d-9440d85b18b2",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "cold_sensitivity",
+      "question_text": "추위를 타는 정도는 어떤가요?",
+      "answer_text": "추위를 탄다고 보고함.",
+      "change": null,
+      "confirmation_status": "confirmed",
+      "applicability": "applicable",
+      "comparison_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        }
+      ],
+      "review_status": "reviewed",
+      "origin": "provided_case"
+    },
+    {
+      "id": "d30ee85f-e0bf-5566-bd6f-497b845edaa1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "sweating",
+      "question_text": "땀은 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "27702e86-4ccf-50ed-90f8-b2723c199f2c",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "temperature_sweat_energy",
+      "subitem_key": "energy",
+      "question_text": "기력·피로는 어떤가요?",
+      "answer_text": null,
+      "change": null,
+      "confirmation_status": "not_confirmed",
+      "applicability": "unknown",
+      "comparison_visit_id": null,
+      "source_refs": [],
+      "review_status": "reviewed",
+      "origin": "synthetic_history"
+    }
+  ],
+  "observations": [
+    {
+      "id": "1739bf1a-0b98-54cb-9191-0fc46dcefacb",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "followup_answer_id": "a6d1793c-1e36-55ed-8fe6-d8a0d4edb9f5",
+      "metric_key": "pain_intensity",
+      "series_key": "A:right_ankle:current_pain:NRS:v1",
+      "instrument": "NRS",
+      "value": 8,
+      "unit": "score",
+      "scale_min": 0,
+      "scale_max": 10,
+      "body_region": "ankle",
+      "laterality": "right",
+      "activity_key": null,
+      "measurement_context": "current_pain",
+      "measured_at": "2026-10-02T00:35:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "현재 통증 NRS 8/10.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "provided_case"
+    },
+    {
+      "id": "1958d644-00a3-595e-bd50-3e678307fcc8",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "followup_answer_id": "ba31d926-ec26-528a-9593-9bc1e8710f7b",
+      "metric_key": "pain_intensity",
+      "series_key": "A:right_ankle:current_pain:NRS:v1",
+      "instrument": "NRS",
+      "value": 7,
+      "unit": "score",
+      "scale_min": 0,
+      "scale_max": 10,
+      "body_region": "ankle",
+      "laterality": "right",
+      "activity_key": null,
+      "measurement_context": "current_pain",
+      "measured_at": "2026-10-04T01:05:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
+          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "945c4134-f5ab-5c52-bb08-88389e270b18",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "followup_answer_id": "f242f078-bfdb-5525-824b-fa235fc03e11",
+      "metric_key": "pain_intensity",
+      "series_key": "A:right_ankle:current_pain:NRS:v1",
+      "instrument": "NRS",
+      "value": 6,
+      "unit": "score",
+      "scale_min": 0,
+      "scale_max": 10,
+      "body_region": "ankle",
+      "laterality": "right",
+      "activity_key": null,
+      "measurement_context": "current_pain",
+      "measured_at": "2026-10-07T01:05:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
+          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "b5f7448a-c150-5f97-8a8e-4242971b0fa4",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "followup_answer_id": "4dd56a1b-450f-5fab-8a98-abe1d848244e",
+      "metric_key": "nocturnal_wetting_frequency",
+      "series_key": "B:nocturnal_wetting:episodes_per_night:FREQUENCY:v1",
+      "instrument": "FREQUENCY",
+      "value": 2,
+      "unit": "episodes_per_night",
+      "scale_min": 0,
+      "scale_max": null,
+      "body_region": null,
+      "laterality": null,
+      "activity_key": null,
+      "measurement_context": "guardian_report_nocturnal_wetting; wakes_after_wetting",
+      "measured_at": "2026-10-02T01:35:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "origin": "provided_case"
+        },
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "provided_case"
+    }
+  ],
+  "followup_items": [
+    {
+      "id": "893803d6-d83b-5b9f-8cb1-b42c01d37b60",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "source_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "pain",
+      "title": "현재 오른쪽 발목 통증 NRS를 새로 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "현재 통증 NRS 8/10.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "59aa96c1-080c-59ed-a695-59ead68977aa",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "source_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "lifestyle",
+      "title": "냉·온찜질과 발 높이기 실천 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "8aef12c5-95f9-584b-96b5-771a1c568aa4",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "source_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "questions_concerns",
+      "title": "걷기 운동 자제 안내의 실천·이해 여부와 재개 시점 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "저녁 걷기 운동을 계속해도 되는지 질문.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "10299826-f87e-5813-929b-83e62d3cbd30",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "source_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "medication",
+      "title": "한약의 실제 복용·누락·처방명 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "9d49b3d3-18ab-50d0-86b3-1e75180d1073",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "source_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "item_key": "discomfort",
+      "title": "3일차 발송 안내에 10/8 늦게 보고한 속 불편의 현재 상태 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "care_response",
+          "source_id": "55bde233-9fe3-501d-9cd7-193dae8e3a15",
+          "quote": "3일차 안내에 대한 10/8 늦은 모의 응답: 불편한 점 있어요 → 속이 불편해요",
+          "origin": "synthetic_response"
+        }
+      ],
+      "origin": "synthetic_response"
+    },
+    {
+      "id": "cccb0244-f138-52ab-87b3-1ecf2d875ec6",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "source_visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "bowel_urine",
+      "title": "현재 야뇨 횟수·시점·양상과 야뇨 후 각성 변화 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "e5321547-dc2e-54bb-a5d1-3aca13bccafa",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "source_visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "appetite_digestion",
+      "title": "식욕·식사량 경과 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "4fa76ebe-a7be-5935-a86e-8e79edae37d9",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "source_visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "bowel_urine",
+      "title": "설사와 대변 양상 경과 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "666c0eca-73c1-5bde-b052-37bd9672fcf2",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "source_visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "temperature_sweat_energy",
+      "title": "추위를 타는 정도 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    },
+    {
+      "id": "7ad38b9f-909a-564b-97da-0f3a463ce346",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "source_visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "item_key": "medication",
+      "title": "보호자에게 보중익기탕 실제 복용 횟수·누락·불편 확인",
+      "status": "pending",
+      "resolved_visit_id": null,
+      "source_refs": [
+        {
+          "kind": "manual",
+          "source_id": "docs/verification/데모_정답차팅_초안.md",
+          "quote": "보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도를 설명함.",
+          "origin": "provided_case"
+        }
+      ],
+      "origin": "manual_demo"
+    }
+  ],
+  "medication_courses": [
+    {
+      "id": "1bc1c419-f506-5d1b-aada-3ff68ef42ab6",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "source_visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "medication_name": null,
+      "start_date": "2026-10-02",
+      "end_date": null,
+      "daily_frequency": null,
+      "instructions": "합성 시작일 10/2. 제공 사례는 한약 포함 치료 계획만 제시했으며 처방명·용량·실제 복용 횟수는 미확인.",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "bcbbf590-6a63-5d6b-ba89-9fe64bdbe6da",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "source_visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "medication_name": "보중익기탕",
+      "start_date": "2026-10-02",
+      "end_date": null,
+      "daily_frequency": 3,
+      "instructions": "제공 사례의 복용 안내: 하루 3회 식후 30분. 시작일 10/2는 합성. 약의 용량·총 복용 기간·종료일은 미확인.",
+      "origin": "synthetic_history"
+    }
+  ],
+  "care_messages": [
+    {
+      "id": "9ad49e32-f43f-574b-90ff-a89a6ea7487f",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "medication_course_id": "1bc1c419-f506-5d1b-aada-3ff68ef42ab6",
+      "stage": "visit_summary",
+      "scheduled_at": "2026-10-02T00:55:00Z",
+      "draft_body": "[가상 안내·모의 발송] 김서연 님, 오늘 안내받은 발목 관리를 확인해 주세요. 처음 48시간은 냉찜질, 이후에는 안내받은 온찜질과 발 높이기를 하고 걷기 운동은 쉬어 주세요. 복용·치료 뒤 불편한 점이 있으면 응답해 주세요. 다음 진료에서 통증과 생활관리 경과를 확인하겠습니다.",
+      "approved_body": "[가상 안내·모의 발송] 김서연 님, 오늘 안내받은 발목 관리를 확인해 주세요. 처음 48시간은 냉찜질, 이후에는 안내받은 온찜질과 발 높이기를 하고 걷기 운동은 쉬어 주세요. 복용·치료 뒤 불편한 점이 있으면 응답해 주세요. 다음 진료에서 통증과 생활관리 경과를 확인하겠습니다.",
+      "approved_at": "2026-10-02T00:49:00Z",
+      "delivered_at": "2026-10-02T00:55:00Z",
+      "delivery_mode": "mock",
+      "status": "sent",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "24a86b9e-4b0b-5d98-81b7-6372978cff35",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "medication_course_id": "1bc1c419-f506-5d1b-aada-3ff68ef42ab6",
+      "stage": "day3",
+      "scheduled_at": "2026-10-04T08:00:00Z",
+      "draft_body": "[가상 안내·모의 발송] 김서연 님, 한약 복용 상태와 불편한 점을 확인하고 있습니다. 잘 복용하고 계신지, 불편한 점이 있는지 알려 주세요. 이 응답은 의료진이 다음 확인과 연락에 참고합니다.",
+      "approved_body": "[가상 안내·모의 발송] 김서연 님, 한약 복용 상태와 불편한 점을 확인하고 있습니다. 잘 복용하고 계신지, 불편한 점이 있는지 알려 주세요. 이 응답은 의료진이 다음 확인과 연락에 참고합니다.",
+      "approved_at": "2026-10-02T00:49:00Z",
+      "delivered_at": "2026-10-04T08:00:00Z",
+      "delivery_mode": "mock",
+      "status": "sent",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "0ff690b5-1312-5ce5-9fef-6a7e6f8f29c1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "medication_course_id": "1bc1c419-f506-5d1b-aada-3ff68ef42ab6",
+      "stage": "week1",
+      "scheduled_at": "2026-10-09T03:00:00Z",
+      "draft_body": "[가상 안내 초안·검토 대기] 김서연 님의 발목 통증과 생활관리, 이전 속 불편 응답을 오늘 진료에서 확인한 뒤 안내를 확정해 주세요.",
+      "approved_body": null,
+      "approved_at": null,
+      "delivered_at": null,
+      "delivery_mode": "preview",
+      "status": "draft",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "a9254625-9bf4-5972-a5bf-fdc6780e597b",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "medication_course_id": "bcbbf590-6a63-5d6b-ba89-9fe64bdbe6da",
+      "stage": "visit_summary",
+      "scheduled_at": "2026-10-02T01:50:00Z",
+      "draft_body": "[가상 보호자 안내·모의 발송] 이도윤 보호자님, 오늘 안내받은 보중익기탕 복용법은 하루 3회 식후 30분입니다. 복용 상태와 불편한 점, 야뇨 경과를 확인해 주세요. 제공 사례의 재내원 안내는 2주 뒤입니다.",
+      "approved_body": "[가상 보호자 안내·모의 발송] 이도윤 보호자님, 오늘 안내받은 보중익기탕 복용법은 하루 3회 식후 30분입니다. 복용 상태와 불편한 점, 야뇨 경과를 확인해 주세요. 제공 사례의 재내원 안내는 2주 뒤입니다.",
+      "approved_at": "2026-10-02T01:44:00Z",
+      "delivered_at": "2026-10-02T01:50:00Z",
+      "delivery_mode": "mock",
+      "status": "sent",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "e7654ea8-b239-5093-8be7-c6d183503edc",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "medication_course_id": "bcbbf590-6a63-5d6b-ba89-9fe64bdbe6da",
+      "stage": "day3",
+      "scheduled_at": "2026-10-04T09:00:00Z",
+      "draft_body": "[가상 보호자 안내·모의 발송] 이도윤 보호자님, 보중익기탕을 안내받은 방법대로 복용하고 있는지 확인해 주세요. 잘 복용하고 있는지, 복용 후 불편한 점이 있는지 알려 주세요.",
+      "approved_body": "[가상 보호자 안내·모의 발송] 이도윤 보호자님, 보중익기탕을 안내받은 방법대로 복용하고 있는지 확인해 주세요. 잘 복용하고 있는지, 복용 후 불편한 점이 있는지 알려 주세요.",
+      "approved_at": "2026-10-02T01:44:00Z",
+      "delivered_at": "2026-10-04T09:00:00Z",
+      "delivery_mode": "mock",
+      "status": "sent",
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "18cf847d-429a-5d3a-a0e4-c04a7aca5bb1",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "visit_id": "d6014817-30ce-5ccf-af57-474a81cb2a62",
+      "medication_course_id": "bcbbf590-6a63-5d6b-ba89-9fe64bdbe6da",
+      "stage": "week1",
+      "scheduled_at": "2026-10-09T00:05:00Z",
+      "draft_body": "[가상 보호자 안내·모의 발송] 이도윤 보호자님, 지난 일주일의 야뇨와 식욕·대변 상태는 어떠한가요? 좋아지고 있는지 또는 불편한 점이 있는지 알려 주세요. 구체적인 횟수와 복약 상태는 상담에서 따로 확인하겠습니다.",
+      "approved_body": "[가상 보호자 안내·모의 발송] 이도윤 보호자님, 지난 일주일의 야뇨와 식욕·대변 상태는 어떠한가요? 좋아지고 있는지 또는 불편한 점이 있는지 알려 주세요. 구체적인 횟수와 복약 상태는 상담에서 따로 확인하겠습니다.",
+      "approved_at": "2026-10-02T01:44:00Z",
+      "delivered_at": "2026-10-09T00:05:00Z",
+      "delivery_mode": "mock",
+      "status": "sent",
+      "origin": "synthetic_history"
+    }
+  ],
+  "care_responses": [
+    {
+      "id": "55bde233-9fe3-501d-9cd7-193dae8e3a15",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "message_id": "24a86b9e-4b0b-5d98-81b7-6372978cff35",
+      "option": "discomfort",
+      "detail": "stomach_discomfort",
+      "received_at": "2026-10-08T11:15:00Z",
+      "source": "demo_simulation",
+      "event_key": "demo:v1:A:day3_message_late_discomfort_response",
+      "origin": "synthetic_response"
+    },
+    {
+      "id": "1d6ec6b3-6aa2-5a16-ba29-1134f0103e83",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "message_id": "e7654ea8-b239-5093-8be7-c6d183503edc",
+      "option": "taking_well",
+      "detail": null,
+      "received_at": "2026-10-04T09:10:00Z",
+      "source": "demo_simulation",
+      "event_key": "demo:v1:B:day3_taking_well",
+      "origin": "synthetic_response"
+    },
+    {
+      "id": "eb27db02-da87-5f3b-8d7c-bafd0356a147",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "message_id": "18cf847d-429a-5d3a-a0e4-c04a7aca5bb1",
+      "option": "improving",
+      "detail": null,
+      "received_at": "2026-10-09T00:15:00Z",
+      "source": "demo_simulation",
+      "event_key": "demo:v1:B:week1_improving",
+      "origin": "synthetic_response"
+    }
+  ],
+  "contact_tasks": [
+    {
+      "id": "3dadce49-9247-5774-aa2c-0b9e33980f58",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "response_id": "55bde233-9fe3-501d-9cd7-193dae8e3a15",
+      "reason": "복용 3일차 10/4에 모의 발송한 안내에 10/8 20:15 KST 늦게 응답: 불편한 점 있어요 → 속이 불편해요. 실제 사례의 응답 시점이 아닌 합성 일정이며, 현재 지속 여부·약과의 인과관계는 미확인. 10/9 오늘 재진에서 연락·확인 필요로 표시.",
+      "status": "open",
+      "resolution_note": null,
+      "closed_by": null,
+      "closed_at": null,
+      "origin": "synthetic_response"
+    }
+  ],
+  "scenario_inputs": [
+    {
+      "demo_key": "A",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "current_visit_id": "9faa0f5b-91e1-5c71-9b51-b714dae95f79",
+      "provided_audio_key": "video1",
+      "followup_script_key": "revisit_script",
+      "source_documents": [
+        "docs/verification/데모_정답차팅_초안.md",
+        "docs/notion/02_HaniSOAP_기획서.txt",
+        "docs/reference/재진_질문_및_경과_기록.md",
+        "docs/notion/05_재진_대화_녹음_대본.txt"
+      ]
+    },
+    {
+      "demo_key": "B",
+      "patient_id": "2da3551c-2492-5392-8c0d-15e6261b21ae",
+      "current_visit_id": "d8cc8359-d388-5eb2-9797-72834e7f1286",
+      "provided_audio_key": "video2",
+      "followup_script_key": null,
+      "source_documents": [
+        "docs/verification/데모_정답차팅_초안.md",
+        "docs/notion/02_HaniSOAP_기획서.txt",
+        "docs/reference/재진_질문_및_경과_기록.md"
+      ]
+    }
+  ]
+}
