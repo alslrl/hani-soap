@@ -506,6 +506,9 @@
             "model_review",
             "audio_recheck"
           ]
+        },
+        "timing_review": {
+          "type": "boolean"
         }
       }
     },
