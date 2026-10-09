@@ -19,7 +19,12 @@ export function applyAlignmentReview(alignment: AlignmentResult, source: Segment
     // A semantic judgment cannot override contradictory words or numeric facts.
     if (speechSimilarity(target.text, decision.source_quote) < .75) continue;
     if (normalizeSpeech(target.text).length <= 3) continue; // repeated fillers remain uncertain
-    if ((target.text.match(/\d+(?:\.\d+)?/g) ?? []).some(v => !decision.source_quote.includes(v))) continue;
+    const sourceNumbers = new Set(decision.source_quote.match(/\d+(?:\.\d+)?/g) ?? []);
+    if ((target.text.match(/\d+(?:\.\d+)?/g) ?? []).some(v => !sourceNumbers.has(v))) continue;
+    const targetIndex = changed.indexOf(target);
+    const left = changed.slice(0, targetIndex).reverse().find(s => s.start_ms !== null);
+    const right = changed.slice(targetIndex + 1).find(s => s.end_ms !== null);
+    if ((left && original.end_ms! < left.start_ms!) || (right && original.start_ms! > right.end_ms!)) continue;
     target.raw_speaker = original.raw_speaker; target.start_ms = original.start_ms; target.end_ms = original.end_ms;
     target.source_segment_ids = [original.id]; target.alignment_status = 'aligned'; target.alignment_method = 'model_review';
   }

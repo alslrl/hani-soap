@@ -22,4 +22,6 @@ it('does not accept a model pairing with invented source IDs, evidence, conflict
   const original=s('source','우측은 45cm입니다.','A',0), target={...s('target','우측은 43cm입니다.','',0),alignment_status:'review_needed' as const};
   const a={...alignTranscriptContent(target.text,[original]),segments:[target],candidates:[{segment_id:'target',source_ids:['source']}]};
   for(const decision of [{segment_id:'target',source_id:'invented',source_quote:'우측은 43cm입니다.',reason:''},{segment_id:'target',source_id:'source',source_quote:original.text,reason:''}]) expect(applyAlignmentReview(a,[original],[decision])[0].alignment_status).toBe('review_needed');
+  const shorter={...target,text:'우측은 4cm입니다.'};
+  expect(applyAlignmentReview({...a,segments:[shorter]},[original],[{segment_id:'target',source_id:'source',source_quote:original.text,reason:''}])[0].alignment_status).toBe('review_needed');
 });
