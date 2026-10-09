@@ -71,7 +71,7 @@ test('uncoded locations need descriptions and cannot invent acupoint codes', asy
   const result = await action('treatment.save', { visit_id, modality: 'acupuncture', body_region: 'lumbar', locations: [{ ...location, acupoint_code: null }], status: 'confirmed' });
   assert.equal(result.state.treatments.at(-1)?.locations?.[0].acupoint_code, null);
 });
-test('anatomy v2 persists without relocating legacy marks or mixing drawing versions', async () => {
+test('versioned anatomy documents preserve old frames while allowing a separate current frame', async () => {
   const visitId = await currentVisit();
   const strokes = [{ id: 'v2-check', kind: 'check', created_at: new Date().toISOString(), points: [{ x: 0.446, y: 0.894, t: 10, pressure: 0.7 }] }];
   let result = await action('annotation.save', { visitId, annotation: { modality: 'acupuncture', technique: 'standard_acupuncture', view: 'front', coordinate_version: 'body-map-v2', strokes } });
@@ -79,14 +79,27 @@ test('anatomy v2 persists without relocating legacy marks or mixing drawing vers
   assert.equal(saved.coordinate_version, 'body-map-v2');
   assert.deepEqual(saved.strokes, strokes);
   await assert.rejects(action('annotation.save', { visitId, annotation: { ...saved, coordinate_version: 'body-map-v1' } }), errorCode('INVALID_INPUT'));
-  await assert.rejects(action('annotation.save', { visitId, annotation: { modality: 'pharmacopuncture', view: 'back', coordinate_version: 'body-map-v1', strokes: [] } }), errorCode('INVALID_INPUT'));
+  result = await action('annotation.save', { visitId, annotation: { modality: 'pharmacopuncture', view: 'back', coordinate_version: 'body-map-v1', strokes: [] } });
+  assert.equal(result.state.annotations.at(-1)?.coordinate_version, 'body-map-v1');
   await assert.rejects(action('annotation.save', { visitId, annotation: { modality: 'pharmacopuncture', view: 'back', coordinate_version: 'body-map-v99', strokes: [] } }), errorCode('INVALID_INPUT'));
   result = await action('annotation.save', { visitId, annotation: { modality: 'pharmacopuncture', view: 'back', coordinate_version: 'body-map-v2', strokes: [] } });
-  assert.equal(result.state.annotations.length, 2);
+  assert.equal(result.state.annotations.length, 3);
   const otherVisit = result.state.scenario_inputs[1].current_visit_id;
   result = await action('annotation.save', { visitId: otherVisit, annotation: { modality: 'acupuncture', view: 'front', strokes: [] } });
   assert.equal(result.state.annotations.at(-1)?.coordinate_version, 'body-map-v1');
   assert.deepEqual(result.state.annotations[0].strokes, strokes);
+});
+test('female anatomy creates its own immutable frame and concurrent empty editors cannot duplicate a layer', async () => {
+  const visitId = await currentVisit();
+  const legacy = await action('annotation.save', { visitId, annotation: { modality: 'acupuncture', technique: 'standard_acupuncture', view: 'front', coordinate_version: 'body-map-v1', strokes: [{ id:'legacy-ink',kind:'check',created_at:new Date().toISOString(),points:[{x:0.446,y:0.894,t:1}] }] } });
+  const original = structuredClone(legacy.state.annotations[0]);
+  const female = await action('annotation.save', { visitId, annotation: { modality:'acupuncture', technique:'standard_acupuncture', view:'front', coordinate_version:'body-map-v3-female', strokes:[{id:'female-ink',kind:'check',created_at:new Date().toISOString(),points:[{x:0.419,y:0.894,t:2}]}] } });
+  assert.equal(female.state.annotations.length,2);
+  assert.deepEqual(female.state.annotations.find(v=>v.id===original.id),original);
+  const current=female.state.annotations.find(v=>v.coordinate_version==='body-map-v3-female')!;
+  await assert.rejects(action('annotation.save',{visitId,annotation:{...current,coordinate_version:'body-map-v2'}}),errorCode('INVALID_INPUT'));
+  await assert.rejects(action('annotation.save',{visitId,annotation:{...current,id:'1fdd728d-9112-4e65-9ca5-b516defe530b',revision:0}}),errorCode('ANNOTATION_CONFLICT'));
+  assert.equal((await readState()).state.annotations.length,2);
 });
 test('numeric 0 persists as a current NRS; invalid range and other patient answer links reject', async () => {
   const visitId = await currentVisit();

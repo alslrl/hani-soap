@@ -1,0 +1,62 @@
+{
+  "coordinate_version": "body-map-v3-female",
+  "sex": "female",
+  "created_on_kst": "2026-10-09",
+  "asset_kind": "fixed_orthographic_renders_from_licensed_female_model",
+  "ai_generated": false,
+  "source_url": "https://cdn.humanatlas.io/digital-objects/ref-organ/skin-female/v1.3/assets/3d-vh-f-skin.glb",
+  "source_reference_url": "https://3d.nih.gov/entries/3DPX-020986?version=1",
+  "original_project": "Human Reference Atlas / HuBMAP",
+  "authors": [
+    "Kristen Browne",
+    "Heidi Schlehlein"
+  ],
+  "upstream": "Visible Human Female / National Library of Medicine",
+  "citation": "Kristen Browne; Heidi Schlehlein 2022. *3D Reference Organ for Skin, Female v1.3*, https://doi.org/10.48539/HBM466.LKPQ.876. Accessed on December 15, 2022.",
+  "doi": "https://doi.org/10.48539/HBM466.LKPQ.876",
+  "license": "CC-BY-4.0",
+  "license_url": "https://creativecommons.org/licenses/by/4.0/",
+  "modifications": [
+    "Neutral surface material and fixed studio lighting",
+    "Fixed front/back orthographic transparent rendering, preserving source pose and shape"
+  ],
+  "canvas_registration": {
+    "image_width": 2000,
+    "image_height": 2000,
+    "coordinate_width": 1000,
+    "coordinate_height": 1000,
+    "body_top": 42,
+    "body_bottom": 963
+  },
+  "renderer": "Three.js 0.186.1",
+  "reproduce": "node scripts/render-anatomy.mjs --female",
+  "files": [
+    {
+      "path": "body-front-v3-female.png",
+      "bytes": 722759,
+      "sha256": "b0764696a122410fb8f47cda649fd562a37e7363777abedf536a43c05f0391c6"
+    },
+    {
+      "path": "body-back-v3-female.png",
+      "bytes": 671752,
+      "sha256": "a11493e647a337aadb2ed65db2e97029f38bdf699997153f9414e8bc6409789d"
+    },
+    {
+      "path": "source/body-female.glb",
+      "bytes": 12246132,
+      "sha256": "0fc377c7a2e7e9644b81d318feda9d0b2c5a38f39bd14e74966f8b6364eb0a78"
+    },
+    {
+      "path": "source/female-metadata.json",
+      "bytes": 8089,
+      "sha256": "1e472ea7b6f8800b192e2d5aba7e9b518772a1dd7005818599e6584aef1847be"
+    },
+    {
+      "path": "source/FEMALE-LICENSE.txt",
+      "bytes": 1167,
+      "sha256": "6d878743346380c0a853f8824d6363f1248b2fae69cc9f3ab199736e94f4ee7d"
+    }
+  ],
+  "silhouette_path": "../../../data/anatomy/body-map-v3-female-silhouette.json",
+  "silhouette_sha256": "515f9d803268feb3ff4338fd229d48ef3eb709930120d4fb67da7a723b36d8f1"
+}

@@ -7,6 +7,8 @@ import { chromium } from '@playwright/test';
 const root = process.cwd();
 const assetDirectory = path.join(root, 'public/demo/anatomy');
 const geometryDirectory = path.join(root, 'data/anatomy');
+const female = process.argv.includes('--female');
+const version = female ? 'v3-female' : 'v2';
 const html = `<!doctype html><html><head><style>html,body{margin:0;background:transparent}canvas{display:block}</style>
 <script type="importmap">{"imports":{"three":"/three/build/three.module.js","three/addons/":"/three/examples/jsm/"}}</script></head><body><script type="module">
 import * as THREE from 'three';
@@ -37,6 +39,7 @@ model.traverse(mesh=>{
  // Body regions are also disconnected. Keep every anatomical component, including
  // small face/hand surfaces; only the flat text to the left of the body is removed.
  const kept=ranked.filter(indices=>{
+  if (${female}) return true;
   const box=new THREE.Box3();for(const i of indices)box.expandByPoint(new THREE.Vector3().fromBufferAttribute(position,i));
   return !(box.max.x < -0.35 && box.max.z-box.min.z < 0.001);
  }).flat();
@@ -77,7 +80,7 @@ const server = createServer(async (request,response) => {
   try {
     if(pathname==='/'){response.setHeader('Content-Type','text/html');response.end(html);return;}
     let file;
-    if(pathname==='/model.glb')file=path.join(assetDirectory,'source/body-skin.glb');
+    if(pathname==='/model.glb')file=path.join(assetDirectory,female?'source/body-female.glb':'source/body-skin.glb');
     else if(pathname.startsWith('/three/')&&!pathname.includes('..'))file=path.join(root,'node_modules/three',pathname.slice(7));
     else{response.writeHead(404);response.end();return;}
     const type=file.endsWith('.js')?'text/javascript':file.endsWith('.wasm')?'application/wasm':'application/octet-stream';
@@ -93,8 +96,8 @@ try {
  await page.waitForFunction(()=>Boolean(window.result),{timeout:60000});
  const result=await page.evaluate(()=>window.result);
  await mkdir(assetDirectory,{recursive:true});await mkdir(geometryDirectory,{recursive:true});
- for(const [view,data]of Object.entries(result.previews))await writeFile(path.join(assetDirectory,`body-${view}-v2.png`),Buffer.from(data.split(',')[1],'base64'));
- await writeFile(path.join(geometryDirectory,'body-map-v2-silhouette.json'),JSON.stringify(result.masks)+'\n');
- await writeFile(path.join(geometryDirectory,'render-metadata.json'),JSON.stringify(result.metadata,null,2)+'\n');
+ for(const [view,data]of Object.entries(result.previews))await writeFile(path.join(assetDirectory,`body-${view}-${version}.png`),Buffer.from(data.split(',')[1],'base64'));
+ await writeFile(path.join(geometryDirectory,`body-map-${version}-silhouette.json`),JSON.stringify(result.masks)+'\n');
+ await writeFile(path.join(geometryDirectory,female?'render-metadata-female.json':'render-metadata.json'),JSON.stringify(result.metadata,null,2)+'\n');
  console.log(JSON.stringify({bounds:result.metadata.bounds,plane:result.metadata.plane,renderer:result.metadata.renderer,components:result.metadata.components.length}));
 } finally {await browser.close();await new Promise(resolve=>server.close(resolve));}

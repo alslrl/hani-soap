@@ -1,6 +1,7 @@
 import type { InkPoint } from "./geometry";
 import type { BodyMapVersion } from "./body-map-version";
 import bodySilhouettes from "../../../data/anatomy/body-map-v2-silhouette.json";
+import femaleSilhouettes from "../../../data/anatomy/body-map-v3-female-silhouette.json";
 
 export type BodyView = "front" | "back";
 export type Laterality = "left" | "right" | "bilateral" | "midline" | "not_applicable";
@@ -36,25 +37,28 @@ function mapLegacyBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | nu
 }
 
 /** Pixel registration is generated from the same PNGs displayed at 0,0,1000,1000. */
-export function isInsideAnatomyBody(anchor: InkPoint, view: BodyView): boolean {
+export function isInsideAnatomyBody(anchor: InkPoint, view: BodyView, version: BodyMapVersion = "body-map-v2"): boolean {
   if (!Number.isFinite(anchor.x) || !Number.isFinite(anchor.y) || anchor.x < 0 || anchor.x >= 1000 || anchor.y < 0 || anchor.y >= 1000) return false;
-  const row = bodySilhouettes[view][Math.floor(anchor.y)];
+  const silhouettes = version === "body-map-v3-female" ? femaleSilhouettes : bodySilhouettes;
+  const row = silhouettes[view][Math.floor(anchor.y)];
   const x = Math.floor(anchor.x);
   return row.some(([left, right]) => x >= left && x <= right);
 }
 
 /** Region bands identify user-confirmable areas, never precise acupoint positions. */
-function mapAnatomyBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | null {
-  if (!isInsideAnatomyBody(anchor, view)) return null;
+function mapAnatomyBodyRegion(anchor: InkPoint, view: BodyView, version: BodyMapVersion): RegionMatch | null {
+  if (!isInsideAnatomyBody(anchor, view, version)) return null;
   const { x, y } = anchor;
   const fromMidline = Math.abs(x - 500);
+  const wristY = version === "body-map-v3-female" ? 480 : 520;
+  const handBottomY = version === "body-map-v3-female" ? 565 : 600;
   let region: BodyRegion;
   if (y < 148) region = "head";
   else if (y < 190 && fromMidline < 55) region = "neck";
   else if (y < 240 && fromMidline > 82) region = "shoulder";
   else if (y < 400 && fromMidline > 93) region = "upper_arm";
-  else if (y >= 400 && y < 520 && fromMidline > 98) region = "forearm";
-  else if (y >= 520 && y < 600 && fromMidline > 116) region = "hand";
+  else if (y >= 400 && y < wristY && fromMidline > 98) region = "forearm";
+  else if (y >= wristY && y < handBottomY && fromMidline > 116) region = "hand";
   else if (y < 375) region = view === "front" ? "chest" : "upper_back";
   else if (y < 495) region = view === "front" ? "abdomen" : "lower_back";
   else if (y < 595) region = "hip";
@@ -68,7 +72,7 @@ function mapAnatomyBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | n
 }
 
 export function mapBodyRegion(anchor: InkPoint, view: BodyView, version: BodyMapVersion = "body-map-v1"): RegionMatch | null {
-  return version === "body-map-v2" ? mapAnatomyBodyRegion(anchor, view) : mapLegacyBodyRegion(anchor, view);
+  return version === "body-map-v1" ? mapLegacyBodyRegion(anchor, view) : mapAnatomyBodyRegion(anchor, view, version);
 }
 
 export type AcupointCandidate = { code: string; label_ko: string; regions: BodyRegion[]; views: BodyView[]; area: "outer" | "inner" | "front" | "back" };

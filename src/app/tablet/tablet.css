@@ -153,3 +153,108 @@
 .tablet-footer-source>a { text-decoration:underline; text-underline-offset:3px; }
 @media(max-width:800px) { .tablet-footer { flex-wrap:wrap; } .tablet-footer-source { flex-basis:100%; justify-content:space-between; } }
 @media(max-width:520px) { .tablet-footer>.tablet-footer-source { display:flex; } }
+/* Frame navigation and portrait-first canvas. */
+.tablet-canvas-navigation { display:flex; align-items:center; gap:12px; }
+.tablet-history-control { position:relative; }
+.tablet-history-toggle { display:flex; align-items:center; gap:6px; min-height:44px; border:0; background:transparent; color:#6d8981; font-size:11px; padding:0 9px; }
+.tablet-history-menu { position:absolute; right:0; top:100%; background:#fff; min-width:170px; padding:6px; border:1px solid #dae6df; border-radius:10px; box-shadow:0 7px 24px #25423715; z-index:20; }
+.tablet-history-menu button { display:block; width:100%; min-height:44px; padding:10px 12px; border:0; background:transparent; text-align:left; font-size:12px; border-radius:6px; }
+.tablet-history-menu button:hover { background:#edf6f2; }
+.tablet-history-notice { display:flex; align-items:center; justify-content:space-between; gap:14px; margin:14px 24px 0; padding:9px 12px; border-radius:8px; background:#eaf1ef; color:#738a81; font-size:10px; flex:none; }
+.tablet-history-notice button { display:flex; align-items:center; justify-content:center; gap:5px; border:0; min-height:44px; background:transparent; color:#366e60; font-size:11px; white-space:nowrap; }
+.tablet-app.is-historical .tablet-canvas { cursor:default; }
+.tablet-app .tablet-icon-button { min-height:44px; min-width:44px; }
+.tablet-app .tablet-view-toggle button { min-height:44px; }
+.tablet-app .tablet-drawing-tools button { min-height:44px; }
+.tablet-drawing-tools .tablet-records-toggle,.tablet-drawing-tools .tablet-toolbar-save,.tablet-drawing-tools .tablet-toolbar-return { display:none; }
+.tablet-drawing-tools .tablet-undo { margin-left:auto; }
+.tablet-sheet-heading { display:none; }
+.tablet-sheet-footer { display:none; }
+.tablet-picker-zoom { border:0; border-radius:7px; padding:0 10px; background:#edf6f2; color:var(--accent); font-size:11px; min-height:44px; margin:-8px 0 16px; }
+.tablet-sheet-backdrop { position:fixed; inset:0; z-index:39; border:0; padding:0; background:#143d3021; cursor:default; }
+.tablet-full-canvas-toggle { position:absolute; right:22px; top:12px; z-index:2; min-height:44px; border:1px solid #dce7e1; border-radius:8px; background:#fffffff0; color:#668379; font-size:11px; padding:0 12px; }
+.tablet-app.is-portrait { display:flex; flex-direction:column; height:100dvh; min-height:0; overflow:hidden; }
+.tablet-app.is-portrait .tablet-header { flex:none; height:72px; padding:0 24px; gap:28px; }
+.tablet-app.is-portrait .tablet-brand { font-size:22px; }
+.tablet-app.is-portrait .tablet-brand small { font-size:8px; }
+.tablet-app.is-portrait .tablet-patient { gap:10px; }
+.tablet-app.is-portrait .tablet-patient img { display:block; width:38px; height:38px; }
+.tablet-app.is-portrait .tablet-patient strong { font-size:17px; }
+.tablet-app.is-portrait .tablet-patient p { max-width:380px; font-size:11px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.tablet-app.is-portrait .tablet-change-visit { font-size:11px; gap:5px; }
+.tablet-app.is-portrait .tablet-statusbar { flex:none; min-height:28px; padding:0 24px; font-size:10px; }
+.tablet-app.is-portrait .tablet-tabs { flex:none; padding:0 18px; gap:4px; }
+.tablet-app.is-portrait .tablet-tabs>button { flex:1; min-width:0; height:54px; font-size:15px; }
+.tablet-app.is-portrait .tablet-main { flex:1; min-height:0; height:auto; display:block; position:relative; }
+.tablet-app.is-portrait .tablet-drawing { height:100%; min-height:0; display:flex; flex-direction:column; }
+.tablet-app.is-portrait .tablet-canvas-header { flex:none; min-height:68px; padding:10px 26px 2px; gap:12px; }
+.tablet-app.is-portrait .tablet-canvas-header h1 { font-size:18px; margin:3px 0 0; }
+.tablet-app.is-portrait .tablet-canvas-header .tablet-eyebrow { font-size:10px; }
+.tablet-app.is-portrait .tablet-history-toggle { font-size:11px; }
+.tablet-app.is-portrait .tablet-view-toggle button { min-width:54px; font-size:13px; }
+.tablet-app.is-portrait .tablet-canvas-wrap { flex:1; min-height:0; height:auto; }
+.tablet-app.is-portrait .tablet-canvas { position:absolute; inset:0; width:100%; height:100%; min-height:0; max-height:none; }
+.tablet-app.is-portrait .tablet-canvas-guide { display:none; }
+.tablet-app.is-portrait .tablet-canvas-corner { bottom:14px; left:26px; font-size:10px; }
+.tablet-app.is-portrait .tablet-zoom-controls { right:24px; bottom:12px; }
+.tablet-app.is-portrait .tablet-drawing-tools { flex:none; min-height:74px; padding:10px 24px max(10px,env(safe-area-inset-bottom)); gap:10px; border-top:1px solid #dde9e3; background:#ffffffef; }
+.tablet-app.is-portrait .tablet-drawing-tools button { min-height:48px; padding:0 15px; border-radius:10px; font-size:13px; }
+.tablet-app.is-portrait .tablet-drawing-tools .tablet-manual-list { display:none; }
+.tablet-app.is-portrait .tablet-drawing-tools .tablet-undo { margin-left:0; }
+.tablet-app.is-portrait .tablet-drawing-tools .tablet-undo>span { display:none; }
+.tablet-app.is-portrait .tablet-drawing-tools .tablet-records-toggle { display:flex; margin-left:auto; }
+.tablet-app.is-portrait .tablet-records-toggle small { color:var(--accent); font-size:11px; }
+.tablet-app.is-portrait .tablet-drawing-tools .tablet-toolbar-save,.tablet-app.is-portrait .tablet-drawing-tools .tablet-toolbar-return { display:flex; margin-left:0; color:white; background:var(--accent); border-color:var(--accent); min-width:114px; }
+.tablet-app.is-portrait .tablet-footer { display:none; }
+.tablet-app.is-portrait .tablet-inspector { display:none; }
+.tablet-app.is-portrait .tablet-inspector.is-sheet-open { display:block; position:fixed; z-index:40; bottom:0; left:50%; right:auto; transform:translateX(-50%); width:min(720px,100%); max-height:72dvh; overflow-y:auto; overscroll-behavior:contain; border:1px solid #e0e9e3; border-bottom:0; border-radius:22px 22px 0 0; box-shadow:0 -12px 65px #25443628; padding:22px 28px max(24px,env(safe-area-inset-bottom)); animation:tablet-panel-in .18s ease-out; }
+.tablet-app.is-portrait .tablet-sheet-heading { display:flex; align-items:center; justify-content:space-between; margin:-6px 0 14px; color:#688879; font-size:12px; }
+.tablet-app.is-portrait .tablet-sheet-heading .tablet-icon-button { border:0; background:#f1f7f3; }
+.tablet-app.is-portrait .tablet-sheet-footer { display:flex; justify-content:space-between; align-items:center; gap:15px; padding:20px 0 0; margin-top:20px; border-top:1px solid #e5eee7; font-size:10px; color:#8ba292; }
+.tablet-app.is-portrait .tablet-sheet-footer a { min-height:44px; display:flex; align-items:center; }
+.tablet-app.is-portrait .tablet-region-picker { max-width:none; }
+.tablet-app.is-portrait .tablet-picker-heading { margin-bottom:18px; }
+.tablet-app.is-portrait .tablet-picker-heading h2 { font-size:23px; }
+.tablet-app.is-portrait .tablet-picker-fields select { min-height:44px; font-size:13px; }
+.tablet-app.is-portrait .tablet-picker-fields label,.tablet-app.is-portrait .tablet-note-field { font-size:12px; }
+.tablet-app.is-portrait .tablet-location-types button { min-height:48px; font-size:13px; }
+.tablet-app.is-portrait .tablet-point-option { min-height:48px; font-size:14px; }
+.tablet-app.is-portrait .tablet-point-option small,.tablet-app.is-portrait .tablet-point-area { font-size:11px; }
+.tablet-app.is-portrait .tablet-primary,.tablet-app.is-portrait .tablet-secondary { min-height:48px; font-size:13px; }
+.tablet-app.is-portrait .tablet-note-field textarea { font-size:13px; }
+.tablet-app.is-portrait .tablet-text-button { min-height:44px; font-size:12px; }
+.tablet-app.is-portrait .tablet-location-row strong { font-size:14px; }
+.tablet-app.is-portrait .tablet-location-row p { font-size:12px; }
+.tablet-app.is-portrait .tablet-field-help { font-size:11px; }
+.tablet-app.is-portrait .tablet-history-notice { margin:8px 24px 0; font-size:11px; }
+.tablet-app.is-portrait .tablet-history-notice button { font-size:12px; }
+.tablet-app.is-portrait .tablet-toast { bottom:90px; max-width:calc(100vw - 40px); }
+@media(max-width:560px) and (orientation:portrait) {
+  .tablet-app.is-portrait .tablet-header { height:64px; padding:0 14px; gap:14px; }
+  .tablet-app.is-portrait .tablet-brand { font-size:17px; }
+  .tablet-app.is-portrait .tablet-patient img { display:none; }
+  .tablet-app.is-portrait .tablet-patient strong { font-size:15px; }
+  .tablet-app.is-portrait .tablet-patient p { max-width:190px; font-size:10px; }
+  .tablet-app.is-portrait .tablet-patient strong>span { display:none; }
+  .tablet-app.is-portrait .tablet-change-visit { font-size:0; }
+  .tablet-app.is-portrait .tablet-statusbar { padding:0 14px; font-size:9px; }
+  .tablet-app.is-portrait .tablet-tabs>button { height:49px; font-size:14px; }
+  .tablet-app.is-portrait .tablet-canvas-header { padding:8px 14px 0; min-height:66px; }
+  .tablet-app.is-portrait .tablet-canvas-header h1 { font-size:14px; }
+  .tablet-app.is-portrait .tablet-canvas-navigation { gap:4px; }
+  .tablet-app.is-portrait .tablet-history-toggle>span { display:none; }
+  .tablet-app.is-portrait .tablet-view-toggle button { min-width:40px; font-size:11px; }
+  .tablet-app.is-portrait .tablet-drawing-tools { min-height:67px; padding:8px 12px max(8px,env(safe-area-inset-bottom)); gap:6px; }
+  .tablet-app.is-portrait .tablet-drawing-tools button { padding:0 10px; min-height:46px; font-size:11px; }
+  .tablet-app.is-portrait .tablet-drawing-tools .tablet-toolbar-save { min-width:88px; }
+  .tablet-app.is-portrait .tablet-drawing-tools>button:first-child { gap:5px; }
+  .tablet-app.is-portrait .tablet-inspector.is-sheet-open { padding:18px 20px max(20px,env(safe-area-inset-bottom)); max-height:78dvh; }
+  .tablet-app.is-portrait .tablet-canvas-corner { left:16px; bottom:10px; max-width:190px; font-size:8px; }
+  .tablet-app.is-portrait .tablet-history-notice { margin:6px 14px 0; flex-wrap:wrap; gap:0; padding:8px 10px; font-size:10px; }
+  .tablet-app.is-portrait .tablet-history-notice button { margin-left:auto; font-size:11px; }
+}
+.tablet-patient strong>.tablet-patient-demographics { font-size:11px; font-weight:400; color:#81968e; letter-spacing:0; margin-left:8px; }
+.tablet-app.is-portrait .tablet-patient strong>.tablet-patient-demographics { display:inline; font-size:11px; }
+@media(max-width:560px) and (orientation:portrait) { .tablet-app.is-portrait .tablet-patient strong>.tablet-patient-demographics { display:block; margin:0; font-size:9px; line-height:1.4; } .tablet-app.is-portrait .tablet-patient p { margin:0; font-size:9px; } }
+@keyframes tablet-sheet-in { from { opacity:0; transform:translate(-50%,8px); } to { opacity:1; transform:translate(-50%,0); } }
+.tablet-app.is-portrait .tablet-inspector.is-sheet-open { animation:tablet-sheet-in .18s ease-out; }

@@ -4,11 +4,13 @@ import { useState } from "react";
 import type { TreatmentLocation } from "@/lib/types";
 import { REGION_LABELS, SIDE_LABELS, regionCandidates, type BodyRegion, type Laterality, type RegionMatch } from "@/lib/tablet/regions";
 
-export function RegionPicker({ match, onAdd, onClose, onMemo }: {
+export function RegionPicker({ match, onAdd, onClose, onMemo, onZoom, modal = false }: {
   match: RegionMatch;
   onAdd: (locations: TreatmentLocation[], match: RegionMatch) => void;
   onClose: () => void;
   onMemo: () => void;
+  onZoom?: () => void;
+  modal?: boolean;
 }) {
   const [region, setRegion] = useState(match.region);
   const [side, setSide] = useState(match.laterality);
@@ -25,11 +27,12 @@ export function RegionPicker({ match, onAdd, onClose, onMemo }: {
     })) : [{ ...common, location_type: type, acupoint_code: null, label_ko: type === "ashi" ? "아시혈" : "압통점", location_note: note.trim() }];
     onAdd(locations, { ...match, region, laterality: side });
   }
-  return <section className="tablet-region-picker" role="dialog" aria-modal="false" aria-label="부위별 위치 선택">
+  return <section className="tablet-region-picker" role="dialog" aria-modal={modal} aria-label="부위별 위치 선택">
     <div className="tablet-picker-heading">
       <div><span className="tablet-eyebrow">표시한 부위</span><h2>{SIDE_LABELS[side]} {REGION_LABELS[region]}</h2></div>
       <button type="button" className="tablet-icon-button" onClick={onClose} aria-label="후보 닫기">×</button>
     </div>
+    {onZoom && <button type="button" className="tablet-picker-zoom" onClick={onZoom}>이 부위 확대 보기</button>}
     <div className="tablet-picker-fields">
       <label>부위<select aria-label="선택 부위" value={region} onChange={e => { setRegion(e.target.value as BodyRegion); setSelected([]); }}>
         {Object.entries(REGION_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
