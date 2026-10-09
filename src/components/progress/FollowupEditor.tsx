@@ -9,7 +9,9 @@ import styles from "./progress.module.css";
 type AnswerDraft = Pick<FollowupAnswer, "item_key" | "subitem_key" | "answer_text" | "change" | "confirmation_status" | "applicability">;
 const answerKey = (item: string, subitem: string) => `${item}:${subitem}`;
 
-export function FollowupEditor({ visitId, compact = false }: { visitId: string; compact?: boolean }) {
+type NrsTarget = Pick<Observation, "metric_key" | "body_region" | "laterality" | "activity_key" | "measurement_context"> & { inputId: string };
+
+export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitId: string; compact?: boolean; nrsTarget?: NrsTarget }) {
   const { data, act } = useAppState();
   const state = data?.state;
   const visit = state?.visits.find((item) => item.id === visitId);
@@ -69,6 +71,11 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
   const visitDates = new Map(state.visits.map((item) => [item.id, item.scheduled_at]));
   const previousAnswers = state.followup_answers.filter((item) => item.patient_id === patient.id && item.visit_id !== visit.id && (visitDates.get(item.visit_id) ?? "") < visit.scheduled_at && item.answer_text).sort((a, b) => (visitDates.get(b.visit_id) ?? "").localeCompare(visitDates.get(a.visit_id) ?? ""));
   const metricTemplates = Array.from(new Map(state.observations.filter((item) => item.patient_id === patient.id && (visitDates.get(item.visit_id) ?? "") <= visit.scheduled_at).sort((a, b) => a.measured_at.localeCompare(b.measured_at)).map((item) => [item.series_key, item])).values());
+  // The clinic's NRS panel owns its score input. Saving answers must not replay
+  // a hidden, stale copy of that score over a newer measurement.
+  const isLinkedNrs = (metric: Observation) => Boolean(nrsTarget && metric.instrument === "NRS" && metric.metric_key === nrsTarget.metric_key && metric.body_region === nrsTarget.body_region && metric.laterality === nrsTarget.laterality && metric.activity_key === nrsTarget.activity_key && metric.measurement_context === nrsTarget.measurement_context);
+  const editableMetrics = metricTemplates.filter((metric) => !isLinkedNrs(metric));
+  const currentNrs = state.observations.filter((item) => item.visit_id === visitId && isLinkedNrs(item)).sort((a, b) => b.measured_at.localeCompare(a.measured_at))[0];
   const group = QUESTION_GROUPS.find((item) => item.key === selectedGroup)!;
   const groupDrafts = Object.entries(drafts).filter(([, item]) => item.item_key === selectedGroup);
   const pendingItems = state.followup_items.filter((item) => item.patient_id === patient.id && item.status === "pending");
@@ -83,14 +90,14 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
     if (busy || !state || !visit) return;
     setBusy(true); setFeedback(""); setFailed(false);
     try {
-      for (const metric of metricTemplates) {
+      for (const metric of editableMetrics) {
         const input = metricValues[metric.series_key];
         if (input === undefined || input.trim() === "") continue;
         const value = Number(input);
         if (!Number.isFinite(value) || value < (metric.scale_min ?? 0) || (metric.scale_max !== null && value > metric.scale_max) || (metric.instrument === "NRS" && !Number.isInteger(value))) throw new Error("점수·횟수의 범위를 확인해 주세요. NRS는 0~10 정수로 입력합니다.");
       }
       let saved = await act("followup.save", { visitId, answers: Object.values(drafts) });
-      for (const metric of metricTemplates) {
+      for (const metric of editableMetrics) {
         const input = metricValues[metric.series_key];
         if (input === undefined || input.trim() === "") continue;
         const currentValue = state.observations.filter((item) => item.visit_id === visitId && item.series_key === metric.series_key).sort((a, b) => b.measured_at.localeCompare(a.measured_at))[0];
@@ -118,6 +125,14 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
     </div>;
   }
 
+  function openNrs() {
+    const input = nrsTarget ? document.getElementById(nrsTarget.inputId) : null;
+    if (!(input instanceof HTMLInputElement)) return;
+    const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    input.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
+    input.focus({ preventScroll: true });
+  }
+
   return <section className={`${styles.followup} ${compact ? styles.compact : ""}`} aria-label="재진 확인 질문">
     <header className={styles.editorHeader}><div><h2>오늘 확인할 것</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !dirty} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
     {pendingItems.length > 0 && <details className={styles.pending}><summary>이어 확인할 질문 {pendingItems.length}개</summary><ul>{pendingItems.map((item) => <li key={item.id}>{item.title}</li>)}</ul></details>}
@@ -129,6 +144,11 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
         return <button key={item.key} type="button" aria-current={selectedGroup === item.key ? "true" : undefined} onClick={() => setSelectedGroup(item.key)}><span>{String(index + 1).padStart(2, "0")}</span>{item.title}<i aria-label={done ? "확인 완료" : "확인 필요"}>{done ? "✓" : "·"}</i></button>;
       })}</nav>
       <div className={styles.questionBody}><h3>{group.title}</h3><p className={styles.question}>{group.question}</p>
+        {group.key === "pain" && nrsTarget && <div className={styles.nrsShortcut}>
+          <span>오늘 통증 점수</span>
+          <button type="button" className={styles.primary} onClick={openNrs} aria-controls={nrsTarget.inputId}>통증 NRS 입력으로 이동</button>
+          <small>오늘 통증 NRS: {currentNrs ? `${currentNrs.value}/10` : "미확인"} · 점수는 통증 NRS 패널에서 입력합니다.</small>
+        </div>}
         {groupDrafts.map(([key, answer]) => {
           const subitem = group.subitems.find((item) => item.key === answer.subitem_key);
           const previous = previousAnswers.find((item) => item.item_key === answer.item_key && item.subitem_key === answer.subitem_key) ?? (groupDrafts.length === 1 ? previousAnswers.find((item) => item.item_key === answer.item_key) : undefined);
@@ -139,7 +159,7 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
             <div className={styles.selectRow}><label>확인 상태<select value={answer.confirmation_status} onChange={(event) => update(key, { confirmation_status: event.target.value as AnswerDraft["confirmation_status"] })}>{Object.entries(CONFIRMATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>해당 여부<select value={answer.applicability} onChange={(event) => update(key, { applicability: event.target.value as AnswerDraft["applicability"] })}><option value="unknown">아직 확인 안 됨</option><option value="applicable">해당함</option><option value="not_applicable">해당 없음</option></select></label></div>
           </fieldset>;
         })}
-        {metricTemplates.filter((metric) => (group.key === "pain" && metric.instrument === "NRS") || (group.key === "function_daily" && metric.instrument === "APP_FUNCTION_DISCOMFORT") || (group.key === "bowel_urine" && metric.instrument === "FREQUENCY")).map(renderMetric)}
+        {editableMetrics.filter((metric) => (group.key === "pain" && metric.instrument === "NRS") || (group.key === "function_daily" && metric.instrument === "APP_FUNCTION_DISCOMFORT") || (group.key === "bowel_urine" && metric.instrument === "FREQUENCY")).map(renderMetric)}
       </div>
     </div>
   </section>;
