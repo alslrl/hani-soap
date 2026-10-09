@@ -7,7 +7,7 @@ vi.mock('@/lib/audio/crop', () => ({ normalizeAudio: async (blob: Blob) => blob,
 vi.mock('@/lib/audio/storage', () => ({ readAudio: async () => new Blob(['fake']) }));
 vi.mock('./transcribe', async importOriginal => ({ ...await importOriginal(), transcribeAudio: mocks.transcribe, transcribeContentAudio: mocks.content }));
 vi.mock('./provider', () => ({ inferSpeakerRoles: mocks.infer, generateSoap: mocks.soap, proposeCorrections: vi.fn() }));
-import { transcribeStep, soapStep } from './pipeline';
+import { transcribeStep, transcribeSourcesStep, soapStep } from './pipeline';
 beforeEach(() => {
   mocks.infer.mockReset(); mocks.soap.mockReset(); mocks.transcribe.mockReset(); mocks.content.mockReset();
   mocks.state = { clinic: { id: 'clinic' }, transcripts: [], jobs: [{ id: 'job', visit_id: 'visit', recording_id: 'file', result: {} }], recordings: [{ id: 'file', visit_id: 'visit', filename: 'fake.wav' }], visits: [{ id: 'visit', patient_id: 'patient' }], patients: [{ id: 'patient', display_name: '김서연', guardian: null }], soap_documents: [{ id: 'approved', status: 'approved', sections: { s: 'original' } }] };
@@ -15,6 +15,7 @@ beforeEach(() => {
   mocks.content.mockResolvedValue({ text: '어디가 아프세요? 발목이 아파요.', model: 'gpt-transcribe' });
 });
 describe('role inference pipeline and SOAP revision input', () => {
+  it('keeps completed ASR sources and the refinement stage on cached re-entry',async()=>{await transcribeSourcesStep('job');const before=structuredClone(mocks.state.transcripts);mocks.state.jobs[0].stage='alignment_review';await transcribeSourcesStep('job');expect(mocks.state.jobs[0].stage).toBe('alignment_review');expect(mocks.state.transcripts).toEqual(before);expect(mocks.transcribe).toHaveBeenCalledTimes(1);expect(mocks.content).toHaveBeenCalledTimes(1);});
   it('passes inferred roles directly to SOAP without a preliminary confirmation', async () => {
     mocks.infer.mockResolvedValue({ B: { role: 'clinician', source: 'inferred' }, A: { role: 'patient', source: 'inferred' } });
     await transcribeStep('job');

@@ -36,6 +36,7 @@ export async function transcribeSourcesStep(jobId: string) {
   if (!recording) throw new AppError(404, 'RECORDING_NOT_FOUND', '전사할 음성을 찾을 수 없습니다.');
   const priorDiarized = state.transcripts.find((item) => item.id === job.result?.diarizedTranscriptId && item.visit_id === visitId);
   const priorContent = state.transcripts.find((item) => item.id === job.result?.contentTranscriptId && item.visit_id === visitId);
+  if (priorDiarized && priorContent) return;
   await patchJob(jobId, { status: 'running', stage: 'transcribing', result: { transcription_pipeline: DUAL_TRANSCRIPTION_VERSION } });
   const audio = !priorDiarized || !priorContent ? await normalizeAudio(await readAudio(recording)) : null;
   const [diarized, content] = await Promise.allSettled([
