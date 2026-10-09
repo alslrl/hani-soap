@@ -36,5 +36,5 @@ export function formatClinicDate(value: string, includeTime = false) {
   }).format(new Date(value));
 }
 export const ORIGIN_LABELS: Record<string, string> = {
-  provided_case: "제공 사례", synthetic_history: "가상 과거 이력", synthetic_response: "모의 응답", manual_demo: "직접 입력",
+  provided_case: "제공 기록", synthetic_history: "과거 진료", synthetic_response: "환자 응답", manual_demo: "직접 입력",
 };
