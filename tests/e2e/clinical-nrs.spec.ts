@@ -1,0 +1,80 @@
+import { test, expect } from '@playwright/test';
+import { randomUUID } from 'node:crypto';
+import { localDemo, scenario } from './helpers';
+import { validateClinicalAnalysis } from '../../src/lib/ai/clinical-analysis';
+import type { Transcript, RuntimeJob } from '../../src/lib/types';
+
+test('arriving NRS draft never overwrites a typed or saved score; edited AI input uses source review',async({page})=>{
+ const envelope=await localDemo(page),{current_visit_id:visitId}=scenario(envelope,'A');
+ const patientId=envelope.state.visits.find(v=>v.id===visitId)!.patient_id;
+ const original=envelope.state.observations.find(o=>o.patient_id===patientId&&o.instrument==='NRS')!;
+ envelope.state.observations=envelope.state.observations.filter(o=>o.visit_id!==visitId);
+ const text='지금 오른쪽 발목 통증은 0점이에요.';
+ const transcript:Transcript={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,revision:95,status:'reviewed',source_asset_key:'manual_seed',origin:'manual_demo',text,segments:[{id:randomUUID(),ordinal:1,speaker:'patient',text,start_ms:0,end_ms:1000}]};
+ const result=validateClinicalAnalysis({answers:[],measurements:[{item_key:'pain',subitem_key:'current_pain',instrument:'NRS',value:0,unit:'score',body_region:'ankle',laterality:'right',activity_key:null,measurement_context:'current_pain',temporal:'current',evidence:[{segment_id:transcript.segments[0].id,quote:text}]}],signals:[],missing_questions:[]},transcript);
+ const candidate=result.candidates[0];
+ const job:RuntimeJob={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,kind:'analysis',status:'waiting_review',stage:'clinical_analysis_review',input_hash:'nrs-proposal',created_at:'2026-10-09T04:00:00Z',updated_at:'2026-10-09T04:00:00Z',result:{task:'clinical_analysis',patientId,transcriptId:transcript.id,input_transcript_revision:95,...result}};
+ envelope.state.transcripts.push(transcript);
+ await page.route('**/api/state',route=>route.fulfill({json:envelope}));
+ await page.goto(`/clinic/visits/${visitId}`);
+ await expect(page.locator('#today-nrs')).toHaveValue('');
+ await page.locator('#today-nrs').fill('4');
+ envelope.state.jobs.push(job);envelope.version++;
+ await page.getByRole('tab',{name:'재진 질문',exact:true}).click();
+ await expect(page.getByText('현재 통증 NRS 0점',{exact:true})).toBeVisible();
+ await expect(page.locator('#today-nrs')).toHaveValue('4');
+ await expect(page.getByRole('note',{name:'전사 기반 NRS 초안'})).toHaveCount(0);
+ expect(envelope.state.observations.filter(o=>o.visit_id===visitId)).toHaveLength(0);
+
+ await page.reload();
+ await expect(page.locator('#today-nrs')).toHaveValue('0');
+ await expect(page.getByRole('note',{name:'전사 기반 NRS 초안'})).toContainText(text);
+ await page.locator('#today-nrs').fill('2');
+ const reviews:any[]=[];
+ await page.route('**/api/clinical-analysis/review',route=>{
+  const body=route.request().postDataJSON();reviews.push(body);
+  if(!body.allowOverwrite) return route.fulfill({status:409,json:{error:'다른 입력에서 3점 저장',code:'ANALYSIS_ENTRY_CONFLICT',details:{targetHash:'fresh-score-hash',current:'3점'}}});
+  candidate.status='confirmed';envelope.state.observations.push({...original,id:randomUUID(),visit_id:visitId,value:2,measured_at:'2026-10-09T04:10:00Z'});envelope.version++;
+  return route.fulfill({json:{saved:true,reused:false}});
+ });
+ await page.locator('#today-nrs').locator('..').getByRole('button',{name:'저장',exact:true}).click();
+ await expect(page.getByText('다른 입력에서 저장한 현재 점수: 3점',{exact:true})).toBeVisible();
+ await page.getByRole('button',{name:'현재 기록 확인 후 입력값 저장',exact:true}).click();
+ await expect.poll(()=>reviews.at(-1)).toMatchObject({jobId:job.id,candidateId:candidate.id,decision:'confirm',edit:{value:2},expectedTranscriptRevision:95,allowOverwrite:true,expectedTargetHash:'fresh-score-hash'});
+ await expect(page.getByRole('note',{name:'전사 기반 NRS 초안'})).toHaveCount(0);
+ await expect(page.locator('#today-nrs')).toHaveValue('2');
+ await page.reload();await expect(page.locator('#today-nrs')).toHaveValue('2');
+});
+
+test('current stair score is a separate source draft with one canonical input and no NRS write',async({page})=>{
+ const envelope=await localDemo(page),{current_visit_id:visitId}=scenario(envelope,'A');const patientId=envelope.state.visits.find(v=>v.id===visitId)!.patient_id;
+ envelope.state.observations=envelope.state.observations.filter(o=>o.visit_id!==visitId);
+ const text='지금 오른쪽 발목은 계단 오를 때 불편함이 0점이에요.';
+ const transcript:Transcript={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,revision:96,status:'reviewed',source_asset_key:'manual_seed',origin:'manual_demo',text,segments:[{id:randomUUID(),ordinal:1,speaker:'patient',text,start_ms:0,end_ms:1000}]};
+ const result=validateClinicalAnalysis({answers:[],measurements:[{item_key:'function_daily',subitem_key:'daily_activity',instrument:'APP_FUNCTION_DISCOMFORT',value:0,unit:'score',body_region:'ankle',laterality:'right',activity_key:'stairs_up',measurement_context:'stair_ascent_discomfort',temporal:'current',evidence:[{segment_id:transcript.segments[0].id,quote:text}]}],signals:[],missing_questions:[]},transcript);
+ expect(result.candidates).toHaveLength(1);const candidate=result.candidates[0];
+ const job:RuntimeJob={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,kind:'analysis',status:'waiting_review',stage:'clinical_analysis_review',input_hash:'stairs-proposal',created_at:'2026-10-09T05:00:00Z',updated_at:'2026-10-09T05:00:00Z',result:{task:'clinical_analysis',patientId,transcriptId:transcript.id,input_transcript_revision:96,...result}};
+ envelope.state.transcripts.push(transcript);envelope.state.jobs.push(job);
+ await page.route('**/api/state',route=>route.fulfill({json:envelope}));
+ const reviews:any[]=[];const observationId=randomUUID();
+ await page.route('**/api/clinical-analysis/review',route=>{
+  const body=route.request().postDataJSON();reviews.push(body);candidate.status='confirmed';
+  envelope.state.observations.push({...envelope.state.observations[0],id:observationId,patient_id:patientId,visit_id:visitId,review_status:'reviewed',followup_answer_id:null,series_key:'synthetic-stairs',instrument:'APP_FUNCTION_DISCOMFORT',metric_key:'stair_ascent_discomfort',activity_key:'stairs_up',measurement_context:'stair_ascent_discomfort',body_region:'ankle',laterality:'right',unit:'score',scale_min:0,scale_max:10,value:0,measured_at:'2026-10-09T05:01:00Z'});envelope.version++;
+  return route.fulfill({json:{saved:true}});
+ });
+ await page.goto(`/clinic/visits/${visitId}`);
+ await expect(page.locator('#today-nrs')).toHaveValue('');await expect(page.locator('#today-stair-ascent')).toHaveValue('0');
+ await expect(page.getByRole('note',{name:'전사 기반 계단 점수 초안'})).toContainText(text);
+ expect(reviews).toHaveLength(0);
+ await page.getByRole('tab',{name:'재진 질문',exact:true}).click();
+ const analysis=page.getByRole('article').filter({has:page.getByText('현재 불편 점수 0점',{exact:true})});
+ await expect(analysis.locator('input')).toHaveCount(0);
+ await analysis.getByRole('button',{name:'계단 불편 점수 입력으로 이동',exact:true}).click();
+ await expect(page.locator('#today-stair-ascent')).toBeFocused();
+ await page.locator('#today-stair-ascent').locator('..').getByRole('button',{name:'저장',exact:true}).click();
+ await expect.poll(()=>reviews[0]).toMatchObject({candidateId:candidate.id,edit:{value:0},decision:'confirm'});
+ await page.getByRole('navigation',{name:'재진 질문 항목'}).getByRole('button').nth(2).click();
+ await expect(page.getByText('오늘 계단 오르기 점수: 0/10',{exact:false})).toBeVisible();
+ await expect(page.locator(`#score-${observationId}`)).toHaveCount(0);
+ await expect(page.locator('#today-nrs')).toHaveValue('');
+});

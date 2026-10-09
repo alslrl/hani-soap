@@ -53,7 +53,7 @@ function measuredNumber(candidate: z.infer<typeof measurement>, transcript: Tran
   if (!Number.isFinite(candidate.value) || candidate.value < 0) return false;
   if (candidate.instrument === 'NRS' && (!Number.isInteger(candidate.value) || candidate.value > 10 || candidate.unit !== 'score' || candidate.item_key !== 'pain')) return false;
   if (candidate.instrument === 'FREQUENCY' && (candidate.item_key !== 'bowel_urine' || candidate.unit === 'score' || !Number.isInteger(candidate.value))) return false;
-  if (candidate.instrument === 'APP_FUNCTION_DISCOMFORT' && candidate.item_key !== 'function_daily') return false;
+  if (candidate.instrument === 'APP_FUNCTION_DISCOMFORT' && (candidate.item_key !== 'function_daily' || !Number.isInteger(candidate.value))) return false;
   if (candidate.instrument === 'SYMPTOM_BOTHER' && !['discomfort','chief_complaint'].includes(candidate.item_key)) return false;
   if (!['NRS','FREQUENCY'].includes(candidate.instrument) && (candidate.unit !== 'score' || candidate.value > 10)) return false;
   return candidate.evidence.some(ref => {

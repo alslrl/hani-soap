@@ -1,4 +1,5 @@
 "use client";
+import { STAIR_ASCENT_METRIC } from "@/lib/progress/stair-discomfort";
 import { StairDiscomfortPanel } from "./StairDiscomfortPanel";
 import { ActionArrow } from '@/components/ui/ActionArrow';
 import { AppSelect } from '@/components/ui/AppSelect';
@@ -1484,7 +1485,7 @@ export default function VisitWorkspace({ visitId }: { visitId: string }) {
               aria-labelledby="tab-followup"
               hidden={tab !== "followup"}
             >
-              <FollowupEditor visitId={visitId} nrsTarget={patient.demo_key === "A" ? { inputId: "today-nrs", metric_key: "pain_intensity", body_region: "ankle", laterality: "right", activity_key: null, measurement_context: "current_pain" } : undefined} />
+              <FollowupEditor visitId={visitId} stairTarget={patient.demo_key === "A" ? { ...STAIR_ASCENT_METRIC, inputId: "today-stair-ascent" } : undefined} nrsTarget={patient.demo_key === "A" ? { inputId: "today-nrs", metric_key: "pain_intensity", body_region: "ankle", laterality: "right", activity_key: null, measurement_context: "current_pain" } : undefined} />
             </div>
           </section>
           <TreatmentPane state={state} visit={visit} act={act} />

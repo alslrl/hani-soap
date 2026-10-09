@@ -40,7 +40,8 @@ test("required checks live in revisit questions, resolve individually, and prese
     await expect(editor.getByRole("list", { name: `${categories[check.item_key]} 필수 질문`, exact: true }).getByText(check.title, { exact: true })).toBeVisible();
   }
   await nav.getByRole("button").filter({ hasText: /^02\s*통증/ }).click();
-  await expect(editor.getByLabel("오늘 통증 NRS (0~10)")).toHaveValue("");
+  await expect(editor.getByLabel("오늘 통증 NRS (0~10)")).toHaveCount(0);
+  await expect(editor.getByRole("button", {name:"통증 NRS 입력으로 이동",exact:true})).toBeVisible();
   const answer = editor.getByRole("textbox", { name: "오늘 상세 답변", exact: true });
   await expect(answer).toHaveValue("");
   await answer.fill(`오늘 확인한 통증 답변 ${suffix}`);

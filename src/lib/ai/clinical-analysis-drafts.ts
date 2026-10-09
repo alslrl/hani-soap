@@ -60,7 +60,7 @@ export function transcriptDraftAnalysisSignature(state: AppState, visitId: strin
 
 export const STAIR_ASCENT_ANALYSIS_MATCH = { metric_key:'stair_ascent_discomfort',instrument:'APP_FUNCTION_DISCOMFORT',body_region:'ankle',laterality:'right',activity_key:'stairs_up',measurement_context:'stair_ascent_discomfort' } as const;
 export function matchesTranscriptStairCandidate(candidate: AnalysisCandidate): candidate is MeasurementCandidate {
-  return candidate.kind === 'measurement' && candidate.instrument === STAIR_ASCENT_ANALYSIS_MATCH.instrument && candidate.temporal === 'current' && candidate.unit === 'score' && Number.isFinite(candidate.value) && candidate.value >= 0 && candidate.value <= 10 && normalizeRegion(candidate.body_region) === 'ankle' && candidate.laterality === 'right' && candidate.activity_key === 'stairs_up' && candidate.measurement_context === 'stair_ascent_discomfort';
+  return candidate.kind === 'measurement' && candidate.instrument === STAIR_ASCENT_ANALYSIS_MATCH.instrument && candidate.temporal === 'current' && candidate.unit === 'score' && Number.isInteger(candidate.value) && candidate.value >= 0 && candidate.value <= 10 && normalizeRegion(candidate.body_region) === 'ankle' && candidate.laterality === 'right' && candidate.activity_key === 'stairs_up' && candidate.measurement_context === 'stair_ascent_discomfort';
 }
 export function getTranscriptStairProposal(state: AppState,visitId: string): { jobId:string;candidate:MeasurementCandidate;transcriptRevision:number;patientId:string } | undefined {
   const context=latestTranscriptAnalysis(state,visitId), match=STAIR_ASCENT_ANALYSIS_MATCH;

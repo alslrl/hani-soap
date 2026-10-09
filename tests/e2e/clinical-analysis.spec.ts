@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { localDemo, scenario } from './helpers';
+import { localDemo, scenario, chooseSelect } from './helpers';
 import { randomUUID } from 'node:crypto';
 import { validateClinicalAnalysis, type ClinicalAnalysisOutput } from '../../src/lib/ai/clinical-analysis';
 import type { Transcript, RuntimeJob } from '../../src/lib/types';
@@ -7,7 +7,7 @@ import type { Transcript, RuntimeJob } from '../../src/lib/types';
 test('analysis candidates require review, preserve zero, allow edits and explicit conflict replacement without re-running AI on refresh', async ({ page }) => {
   const envelope = await localDemo(page), { current_visit_id: visitId } = scenario(envelope,'A');
   const patientId = envelope.state.visits.find(v => v.id === visitId)!.patient_id;
-  const text = '현재 발목 통증은 0점이에요. 약 효과가 걱정돼요.';
+  const text = '현재 오른쪽 발목 통증은 0점이에요. 약 효과가 걱정돼요.';
   const segmentId=randomUUID();
   const transcript: Transcript={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,revision:90,status:'reviewed',source_asset_key:'manual_seed',origin:'manual_demo',text,segments:[{id:segmentId,ordinal:1,speaker:'patient',text,start_ms:0,end_ms:3000}]};
   const evidence=[{segment_id:segmentId,quote:text}];
@@ -33,7 +33,7 @@ test('analysis candidates require review, preserve zero, allow edits and explici
   const painField=page.getByRole('group',{name:'현재 통증',exact:true});
   await expect(painField.locator('textarea')).toHaveValue(text);
   await expect(painField.getByRole('note',{name:'전사 기반 AI 초안'})).toBeVisible();
-  await expect(painField.getByLabel('확인 상태')).toHaveValue('not_confirmed');
+  await expect(painField.getByLabel('확인 상태')).toHaveAttribute('data-value','not_confirmed');
   await questionNav.getByRole('button').nth(6).click();
   const sleepField=page.getByRole('group',{name:'입면·각성·회복감',exact:true});
   await expect(sleepField.locator('textarea')).toHaveValue('');
@@ -49,7 +49,12 @@ test('analysis candidates require review, preserve zero, allow edits and explici
   await answer.getByRole('button',{name:'현재 기록을 후보로 교체',exact:true}).click();
   await expect.poll(()=>requests.at(-1)).toMatchObject({decision:'confirm',allowOverwrite:true,expectedTargetHash:'current-hash',edit:{text:'현재 통증 없음. 의료진 검토.'},expectedTranscriptRevision:90});
   const metric=region.getByRole('article').filter({has:page.getByText('현재 통증 NRS 0점',{exact:true})});
-  await metric.getByRole('button',{name:'확인 후 반영',exact:true}).click();
+  await expect(metric.locator('input')).toHaveCount(0);
+  await metric.getByRole('button',{name:'통증 NRS 입력으로 이동',exact:true}).click();
+  await expect(page.locator('#today-nrs')).toBeFocused();
+  await expect(page.locator('#today-nrs')).toHaveValue('0');
+  await expect(page.getByRole('note',{name:'전사 기반 NRS 초안'})).toBeVisible();
+  await page.locator('#today-nrs').locator('..').getByRole('button',{name:'저장',exact:true}).click();
   await expect.poll(()=>requests.at(-1)?.candidateId).toBe(result.candidates.find(c=>c.kind==='measurement')!.id);
   const worry=region.getByRole('article',{name:'직접 표현한 걱정'});
   await worry.getByRole('button',{name:'후보 제외',exact:true}).click();
@@ -85,8 +90,9 @@ test('AI answer form save carries bindings through unconfirmed draft and explici
   await page.getByRole('button',{name:'오늘 답변 저장',exact:true}).click();
   await expect.poll(()=>bodies[0]?.answers.find((a:any)=>a.item_key==='pain')).toMatchObject({answer_text:text,confirmation_status:'not_confirmed'});
   await expect.poll(()=>bodies[0]?.transcriptDrafts[0]).toMatchObject({jobId:job.id,candidateId:result.candidates[0].id,transcriptId:transcript.id,transcriptRevision:91});
+  await expect(page.getByText('오늘 확인한 답변을 저장했습니다.',{exact:true})).toBeVisible();
   await expect(field.getByRole('note',{name:'전사 기반 AI 초안'})).toBeVisible();
-  await field.locator('textarea').fill('의료진 편집: 현재 통증 없음.');await field.getByLabel('확인 상태').selectOption('confirmed');
+  await field.locator('textarea').fill('의료진 편집: 현재 통증 없음.');await chooseSelect(page,field.getByLabel('확인 상태'),'confirmed');
   await page.getByRole('button',{name:'오늘 답변 저장',exact:true}).click();
   await expect.poll(()=>bodies.at(-1)?.answers.find((a:any)=>a.item_key==='pain')).toMatchObject({answer_text:'의료진 편집: 현재 통증 없음.',confirmation_status:'confirmed'});
   await expect(field.locator('textarea')).toHaveValue('의료진 편집: 현재 통증 없음.');await expect(field.getByRole('note',{name:'전사 기반 AI 초안'})).toHaveCount(0);
