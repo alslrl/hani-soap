@@ -1,0 +1,22 @@
+.tablet-selected-overlay { pointer-events:none; }
+.tablet-selected-halo { fill:#fff; fill-opacity:.85; stroke:#666; stroke-width:1.5; }
+.tablet-selected-dot { fill:#393939; }
+.tablet-selected-number { fill:#fff; font-size:9px; font-weight:700; }
+.tablet-selected-label { fill:#303030; stroke:#fff; stroke-width:4px; paint-order:stroke; stroke-linejoin:round; font-size:12px; font-weight:700; }
+.tablet-selected-overlay .is-focused .tablet-selected-halo { stroke-width:2.5; }
+.tablet-selection-legend { flex:none; min-width:0; padding:8px 22px 10px; border-top:1px solid #e7e7e7; background:#f7f7f7; }
+.tablet-selection-legend-heading { display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:6px; font-size:11px; }
+.tablet-selection-legend-heading strong { color:#393939; font-weight:600; }
+.tablet-selection-legend-heading>span { color:#737373; font-size:10px; }
+.tablet-selection-chips { display:flex; gap:6px; overflow-x:auto; overscroll-behavior-x:contain; touch-action:pan-x; scrollbar-width:thin; padding-bottom:2px; }
+.tablet-selection-chips>button { flex:none; display:flex; align-items:center; gap:8px; min-height:44px; padding:6px 10px; border:1px solid #dedede; border-radius:8px; background:#fff; text-align:left; }
+.tablet-selection-chips>button[aria-pressed=true] { border-color:#555; background:#ededed; }
+.tablet-selection-chips>button:focus-visible { outline:2px solid #555; outline-offset:-2px; }
+.tablet-selection-chip-number { display:grid; place-items:center; width:21px; height:21px; border-radius:50%; background:#393939; color:#fff; font-size:11px; font-weight:700; }
+.tablet-selection-chips>button>span:last-child { display:flex; flex-direction:column; gap:3px; white-space:nowrap; }
+.tablet-selection-chips strong { color:#303030; font-size:12px; font-weight:600; }
+.tablet-selection-chips small { color:#737373; font-size:10px; font-weight:400; }
+.tablet-selection-chips>button>span:last-child>span { font-size:10px; color:#737373; }
+.tablet-app.is-portrait:has(.tablet-selection-legend) .tablet-toast { bottom:184px; pointer-events:none; }
+.tablet-app.is-portrait:has(.tablet-selection-legend) .tablet-toast button { pointer-events:auto; }
+@media(max-width:560px) { .tablet-selection-legend { padding:7px 12px 8px; } }
