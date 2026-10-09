@@ -7,7 +7,7 @@ globalThis.fetch = async (input, init) => {
   const url = String(input);
   if (url === 'https://kauth.kakao.com/oauth/token') return Response.json({ access_token: 'qa-access', refresh_token: 'qa-refresh', expires_in: 3600, refresh_token_expires_in: 86400 });
   if (url === 'https://kapi.kakao.com/v1/user/access_token_info') return Response.json({ id: 10234567, app_id: 1602111 });
-  if (url === 'https://kapi.kakao.com/v2/user/scopes') return Response.json({ scopes: [{ id: 'talk_message', consented: true }] });
+  if (url === 'https://kapi.kakao.com/v2/user/scopes') return Response.json({ scopes: [{ id: 'talk_message', agreed: true }] });
   if (url === 'https://kapi.kakao.com/v2/api/talk/memo/default/send') {
     const file = path.join(process.env.HANI_DATA_DIR, 'provider-preview.json');
     const previous = await readFile(file, 'utf8').then(JSON.parse).catch(() => ({ count: 0 }));
