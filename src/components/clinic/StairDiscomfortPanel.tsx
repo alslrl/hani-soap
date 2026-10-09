@@ -46,7 +46,7 @@ export function StairDiscomfortPanel({ state, patient, visit, act }: { state: St
     finally { setBusy(false); }
   }
   return <section className="hs-panel hs-nrs-panel hs-stair-panel" aria-label="계단 오를 때 불편함">
-    {panelTitle('계단 오를 때 불편함', <Link href={`/clinic/patients/${patient.id}/progress`} className="hs-text-link">경과 보기 ↗</Link>)}
+    {panelTitle('계단 오를 때 불편함', <Link href={`/clinic/patients/${patient.id}/progress?metric=stair_ascent_discomfort&visit=${visit.id}`} className="hs-text-link">경과 보기 ↗</Link>)}
     <p className="hs-metric-context">오른쪽 발목 · 계단 오르기 · 자체 기능 불편 점수</p>
     <div className="hs-nrs-summary">
       <div><span>오늘</span><strong>{today ? today.value : '—'}<small>/ 10</small></strong></div>

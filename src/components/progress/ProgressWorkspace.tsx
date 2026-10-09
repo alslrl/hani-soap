@@ -6,6 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useAppState } from "@/lib/client";
 import type { AppState, Observation, Visit } from "@/lib/types";
+import { stairAscentMeasurements } from "@/lib/progress/stair-discomfort";
 import { CHANGE_LABELS, CONFIRMATION_LABELS, formatClinicDate, ORIGIN_LABELS, QUESTION_GROUPS } from "./questions";
 import { FollowupEditor } from "./FollowupEditor";
 import styles from "./progress.module.css";
@@ -45,7 +46,7 @@ function MetricChart({ values, visits, state }: { values: Observation[]; visits:
   });
   if (path) paths.push(path);
   const ticks = Array.from(new Set([min, Math.round((min + max) / 2), max]));
-  return <section className={styles.chartSection}>
+  return <section className={styles.chartSection} aria-label={metricLabel(first)}>
     <header className={styles.chartHeader}><div><h2>{metricLabel(first)}</h2><p>{[sideLabels[first.laterality ?? ""], regionLabels[first.body_region ?? ""] ?? first.body_region].filter(Boolean).join(" ") || (first.measurement_context === "nightly_wetting_reported_after_waking" ? "보호자 보고 · 야뇨 뒤 각성" : "같은 측정 조건의 방문 기록")}</p></div><div className={styles.latestScore}><strong>{latest.value}</strong><span>{first.instrument === "FREQUENCY" ? "회/밤" : "점"}<small>{formatClinicDate(latest.measured_at)}</small></span></div></header>
     <p className={styles.scaleLabel}>{metricScale(first)}</p>
     <div className={styles.chartScroll}><svg viewBox={`0 0 ${width} ${height}`} className={styles.chart} role="group" aria-label={`${metricLabel(first)} 방문별 그래프. 점을 선택하면 해당 기록을 확인합니다.`}>
@@ -72,7 +73,9 @@ function MetricChart({ values, visits, state }: { values: Observation[]; visits:
   </section>;
 }
 
-export function ProgressWorkspace({ patientId }: { patientId: string }) {
+export function ProgressWorkspace({ patientId, focusMetric, requestedVisitId }: {
+  patientId: string; focusMetric?: string; requestedVisitId?: string;
+}) {
   const { data, error, loading, refresh } = useAppState();
   const [showQuestions, setShowQuestions] = useState(false);
   const [selectedVisitId, setSelectedVisitId] = useState<string | null>(null);
@@ -82,17 +85,24 @@ export function ProgressWorkspace({ patientId }: { patientId: string }) {
   const patient = state.patients.find((item) => item.id === patientId);
   if (!patient) return <div className={styles.empty}>환자를 찾을 수 없습니다. <Link href="/clinic">오늘 환자 보기</Link></div>;
   const visits = state.visits.filter((item) => item.patient_id === patientId).sort((a, b) => a.scheduled_at.localeCompare(b.scheduled_at));
-  const currentVisit = visits.at(-1);
+  const currentVisit = visits.find(visit => visit.id === requestedVisitId) ?? visits.at(-1);
+  const focusStairs = focusMetric === "stair_ascent_discomfort";
+  const stairVisits = currentVisit ? visits.filter(visit => visit.scheduled_at <= currentVisit.scheduled_at) : visits;
+  const stairValues = currentVisit ? stairAscentMeasurements(state, currentVisit) : [];
   const observations = state.observations.filter((item) => item.patient_id === patientId).sort((a, b) => a.measured_at.localeCompare(b.measured_at));
   const series = Array.from(new Map(observations.map((item) => [item.series_key, observations.filter((value) => value.series_key === item.series_key)])).entries());
   const detailVisit = visits.find((item) => item.id === selectedVisitId) ?? currentVisit;
   const detailAnswers = state.followup_answers.filter((item) => item.visit_id === detailVisit?.id && (item.answer_text || item.applicability === "not_applicable"));
   return <main className={styles.workspace}>
-    <header className={styles.pageHeader}><div><Link href="/clinic" className={styles.backLink}>← 오늘 환자</Link><h1>{patient.display_name}<span>경과 기록</span></h1><p>{patient.chief_complaint}{patient.guardian ? " · 보호자 보고 포함" : ""}</p></div><div className={styles.headerActions}>{currentVisit && <Link className={styles.secondary} href={`/clinic/visits/${currentVisit.id}`}>진료실로 이동</Link>}<button type="button" className={styles.primary} aria-expanded={showQuestions} onClick={() => setShowQuestions(!showQuestions)}>{showQuestions ? "그래프 보기" : "오늘 질문·답변 기록"}</button></div></header>
+    <header className={styles.pageHeader}><div><Link href="/clinic" className={styles.backLink}>← 오늘 환자</Link><h1>{patient.display_name}<span>경과 기록</span></h1><p>{patient.chief_complaint}{patient.guardian ? " · 보호자 보고 포함" : ""}</p></div><div className={styles.headerActions}>{focusStairs && <Link className={styles.secondary} href={`/clinic/patients/${patient.id}/progress`}>전체 경과 보기</Link>}{currentVisit && <Link className={styles.secondary} href={`/clinic/visits/${currentVisit.id}`}>진료실로 이동</Link>}<button type="button" className={styles.primary} aria-expanded={showQuestions} onClick={() => setShowQuestions(!showQuestions)}>{showQuestions ? "그래프 보기" : "오늘 질문·답변 기록"}</button></div></header>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {showQuestions && currentVisit ? <FollowupEditor visitId={currentVisit.id} /> : <>
       <div className={styles.recordNotice}><span>기록한 측정값만 표시합니다.</span><p>오늘 미확인 값은 빈 상태로 남겨 둡니다.</p></div>
-      {series.length ? <div className={styles.chartGrid}>{series.map(([key, values]) => <MetricChart key={key} values={values} visits={visits} state={state} />)}</div> : <div className={styles.empty}>아직 저장한 점수나 횟수가 없습니다. 방문별 답변을 아래에서 확인하세요.</div>}
+      {focusStairs ? stairValues.length ? <div className={styles.chartGrid}><MetricChart values={stairValues} visits={stairVisits} state={state} /></div> : <section className={styles.chartSection} aria-label="계단 오르기 불편">
+        <header className={styles.chartHeader}><div><h2>계단 오르기 불편</h2><p>오른쪽 발목 · 자체 기능 불편 점수 (0~10)</p></div></header>
+        <p className={styles.empty}>아직 확인·저장한 계단 오르기 점수가 없어요. 진료실에서 점수를 확인하고 저장하면 경과 그래프가 표시됩니다.</p>
+        {currentVisit && <Link className={styles.primary} href={`/clinic/visits/${currentVisit.id}#today-stair-ascent`}>진료실에서 계단 점수 입력</Link>}
+      </section> : series.length ? <div className={styles.chartGrid}>{series.map(([key, values]) => <MetricChart key={key} values={values} visits={visits} state={state} />)}</div> : <div className={styles.empty}>아직 저장한 점수나 횟수가 없습니다. 방문별 답변을 아래에서 확인하세요.</div>}
       <section className={styles.visitAnswers}><header><h2>방문별 상세 답변</h2><p>점수가 없는 항목도 환자의 표현과 확인 상태를 보존합니다.</p></header><div className={styles.visitTabs} role="group" aria-label="답변을 볼 방문">{visits.map((visit) => <button type="button" key={visit.id} aria-pressed={detailVisit?.id === visit.id} onClick={() => setSelectedVisitId(visit.id)}>{formatClinicDate(visit.scheduled_at)}<small>{visit.visit_no}회차</small></button>)}</div>
         {detailAnswers.length ? <div className={styles.answerHistory}>{detailAnswers.map((answer) => <div key={answer.id}><strong>{QUESTION_GROUPS.find((group) => group.key === answer.item_key)?.title}{answer.subitem_key && <small>{QUESTION_GROUPS.flatMap((group) => group.subitems).find((item) => item.key === answer.subitem_key)?.label ?? (answer.subitem_key === "nocturnal_wetting" ? "야간 실수" : "")}</small>}</strong><p>{answer.answer_text ?? "해당 없음"}</p><span>{answer.change ? CHANGE_LABELS[answer.change] : "변화 미선택"} · {CONFIRMATION_LABELS[answer.confirmation_status]} · {answer.review_status === "reviewed" ? "의료진 검토" : "검토 필요"}</span></div>)}</div> : <p className={styles.empty}>이 방문에서 아직 확인한 답변이 없습니다.</p>}
       </section>
