@@ -203,8 +203,8 @@
       "path": "implementation-status.md",
       "status": "verified_implementation",
       "updated_on_kst": "2026-10-09",
-      "characters": 1651,
-      "sha256": "01b6abcfe71f1a7a55a528f56ef837b2f238e36d322d9006b6a1710453df0a12",
+      "characters": 1946,
+      "sha256": "b632b9454e2b1f5f7da4d70bb1a4c2427362b46b5f3a700578bd5140b402138e",
       "summary": "Implemented features and local, browser, API and deployment evidence; remaining hardware and Kakao checks"
     },
     {
@@ -222,6 +222,14 @@
       "characters": 961,
       "sha256": "15d83f2a1c7fa39c714177555dfaae0552c8aa9e00ed2fda05c734ea9b8b1fc0",
       "summary": "Nearby acupoint picker for crowded touch targets; requested by Yeonhwa for Seho"
+    },
+    {
+      "path": "reference/anatomy-render.md",
+      "status": "implemented_and_tested",
+      "updated_on_kst": "2026-10-09",
+      "characters": 1346,
+      "sha256": "7e9d6bd135c3d1b61bd98e4032270fbaa4d7b70132397257e4ed821863c8e739",
+      "summary": "Licensed fixed anatomy renders, exact silhouette registration and legacy annotation frame preservation"
     }
   ],
   "reference_collections": [
@@ -239,6 +247,14 @@
       "kind": "synthetic_demo_portraits",
       "image_count": 2,
       "profile_binding_status": "bound_to_validated_demo_seed"
+    },
+    {
+      "path": "../public/demo/anatomy/manifest.json",
+      "kind": "licensed_anatomy_fixed_renders",
+      "image_count": 2,
+      "coordinate_version": "body-map-v2",
+      "license": "CC-BY-SA-4.0",
+      "ai_generated": false
     }
   ],
   "demo_data_snapshots": [
@@ -273,8 +289,8 @@
   ],
   "implementation_verification": {
     "verified_on_kst": "2026-10-09",
-    "unit_tests": 44,
-    "server_tests": 19,
+    "unit_tests": 53,
+    "server_tests": 20,
     "isolated_postgres_checks": 26,
     "browser_e2e_tests": 6,
     "actual_transcription": true,
@@ -282,7 +298,10 @@
     "actual_care_generation": true,
     "actual_briefing_workflow_on_vercel": true,
     "physical_ipad_tested": false,
-    "kakao_real_send_tested": false
+    "kakao_real_send_tested": false,
+    "anatomy_v2_update_e2e_tests": 2,
+    "webgl_free_anatomy_verified": true,
+    "legacy_annotation_preservation_verified": true
   },
   "atlas_review": {
     "path": "verification/atlas-review/index.html",

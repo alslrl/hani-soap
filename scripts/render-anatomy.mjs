@@ -40,9 +40,12 @@ model.traverse(mesh=>{
   const box=new THREE.Box3();for(const i of indices)box.expandByPoint(new THREE.Vector3().fromBufferAttribute(position,i));
   return !(box.max.x < -0.35 && box.max.z-box.min.z < 0.001);
  }).flat();
- const remap=new Map(),vertices=[],normals=[],newIndex=[];
- for(const old of kept){const xyz=[position.getX(old),position.getY(old),position.getZ(old)];const k=xyz.map(v=>Math.round(v*100000)).join(',');if(!remap.has(k)){remap.set(k,remap.size);vertices.push(...xyz);normals.push(0,0,0)}const ni=remap.get(k);const n=g.attributes.normal;normals[ni*3]+=n.getX(old);normals[ni*3+1]+=n.getY(old);normals[ni*3+2]+=n.getZ(old);newIndex.push(ni)}
- for(let i=0;i<normals.length;i+=3){const n=new THREE.Vector3(normals[i],normals[i+1],normals[i+2]).normalize();normals[i]=n.x;normals[i+1]=n.y;normals[i+2]=n.z}
+ const remap=new Map(),vertices=[],normals=[],newIndex=[],groupsByPosition=new Map();
+ const keyOf=old=>[position.getX(old),position.getY(old),position.getZ(old)].map(v=>Math.round(v*100000)).join(',');
+ for(const old of new Set(kept)){const k=keyOf(old);if(!groupsByPosition.has(k))groupsByPosition.set(k,[]);groupsByPosition.get(k).push(old)}
+ // Preserve the model's hard anatomical edges. Smoothing interior region caps
+ // into the skin creates an artificial midline; average only aligned normals.
+ for(const old of kept){if(!remap.has(old)){remap.set(old,remap.size);vertices.push(position.getX(old),position.getY(old),position.getZ(old));const original=new THREE.Vector3().fromBufferAttribute(g.attributes.normal,old);const smooth=new THREE.Vector3();for(const peer of groupsByPosition.get(keyOf(old))){const n=new THREE.Vector3().fromBufferAttribute(g.attributes.normal,peer);if(original.dot(n)>0.75)smooth.add(n)}smooth.normalize();normals.push(smooth.x,smooth.y,smooth.z)}newIndex.push(remap.get(old))}
  const clean=new THREE.BufferGeometry();clean.setAttribute('position',new THREE.Float32BufferAttribute(vertices,3));clean.setAttribute('normal',new THREE.Float32BufferAttribute(normals,3));clean.setIndex(newIndex);clean.computeBoundingBox();clean.computeBoundingSphere();mesh.geometry=clean;
  mesh.material=new THREE.MeshStandardMaterial({color:0xb4c5bf,roughness:0.76,metalness:0,side:THREE.DoubleSide});
  mesh.castShadow=false;mesh.receiveShadow=false;

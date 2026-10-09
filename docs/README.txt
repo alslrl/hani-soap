@@ -105,3 +105,10 @@ HaniSOAP 문서 및 데모 자료
 - ../output/pdf/atlas_전신_혈자리_검수.pdf: 정규 경혈 361종의 부위별 검수 PDF 72쪽
   화면·문서 공유는 연화 승인 완료. 정확한 혈자리 위치·환자 기준 좌우는 별도 검수하며, 현재 진료 앱을 교체하지 않습니다.
 - reference/혈자리_밀집구간_선택_제안.md: 밀집된 점을 터치하면 인근 혈명·코드 후보에서 선택하도록 하는 연화 제안 (구현 전)
+
+[인체 도해 v2]
+- reference/anatomy-render.md: Z-Anatomy 피부 모델의 앞뒤 고정 렌더와 원본 출처
+- ../public/demo/anatomy/ATTRIBUTION.html: 공개 출처·라이선스·변경 내용
+- ../public/demo/anatomy/manifest.json: 원본·PNG 체크섬과 렌더 등록 좌표
+- ../scripts/render-anatomy.mjs: 고정 이미지와 입력 윤곽 데이터 재현
+  기존 v1 필기가 있는 방문은 원래 도해를 유지하고 새 방문은 v2를 사용합니다.
