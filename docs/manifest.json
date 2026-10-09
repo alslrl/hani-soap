@@ -1,0 +1,102 @@
+{
+  "collected_at_kst": "2026-10-09T09:38:07+09:00",
+  "scope": "HaniSOAP root page and all exported descendant pages",
+  "notion_pages": [
+    {
+      "title": "HaniSOAP | 10월 9일 해커톤 기획 초안",
+      "page_id": "3f3fb029db3080e9b28bca9ff0ed2521",
+      "source_url": "https://app.notion.com/p/HaniSOAP-10-9-3f3fb029db3080e9b28bca9ff0ed2521",
+      "path": "notion/01_해커톤_기획_초안.txt",
+      "characters": 3468,
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안 3f3fb029db3080e9b28bca9ff0ed2521.md"
+    },
+    {
+      "title": "HaniSOAP 기획서 (새로 작성 중)",
+      "page_id": "3f3fb029db3080db9096cfe60345e8ab",
+      "source_url": "https://app.notion.com/p/HaniSOAP-3f3fb029db3080db9096cfe60345e8ab",
+      "path": "notion/02_HaniSOAP_기획서.txt",
+      "characters": 10589,
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 기획서 (새로 작성 중) 3f3fb029db3080db9096cfe60345e8ab.md"
+    },
+    {
+      "title": "HaniSOAP | 화면 구성·기존 구현·신규 개발 범위",
+      "page_id": "3f3fb029db30808dada3c3405426c259",
+      "source_url": "https://app.notion.com/p/HaniSOAP-3f3fb029db30808dada3c3405426c259",
+      "path": "notion/03_화면_구성_기존_구현_신규_개발_범위.txt",
+      "characters": 10456,
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 화면 구성·기존 구현·신규 개발 범위 3f3fb029db30808dada3c3405426c259.md"
+    },
+    {
+      "title": "10월 9일(금) 대회 타임테이블 · 공식 안내 기준",
+      "page_id": "3f3fb029db30807d9b99ec9c4d950878",
+      "source_url": "https://app.notion.com/p/10-9-3f3fb029db30807d9b99ec9c4d950878",
+      "path": "notion/04_대회_타임테이블_공식_안내.txt",
+      "characters": 2193,
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/10월 9일(금) 대회 타임테이블 · 공식 안내 기준 3f3fb029db30807d9b99ec9c4d950878.md"
+    },
+    {
+      "title": "재진 대화 녹음 대본 (약 1분)",
+      "page_id": "3f3fb029db308009b921d42203664598",
+      "source_url": "https://app.notion.com/p/1-3f3fb029db308009b921d42203664598",
+      "path": "notion/05_재진_대화_녹음_대본.txt",
+      "characters": 1566,
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 기획서 (새로 작성 중)/재진 대화 녹음 대본 (약 1분) 3f3fb029db308009b921d42203664598.md"
+    }
+  ],
+  "copied_files": [
+    {
+      "source": "/Users/sehosohn/.aside/u/0/sessions/2026-10-08_OZs5wRmaY3CDzSYS/artifacts/진료영상1_4조_음성.mp3",
+      "path": "audio/진료영상1_4조_음성.mp3",
+      "bytes": 4275206,
+      "sha256": "290e7b3ee9552f4ffd455c97ca0783d709dc455fda0b574fec22dcef1c194ed6"
+    },
+    {
+      "source": "/Users/sehosohn/.aside/u/0/sessions/2026-10-08_OZs5wRmaY3CDzSYS/artifacts/진료영상1_4조_전사.txt",
+      "path": "transcripts/진료영상1_4조_전사.txt",
+      "bytes": 6909,
+      "sha256": "e2a2cd2707e7df90045175e7b161c0d13ba84f92ab59c794eb8892b49292f7bc"
+    },
+    {
+      "source": "/Users/sehosohn/.aside/u/0/sessions/2026-10-08_OZs5wRmaY3CDzSYS/artifacts/진료영상2_IMG_2132_음성.mp3",
+      "path": "audio/진료영상2_IMG_2132_음성.mp3",
+      "bytes": 1582533,
+      "sha256": "a617397e5de4c8e74401bf982d3134f12fa72d6325ba749b009150d874f66be1"
+    },
+    {
+      "source": "/Users/sehosohn/.aside/u/0/sessions/2026-10-08_OZs5wRmaY3CDzSYS/artifacts/진료영상2_IMG_2132_전사.txt",
+      "path": "transcripts/진료영상2_IMG_2132_전사.txt",
+      "bytes": 3998,
+      "sha256": "48b14f1c26426d54c34c10cd44a0c2a8fcde5688dec55caf3e2a5b235812dc12"
+    },
+    {
+      "source": "/Users/sehosohn/.aside/u/0/sessions/2026-10-08_OZs5wRmaY3CDzSYS/artifacts/진료영상3_IMG_8429_음성.mp3",
+      "path": "audio/진료영상3_IMG_8429_음성.mp3",
+      "bytes": 1088901,
+      "sha256": "54ec560470934d01ca34a4b12c4c5f09a79405865f08d104b7e47690a8da0a55"
+    },
+    {
+      "source": "/Users/sehosohn/.aside/u/0/sessions/2026-10-08_OZs5wRmaY3CDzSYS/artifacts/진료영상3_IMG_8429_전사.txt",
+      "path": "transcripts/진료영상3_IMG_8429_전사.txt",
+      "bytes": 1835,
+      "sha256": "1045678c7472ac7f1252fd75ea4eef43c8e8df781f5b9add9fb6dcbed038450b"
+    },
+    {
+      "source": "/Users/sehosohn/Documents/Codex/2026-10-09/hani-soap-setup/DevDay_Seoul_Participant_Guide.pdf",
+      "path": "reference/DevDay_Seoul_Participant_Guide.pdf",
+      "bytes": 702206,
+      "sha256": "03f3c1bbdaf64b1dbd537194841725b29503c09d6a001224d63ed353e14ada4b"
+    },
+    {
+      "source": "/Users/sehosohn/Documents/Codex/2026-10-09/hani-soap-setup/guide.txt",
+      "path": "reference/DevDay_Seoul_Participant_Guide.txt",
+      "bytes": 9013,
+      "sha256": "35791bfa74f825b5b197224de36d1c9a2375fda6b42937094db6979be4c48146"
+    },
+    {
+      "source": "/Users/sehosohn/Downloads/966273c9-6981-4dd5-9550-c001b2477ba2_ExportBlock-0f7b2102-22de-454c-88a9-b64d40b1b79a.zip",
+      "path": "notion/원본_노션_내보내기.zip",
+      "bytes": 30743,
+      "sha256": "b5dd5c88066c4bae2c3f1d27bc4958af8dbba7d66a491a172135eb2c6758744f"
+    }
+  ]
+}
