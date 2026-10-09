@@ -6,6 +6,7 @@ import { ArrowLeft, ArrowRight, Check, CheckCheck, ChevronDown, Hand, History, N
 import { useAppState } from "@/lib/client";
 import type { AnnotationStroke, AppState, StateEnvelope, Treatment, TreatmentLocation } from "@/lib/types";
 import { BodyDiagram } from "./BodyDiagram";
+import { AcupointReferenceDots } from "./AcupointReferenceDots";
 import { RegionPicker } from "./RegionPicker";
 import { inkPath, recognizeCheck, type InkPoint } from "@/lib/tablet/geometry";
 import { mapBodyRegion, REGION_LABELS, SIDE_LABELS, type BodyRegion, type BodyView, type RegionMatch } from "@/lib/tablet/regions";
@@ -257,7 +258,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     <div className="tablet-main">
       <section className="tablet-drawing" aria-label="인체 시술 기록" inert={sheetOpen || undefined}>
         <div className="tablet-canvas-header">
-          <div><span className="tablet-eyebrow">{tab.detail} · {isHistorical ? "이전 도해 원본" : "위치와 필기"}</span><h1>{isHistorical ? "이전 도해 기록" : "시술한 부위를 표시하세요"}</h1></div>
+          <div><span className="tablet-eyebrow">{tab.detail} · {isHistorical ? "이전 도해 원본" : "위치와 필기 · 혈자리 참고점 (검수 전)"}</span><h1>{isHistorical ? "이전 도해 기록" : "시술한 부위를 표시하세요"}</h1></div>
           <div className="tablet-canvas-navigation">
             {historicalVersions.length > 0 && !isHistorical && <div className="tablet-history-control">
               <button type="button" className="tablet-history-toggle" aria-label="이전 도해 기록" onClick={() => historicalVersions.length === 1 ? changeFrame(historicalVersions[0]) : setHistoryOpen(value => !value)} disabled={busy}><History size={16}/><span>이전 도해 기록</span></button>
@@ -271,6 +272,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
           <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={() => { pointer.current = null; setActiveInk([]); }}>
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
             <BodyDiagram view={view} version={layer.coordinateVersion} />
+            {!isHistorical && <AcupointReferenceDots view={view} version={layer.coordinateVersion} />}
             {layer.strokes.map(stroke => <path key={stroke.id} data-ink-kind={stroke.kind} d={inkPath(stroke.points)} className={`tablet-ink ${stroke.kind === "check" ? "tablet-check-ink" : ""}`} />)}
             {activeInk.length > 0 && <path d={inkPath(activeInk)} className="tablet-ink" />}
             {picker && picker.match.selectionSource !== "catalog" && <circle className="tablet-selection-ring" cx={picker.match.anchor.x} cy={picker.match.anchor.y} r="23" />}
