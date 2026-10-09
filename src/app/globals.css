@@ -1,6 +1,6 @@
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700&display=swap');
 
-:root { --accent:#128b8b; --accent-soft:#e7f5f3; --ink:#233941; --muted:#71848b; --line:#dae4e7; --surface:#fff; --canvas:#f1f6f8; --danger:#bc5556; --warning:#996d25; color-scheme:light; }
+:root { --accent:#242424; --accent-strong:#111111; --accent-fill:#242424; --accent-fill-hover:#3b3b3b; --accent-on-fill:#ffffff; --accent-soft:#f1f1f1; --ink:#232323; --muted:#696969; --line:#e4e4e4; --surface:#fff; --canvas:#fafafa; --danger:#a84443; --warning:#8c672f; color-scheme:light; }
 * { box-sizing:border-box; }
 html,body { margin:0; padding:0; min-height:100%; }
 body { font-family:"Noto Sans KR",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; font-size:14px; line-height:1.55; background:var(--canvas); color:var(--ink); }
@@ -9,19 +9,26 @@ button,a,input,textarea,select { -webkit-tap-highlight-color:transparent; }
 button { cursor:pointer; }
 button:disabled { cursor:not-allowed; opacity:.5; }
 a { color:inherit; text-decoration:none; }
-button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:3px solid #8ad7d2; outline-offset:3px; }
+button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible { outline:3px solid #777777; outline-offset:3px; }
 textarea,input,select { color:var(--ink); }
 button { color:var(--ink); }
 .app-frame { min-height:100dvh; display:grid; grid-template-columns:76px minmax(0,1fr); }
-.app-rail { position:sticky; top:0; height:100dvh; background:#fafdfe; border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; padding:20px 8px 14px; gap:10px; z-index:30; }
-.app-logo { width:40px; height:40px; display:grid; place-items:center; background:var(--accent); color:white; border-radius:12px; margin-bottom:22px; font-size:21px; font-weight:700; letter-spacing:-2px; }
+.app-rail { position:sticky; top:0; height:100dvh; background:#ffffff; border-right:1px solid var(--line); display:flex; flex-direction:column; align-items:center; padding:20px 8px 14px; gap:10px; z-index:30; }
+.app-logo { width:40px; height:40px; display:grid; place-items:center; background:var(--accent-fill); color:var(--accent-on-fill); border-radius:12px; margin-bottom:22px; font-size:21px; font-weight:700; letter-spacing:-2px; }
 .app-rail a.rail-link { display:flex; flex-direction:column; align-items:center; gap:5px; min-height:60px; width:60px; border-radius:10px; justify-content:center; color:var(--muted); font-size:11px; font-weight:500; transition:background .16s,color .16s; }
 .app-rail a.rail-link:hover,.app-rail a.rail-link.active { background:var(--accent-soft); color:var(--accent); }
 .app-rail .rail-bottom { margin-top:auto; }
 .app-main { min-width:0; }
-.connection-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#fff7ee; color:#785321; padding:12px 20px; box-shadow:0 4px 18px #253a411a; border:1px solid #ead4b6; border-radius:8px; z-index:100; max-width:90vw; }
+.connection-toast { position:fixed; bottom:20px; left:50%; transform:translateX(-50%); background:#fff7ee; color:#785321; padding:12px 20px; box-shadow:0 4px 18px #3939391a; border:1px solid #ead4b6; border-radius:8px; z-index:100; max-width:90vw; }
 .state-loader { display:grid; min-height:60dvh; place-items:center; color:var(--muted); }
 .route-error { max-width:600px; margin:100px auto; padding:24px; }
-.route-error button { background:var(--accent); border:0; color:white; border-radius:6px; padding:12px 20px; }
+.route-error button { background:var(--accent-fill); border:0; color:var(--accent-on-fill); border-radius:6px; padding:12px 20px; }
 @media(max-width:800px) { .app-frame { grid-template-columns:58px minmax(0,1fr); } .app-rail { padding:14px 3px; } .app-rail a.rail-link { width:50px; font-size:10px; } }
 @media(prefers-reduced-motion:reduce) { *,*::before,*::after { animation:none!important; transition:none!important; scroll-behavior:auto!important; } }
+
+/* White surfaces with neutral gray structure and black controls. */
+.app-rail { background:#ffffff; }
+.app-logo { border-radius:9px; background:var(--accent-fill); }
+.app-rail a.rail-link { border-radius:7px; }
+.app-rail a.rail-link.active { box-shadow:inset 2px 0 var(--accent); }
+::selection { background:#dedede; color:var(--ink); }
