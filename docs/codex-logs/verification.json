@@ -1,0 +1,16 @@
+{
+  "passed": true,
+  "session_structure_checks": 46,
+  "remaining_secret_pattern_matches": {
+    "openai": 0,
+    "github": 0,
+    "jwt": 0,
+    "supabase": 0,
+    "google": 0,
+    "aws": 0,
+    "known_secret": 0
+  },
+  "sha256": "788b17404f8498e156f88677da07312e824a8b80c757a3c60890db233d7c9942",
+  "bytes": 26487655,
+  "members": 50
+}
