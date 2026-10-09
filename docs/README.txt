@@ -118,3 +118,5 @@ HaniSOAP 문서 및 데모 자료
 - ../public/demo/anatomy/female-manifest.json: NIH/Human Reference Atlas 여성형 CC BY4.0 자료와 체크섬
 - 세로에서는 상단 환자 정보·큰 인체·하단 기록과 저장을 사용합니다.
 - 김서연은 여성형을 기본 표시하고 이전 v1/v2 필기는 별도 읽기 전용 기록에서 확인합니다.
+
+- text-privacy.md: 텍스트 AI 전송 전 등록 이름·정형 식별정보 가림, 임의 파일명, 검증 결과 및 원음·이미지 제외 범위.

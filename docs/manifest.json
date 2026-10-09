@@ -118,8 +118,8 @@
       "path": "implementation-plan.md",
       "status": "implementation_baseline",
       "updated_on_kst": "2026-10-09",
-      "characters": 48918,
-      "sha256": "804d9bb7f744ccfeca8f732f6325d6d3149fbd4fdc59c8248e45564c0d79d640",
+      "characters": 49138,
+      "sha256": "6835f66b3b92e5535f9f8ec4f4f9bdb3177ea2268793a2e7fe98932a23278874",
       "summary": "Implementation baseline; current code and verification tracked separately"
     },
     {
@@ -203,8 +203,8 @@
       "path": "implementation-status.md",
       "status": "verified_implementation",
       "updated_on_kst": "2026-10-09",
-      "characters": 2189,
-      "sha256": "388e8c45ca3e8697843a830621a0bf8482c4d272e06a3fd310549538e8cad05b",
+      "characters": 3107,
+      "sha256": "c9fdf838a6a1f00dc1c59d67516aef58187bd3849b43b3b5e94b5ab7b7f8957f",
       "summary": "Implemented features and local, browser, API and deployment evidence; remaining hardware and Kakao checks"
     },
     {
@@ -230,6 +230,14 @@
       "characters": 2568,
       "sha256": "b0224f259d72aceefeb5358fdcbfaaa3df0922a0c04d69956bacbe24dd320bcc",
       "summary": "Licensed fixed anatomy renders, exact silhouette registration and legacy annotation frame preservation"
+    },
+    {
+      "path": "text-privacy.md",
+      "status": "locally_verified_implementation",
+      "updated_on_kst": "2026-10-09",
+      "summary": "Bounded text request masking and opaque audio filenames; original audio and image inputs excluded",
+      "characters": 2653,
+      "sha256": "a7281bccc593f37131497ef56f8f6a6c18d54bc23d24dad9e4a7d595a113ae18"
     }
   ],
   "reference_collections": [
@@ -324,5 +332,17 @@
     "clinical_positions_approved": false,
     "app_integration_status": "not_integrated",
     "source_coordinates_preserved": true
+  },
+  "text_privacy_verification": {
+    "verified_on_kst": "2026-10-09",
+    "version": "basic-identifiers-v1",
+    "unit_tests": 97,
+    "server_tests": 39,
+    "browser_e2e_tests": 2,
+    "outbound_boundary_tests_use_synthetic_inputs": true,
+    "live_provider_tested": false,
+    "raw_audio_redaction": false,
+    "handwriting_image_redaction": false,
+    "production_deployed_by_this_task": false
   }
 }

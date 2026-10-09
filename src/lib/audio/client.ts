@@ -1,3 +1,4 @@
+import { privateAudioFilename } from './filename';
 import { appendRecovery, createRecovery } from './recovery';
 
 export type AudioSnapshot = {
@@ -168,7 +169,7 @@ export async function stopRecording(): Promise<{ blob: Blob; visitId: string; au
 
 export async function uploadAudio(file: File | Blob, meta: { visitId: string; filename: string; audioSessionId?: string; durationMs?: number }) {
   if (file.size > 25_000_000) throw new Error('현재 전사 한도는 파일당 25MB입니다. 녹음을 압축하거나 짧은 파일을 선택해 주세요.');
-  const init = await request<{ recordingId: string; uploadUrl: string; uploadHeaders?: Record<string, string> }>('/api/audio/uploads', { ...meta, mimeType: file.type || 'audio/mpeg', sizeBytes: file.size });
+  const init = await request<{ recordingId: string; uploadUrl: string; uploadHeaders?: Record<string, string> }>('/api/audio/uploads', { ...meta, filename: privateAudioFilename(meta.filename), mimeType: file.type || 'audio/mpeg', sizeBytes: file.size });
   const upload = await fetch(init.uploadUrl, { method: 'PUT', headers: { 'Content-Type': file.type || 'audio/mpeg', ...init.uploadHeaders }, body: file });
   if (!upload.ok) throw new Error('파일 업로드가 실패했습니다. 녹음 복구본은 유지됩니다.');
   await request('/api/audio/uploads/complete', { recordingId: init.recordingId });
