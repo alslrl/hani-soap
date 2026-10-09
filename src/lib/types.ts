@@ -70,12 +70,20 @@ export type Transcript = {
   origin: "provided_case" | "synthetic_history" | "synthetic_response" | "manual_demo";
 };
 
+export type SoapInputSnapshot = {
+  hash: string;
+  transcript_id: string;
+  transcript_revision: number;
+  sources: { id: string; record_id: string; kind: string; revision: number | null; digest: string }[];
+};
+
 export type SoapDocument = {
   id: string;
   clinic_id: string;
   visit_id: string;
   revision: number;
   input_transcript_id: string | null;
+  input_snapshot?: SoapInputSnapshot;
   status: "draft" | "approved";
   sections: {
   s: string;

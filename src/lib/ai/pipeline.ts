@@ -10,6 +10,8 @@ import { generateSoap, proposeCorrections, inferSpeakerRoles } from './provider'
 import { AI_MODELS } from './config';
 import { effectiveSpeaker } from '@/lib/audio/speaker-roles';
 import type { RuntimeJob, Transcript } from '@/lib/types';
+import { collectClinicalSoapSources, soapInputSnapshot, soapEvidenceRef } from './soap-inputs';
+import { ensureClinicalAnalysis } from './clinical-analysis-jobs';
 
 export async function patchJob(jobId: string, patch: Partial<RuntimeJob>) {
   await updateState((state) => {
@@ -69,30 +71,36 @@ export async function soapStep(jobId: string) {
   const preferredTranscriptId = job.result?.reviewedTranscriptId || job.result?.transcriptId;
   const transcript = state.transcripts.find((item) => item.id === preferredTranscriptId);
   if (!transcript) throw new Error('TRANSCRIPT_NOT_FOUND');
+  const clinicalSources = collectClinicalSoapSources(state, job.visit_id);
+  const inputSnapshot = soapInputSnapshot(state, transcript);
   await patchJob(jobId, { stage: 'soap_draft', status: 'running' });
   const privacy = new AiTextPrivacy(identitiesForVisit(state, job.visit_id));
-  const result = await generateSoap(transcript.segments, privacy);
+  const result = await generateSoap(transcript.segments, privacy, clinicalSources);
   const id = randomUUID();
+  let freshSoapStored = false;
   await updateState((next) => {
     const currentJob = next.jobs.find((item) => item.id === jobId)!;
     if (currentJob.result?.soapId) return;
     const newerTranscript = next.transcripts.some((item) => item.visit_id === job.visit_id && item.revision > transcript.revision);
-    if (newerTranscript) {
-      currentJob.result = { ...currentJob.result, soap_preview: result.sections, evidence: result.evidence, warnings: [...result.warnings, '생성 중 새 전사 버전이 저장되어 과거 입력의 결과로 보관했습니다. 최신 전사로 다시 생성해 주세요.'], input_transcript_id: transcript.id, input_transcript_revision: transcript.revision, stale_input: true, soap_model: AI_MODELS.soap, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'soap', privacy) };
+    const changedClinicalInputs = soapInputSnapshot(next, transcript).hash !== inputSnapshot.hash;
+    if (newerTranscript || changedClinicalInputs) {
+      currentJob.result = { ...currentJob.result, soap_preview: result.sections, evidence: result.evidence, warnings: [...result.warnings, '생성 중 전사·시술·검토 필기·재진 입력이 변경되었습니다. 최신 입력으로 다시 생성해 주세요.'], input_transcript_id: transcript.id, input_transcript_revision: transcript.revision, input_snapshot: inputSnapshot, stale_input: true, soap_model: AI_MODELS.soap, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'soap', privacy) };
       currentJob.status = 'waiting_review'; currentJob.stage = 'stale_input'; currentJob.updated_at = new Date().toISOString();
       const oldRecording = next.recordings.find((item) => item.id === job.recording_id);
       if (oldRecording) oldRecording.status = 'completed';
       return;
     }
     const revision = Math.max(0, ...next.soap_documents.filter((item) => item.visit_id === job.visit_id).map((item) => item.revision)) + 1;
-    next.soap_documents.push({ id, clinic_id: next.clinic.id, visit_id: job.visit_id, revision, input_transcript_id: transcript.id, status: 'draft', sections: result.sections, source_refs: result.evidence.map((item) => ({ kind: 'provided_transcript', source_id: item.segment_id, quote: item.quote, origin: 'manual_demo' })), approved_at: null, approved_by: null, origin: 'manual_demo' });
-    currentJob.result = { ...currentJob.result, soapId: id, evidence: result.evidence, warnings: result.warnings, followup_questions: result.followup_questions, soap_model: AI_MODELS.soap, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'soap', privacy), input_transcript_id: transcript.id, input_transcript_revision: transcript.revision, stale_input: false };
+    next.soap_documents.push({ id, clinic_id: next.clinic.id, visit_id: job.visit_id, revision, input_transcript_id: transcript.id, input_snapshot: inputSnapshot, status: 'draft', sections: result.sections, source_refs: result.evidence.map(item => soapEvidenceRef(item.segment_id, item.quote, transcript.segments, clinicalSources)), approved_at: null, approved_by: null, origin: 'manual_demo' });
+    currentJob.result = { ...currentJob.result, soapId: id, evidence: result.evidence, warnings: result.warnings, followup_questions: result.followup_questions, soap_model: AI_MODELS.soap, input_snapshot: inputSnapshot, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'soap', privacy), input_transcript_id: transcript.id, input_transcript_revision: transcript.revision, stale_input: false };
     currentJob.status = 'waiting_review'; currentJob.stage = 'review_needed'; currentJob.updated_at = new Date().toISOString();
     const recording = next.recordings.find((item) => item.id === job.recording_id);
     if (recording) recording.status = 'completed';
     const visit = next.visits.find((item) => item.id === job.visit_id)!;
     visit.record_status = 'review_needed';
+    freshSoapStored = true;
   });
+  if (freshSoapStored) await ensureClinicalAnalysis(job.visit_id, transcript.id, job.session_id);
 }
 
 export async function failJob(jobId: string, error: unknown) {

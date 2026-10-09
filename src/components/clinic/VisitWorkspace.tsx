@@ -6,6 +6,7 @@ import { useAppState } from "@/lib/client";
 import type { FollowupItem, SourceRef, Treatment } from "@/lib/types";
 import AudioControls from "@/components/audio/AudioControls";
 import { FollowupEditor } from "@/components/progress/FollowupEditor";
+import { getTranscriptNrsProposal } from "@/lib/ai/clinical-analysis-drafts";
 import { useLeaveGuard } from "./useLeaveGuard";
 import {
   Badge,
@@ -286,6 +287,18 @@ function SoapEditor({
       setBusy("");
     }
   }
+  async function regenerateSoap() {
+    const latest = [...state.transcripts].filter(item => item.visit_id === visit.id).sort((a,b) => b.revision-a.revision)[0];
+    if (!latest || dirty || busy) return;
+    setBusy("regenerate"); setError(""); setNotice("");
+    try {
+      const response = await fetch("/api/jobs", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitId: visit.id, transcriptId: latest.id, kind: "soap" }) });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error ?? "SOAP 갱신을 시작하지 못했어요.");
+      setNotice("최신 전사와 저장·확인된 시술, 필기, 재진 입력으로 SOAP를 갱신합니다. 완료되면 새 초안이 표시됩니다.");
+    } catch (error) { setError(errorMessage(error)); }
+    finally { setBusy(""); }
+  }
   async function copyApproved() {
     if (document?.status !== "approved") return;
     try {
@@ -429,6 +442,7 @@ function SoapEditor({
           전사와 오늘 시행 내용을 대조한 뒤 승인하세요.
         </span>
         <div>
+          <button className="hs-button" disabled={Boolean(busy) || dirty || !state.transcripts.some(item => item.visit_id === visit.id)} onClick={() => void regenerateSoap()}>{busy === "regenerate" ? "갱신 시작 중…" : "확인 입력으로 SOAP 갱신"}</button>
           {document?.status === "approved" && !dirty && (
             <button className="hs-button" onClick={copyApproved}>
               EMR 복사
@@ -886,6 +900,7 @@ function NrsPanel({
         item.patient_id === patient.id &&
         item.instrument === "NRS" &&
         item.metric_key === "pain_intensity" &&
+        item.review_status === "reviewed" &&
         item.body_region === "ankle" &&
         item.laterality === "right" &&
         item.activity_key === null &&
@@ -906,15 +921,39 @@ function NrsPanel({
   const [valueEdited, setValueEdited] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const { refresh } = useAppState();
+  const proposal = getTranscriptNrsProposal(state, visit.id, {
+    metric_key: "pain_intensity", instrument: "NRS", body_region: "ankle",
+    laterality: "right", activity_key: null, measurement_context: "current_pain",
+  });
+  const [aiBinding, setAiBinding] = useState<NonNullable<typeof proposal> | null>(null);
+  const [conflict, setConflict] = useState<{ targetHash: string; current: string } | null>(null);
   useEffect(() => {
-    if (!valueEdited) setValue(storedValue);
-  }, [storedValue, valueEdited]);
-  async function save() {
-    if (value === "") return;
+    if (valueEdited) return;
+    setValue(storedValue || (proposal ? String(proposal.candidate.value) : ""));
+    setAiBinding(storedValue === "" ? proposal ?? null : null);
+  }, [storedValue, valueEdited, proposal?.candidate.id, proposal?.candidate.value, proposal?.transcriptRevision]);
+  async function save(replace = false) {
+    if (value === "" || !Number.isInteger(Number(value)) || Number(value) < 0 || Number(value) > 10) return;
     setBusy(true);
     setError("");
     try {
-      await act("observation.save", {
+      if (aiBinding) {
+        const response = await fetch("/api/clinical-analysis/review", {
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ jobId: aiBinding.jobId, candidateId: aiBinding.candidate.id,
+            visitId: visit.id, patientId: patient.id, expectedTranscriptRevision: aiBinding.transcriptRevision,
+            decision: "confirm", edit: { value: Number(value) },
+            ...(replace && conflict ? { allowOverwrite: true, expectedTargetHash: conflict.targetHash } : {}),
+          }),
+        });
+        const result = await response.json();
+        if (!response.ok) {
+          if (result.code === "ANALYSIS_ENTRY_CONFLICT") setConflict(result.details);
+          throw new Error(result.error || "점수를 저장하지 못했어요.");
+        }
+        await refresh();
+      } else await act("observation.save", {
         visitId: visit.id,
         value: Number(value),
         metric_key: "pain_intensity",
@@ -924,6 +963,8 @@ function NrsPanel({
         measurement_context: "current_pain",
       });
       setValueEdited(false);
+      setAiBinding(null);
+      setConflict(null);
     } catch (err) {
       setError(errorMessage(err));
     } finally {
@@ -966,6 +1007,11 @@ function NrsPanel({
           label: shortDate(item.measured_at),
         }))}
       />
+      {aiBinding && <div className="hs-evidence" role="note" aria-label="전사 기반 NRS 초안">
+        <strong>전사 기반 AI 초안 · 검토 전</strong>
+        {aiBinding.candidate.source_refs.map((ref, index) => <p key={index}>“{ref.quote}”</p>)}
+        <button type="button" className="hs-text-link" onClick={() => { setAiBinding(null); setValueEdited(true); setConflict(null); }}>수기 입력으로 변경</button>
+      </div>}
       <form
         className="hs-nrs-form"
         onSubmit={(event) => {
@@ -988,13 +1034,17 @@ function NrsPanel({
           <button
             className="hs-button hs-button-small"
             disabled={
-              busy || value === "" || Number(value) < 0 || Number(value) > 10
+              busy || value === "" || !Number.isInteger(Number(value)) || Number(value) < 0 || Number(value) > 10
             }
           >
             {busy ? "저장 중" : "저장"}
           </button>
         </div>
       </form>
+      {conflict && <div className="hs-inline-error" role="alert">
+        <p>다른 입력에서 저장한 현재 점수: {conflict.current}</p>
+        <button className="hs-button hs-button-small" disabled={busy} onClick={() => void save(true)}>현재 기록 확인 후 입력값 저장</button>
+      </div>}
       {error && (
         <p className="hs-inline-error" role="alert">
           {error}

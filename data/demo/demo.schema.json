@@ -691,6 +691,72 @@
             "synthetic_response",
             "manual_demo"
           ]
+        },
+        "input_snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "hash",
+            "transcript_id",
+            "transcript_revision",
+            "sources"
+          ],
+          "properties": {
+            "hash": {
+              "type": "string",
+              "pattern": "^[a-f0-9]{64}$"
+            },
+            "transcript_id": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "transcript_revision": {
+              "type": "integer",
+              "minimum": 1
+            },
+            "sources": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "id",
+                  "record_id",
+                  "kind",
+                  "revision",
+                  "digest"
+                ],
+                "properties": {
+                  "id": {
+                    "type": "string"
+                  },
+                  "record_id": {
+                    "type": "string",
+                    "format": "uuid"
+                  },
+                  "kind": {
+                    "enum": [
+                      "treatment",
+                      "treatment_finding",
+                      "handwriting",
+                      "followup_answer",
+                      "observation"
+                    ]
+                  },
+                  "revision": {
+                    "type": [
+                      "integer",
+                      "null"
+                    ]
+                  },
+                  "digest": {
+                    "type": "string",
+                    "pattern": "^[a-f0-9]{64}$"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     },
