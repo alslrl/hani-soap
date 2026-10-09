@@ -163,7 +163,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     const existing = draft.locations;
     const additions = locations.map(p => ({ ...p, annotation_id: layer.id })).filter(p => !existing.some(q => q.location_type === p.location_type && q.acupoint_code === p.acupoint_code && q.body_region === p.body_region && q.laterality === p.laterality && q.location_note === p.location_note && q.annotation_id === p.annotation_id));
     changeDraft({ locations: [...existing, ...additions] });
-    setPicker(null); setMessage(`${SIDE_LABELS[match.laterality]} ${REGION_LABELS[match.region]} · ${additions.length}개 위치 추가`);
+    setPicker(null); setMessage(`현재 시술에 ${additions.length}개 위치 추가`);
   }
   async function save(confirmed = false) {
     if (isHistorical) return;
@@ -273,15 +273,15 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
             <BodyDiagram view={view} version={layer.coordinateVersion} />
             {layer.strokes.map(stroke => <path key={stroke.id} data-ink-kind={stroke.kind} d={inkPath(stroke.points)} className={`tablet-ink ${stroke.kind === "check" ? "tablet-check-ink" : ""}`} />)}
             {activeInk.length > 0 && <path d={inkPath(activeInk)} className="tablet-ink" />}
-            {picker && <circle className="tablet-selection-ring" cx={picker.match.anchor.x} cy={picker.match.anchor.y} r="23" />}
+            {picker && picker.match.selectionSource !== "catalog" && <circle className="tablet-selection-ring" cx={picker.match.anchor.x} cy={picker.match.anchor.y} r="23" />}
           </svg>
           {portrait && !isHistorical && !zoom && (hasInkOutsidePortrait || showFullCanvas) && <button type="button" className="tablet-full-canvas-toggle" onClick={() => setShowFullCanvas(value => !value)}>{showFullCanvas ? "인체 크게 보기" : "전체 필기 보기"}</button>}
           {!zoom && !isHistorical && <div className="tablet-canvas-guide"><span className="tablet-check-sample">✓</span><strong>체크하면 부위 선택</strong><span>동그라미와 글씨는 그대로 메모</span></div>}
           <div className="tablet-canvas-corner"><PenLine size={14}/><span>{isHistorical ? `${layer.strokes.length}획 · 저장 당시 도해에 원본 표시` : "체크는 부위 선택 · 글씨와 동그라미는 메모"}</span></div>
-          <div className="tablet-zoom-controls"><button type="button" className="tablet-icon-button" aria-label={zoom ? "전체 인체 보기" : "선택 부위 확대"} disabled={!zoom && !picker} onClick={() => setZoom(zoom ? null : picker?.match || null)}>{zoom ? <ZoomOut size={19}/> : <ZoomIn size={19}/>}</button>{zoom && <button type="button" className="tablet-icon-button" aria-label="확대 초기화" onClick={() => setZoom(null)}><RotateCcw size={17}/></button>}</div>
+          <div className="tablet-zoom-controls"><button type="button" className="tablet-icon-button" aria-label={zoom ? "전체 인체 보기" : "선택 부위 확대"} disabled={!zoom && (!picker || picker.match.selectionSource === "catalog")} onClick={() => setZoom(zoom ? null : picker?.match || null)}>{zoom ? <ZoomOut size={19}/> : <ZoomIn size={19}/>}</button>{zoom && <button type="button" className="tablet-icon-button" aria-label="확대 초기화" onClick={() => setZoom(null)}><RotateCcw size={17}/></button>}</div>
         </div>
         <div className="tablet-drawing-tools">
-          {!isHistorical && <><button type="button" onClick={() => setSelectMode(value => !value)} aria-pressed={selectMode} disabled={busy}><Hand size={17}/><span>{selectMode ? "부위를 누르세요" : "부위 직접 선택"}</span></button><button type="button" className="tablet-manual-list" onClick={() => setPicker({ match: { region: "ankle", laterality: "right", anchor: { x: frameVersion === "body-map-v3-female" ? (view === "front" ? 419 : 580) : (view === "front" ? 446 : 550), y: 894 }, view } })} disabled={busy}>목록에서 선택</button><button type="button" className="tablet-undo" aria-label="마지막 필기 취소" disabled={!layer.strokes.length || busy} onClick={undo}><Undo2 size={18}/><span>되돌리기</span></button></>}
+          {!isHistorical && <><button type="button" onClick={() => setSelectMode(value => !value)} aria-pressed={selectMode} disabled={busy}><Hand size={17}/><span>{selectMode ? "부위를 누르세요" : "부위 직접 선택"}</span></button><button type="button" className="tablet-manual-list" onClick={() => setPicker({ match: { region: "head", laterality: "not_applicable", anchor: { x: 500, y: 500 }, view, selectionSource: "catalog" } })} disabled={busy}>목록에서 선택</button><button type="button" className="tablet-undo" aria-label="마지막 필기 취소" disabled={!layer.strokes.length || busy} onClick={undo}><Undo2 size={18}/><span>되돌리기</span></button></>}
           <button type="button" className="tablet-records-toggle" aria-expanded={recordsOpen} onClick={() => setRecordsOpen(value => !value)}><NotebookPen size={18}/><span>기록</span>{draft.locations.length > 0 && <small>{draft.locations.length}</small>}</button>
           {!isHistorical && <button type="button" className="tablet-toolbar-save" onClick={() => void save(false)} disabled={busy}>초안 저장</button>}
           {isHistorical && <button type="button" className="tablet-toolbar-return" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기</button>}

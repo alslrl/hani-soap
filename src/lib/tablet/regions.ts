@@ -1,14 +1,15 @@
 import type { InkPoint } from "./geometry";
 import type { BodyMapVersion } from "./body-map-version";
+import { searchAcupoints, type CatalogPoint } from "./acupoint-catalog";
 import bodySilhouettes from "../../../data/anatomy/body-map-v2-silhouette.json";
 import femaleSilhouettes from "../../../data/anatomy/body-map-v3-female-silhouette.json";
 
 export type BodyView = "front" | "back";
 export type Laterality = "left" | "right" | "bilateral" | "midline" | "not_applicable";
-export type BodyRegion = "head" | "neck" | "shoulder" | "upper_arm" | "forearm" | "hand" | "chest" | "upper_back" | "abdomen" | "lower_back" | "hip" | "thigh" | "knee" | "calf" | "ankle" | "foot";
-export type RegionMatch = { region: BodyRegion; laterality: Laterality; anchor: InkPoint; view: BodyView };
+export type BodyRegion = "head" | "face" | "neck" | "shoulder" | "axilla" | "upper_arm" | "elbow" | "forearm" | "wrist" | "hand" | "chest" | "upper_back" | "abdomen" | "upper_abdomen" | "lower_abdomen" | "lateral_abdomen" | "lower_back" | "sacrum" | "hip" | "buttock" | "groin" | "perineum" | "thigh" | "knee" | "calf" | "ankle" | "foot";
+export type RegionMatch = { region: BodyRegion; laterality: Laterality; anchor: InkPoint; view: BodyView; selectionSource?: "gesture" | "catalog" };
 export const REGION_LABELS: Record<BodyRegion, string> = {
-  head: "머리", neck: "목", shoulder: "어깨", upper_arm: "위팔", forearm: "아래팔", hand: "손", chest: "가슴", upper_back: "등", abdomen: "복부", lower_back: "허리", hip: "골반", thigh: "허벅지", knee: "무릎", calf: "종아리", ankle: "발목", foot: "발등·발",
+  head: "머리", face: "얼굴", neck: "목", shoulder: "어깨", axilla: "겨드랑", upper_arm: "위팔", elbow: "팔꿈치", forearm: "아래팔", wrist: "손목", hand: "손", chest: "가슴", upper_back: "등", abdomen: "복부 전체", upper_abdomen: "윗배", lower_abdomen: "아랫배", lateral_abdomen: "옆배", lower_back: "허리", sacrum: "엉치", hip: "골반 전체", buttock: "엉덩이", groin: "서혜부", perineum: "회음", thigh: "허벅지", knee: "무릎", calf: "종아리", ankle: "발목", foot: "발등·발",
 };
 export const SIDE_LABELS: Record<Laterality, string> = { left: "좌측", right: "우측", bilateral: "양측", midline: "정중선", not_applicable: "해당 없음" };
 
@@ -97,8 +98,8 @@ export const ANKLE_CANDIDATES: AcupointCandidate[] = [
   { code: "BL56", label_ko: "승근", regions: ["calf"], views: ["back"], area: "back" },
 ];
 
-export function regionCandidates(region: BodyRegion, view: BodyView): AcupointCandidate[] {
-  return ANKLE_CANDIDATES.filter(point => point.regions.includes(region) && point.views.includes(view));
+export function regionCandidates(region: BodyRegion, view: BodyView): CatalogPoint[] {
+  return searchAcupoints({ region, view });
 }
 
 export const PROCEDURES = [

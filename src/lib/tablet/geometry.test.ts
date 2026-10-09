@@ -46,8 +46,8 @@ describe("diagram regions and candidate boundaries", () => {
     expect(new Set(ANKLE_CANDIDATES.map(p => p.code)).size).toBe(16);
     expect(regionCandidates("ankle", "front").map(p => p.code)).not.toContain("GB34");
     expect(regionCandidates("ankle", "front").map(p => p.code)).not.toContain("BL57");
-    expect(regionCandidates("lower_back", "back")).toEqual([]);
-    expect(regionCandidates("foot", "back")).toEqual([]);
+    expect(regionCandidates("lower_back", "back").map(point => point.code)).toContain("BL23");
+    expect(regionCandidates("foot", "back").map(point => point.code)).toContain("LR3");
     expect(ANKLE_CANDIDATES.filter(p => p.code === "KI7")).toHaveLength(1);
   });
 });
