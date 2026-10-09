@@ -4,6 +4,15 @@ import { privacyCount } from './summary';
 const identities = [{ value: '김서연', kind: 'patient_name' as const }, { value: '이윤정', kind: 'guardian_name' as const }];
 
 describe('bounded text identifiers', () => {
+  it('masks honorific recipient particles and restores exact case endings', () => {
+    const privacy = new AiTextPrivacy([...identities, { value: '이상', kind: 'patient_name' }]);
+    for (const raw of ['김서연님에게 설명합니다.', '김서연님한테 알려 주세요.', '김서연님께서도 답했습니다.', '김서연님의 기록.', '이상님에게 안내합니다.']) {
+      const masked = privacy.mask(raw);
+      expect(masked).not.toContain(raw.startsWith('이상') ? '이상' : '김서연');
+      expect(privacy.restore(masked)).toBe(raw);
+    }
+    expect(privacy.mask('검사 이상 없음')).toBe('검사 이상 없음');
+  });
   it('masks known names and formatted identifiers while preserving clinical values and exact originals', () => {
     const privacy = new AiTextPrivacy(identities);
     const original = '김서연님, 보호자 이윤정입니다. 연락처 010-1234-5678, +82 10 9876 5432, a.test+visit@example.com, 900101-1234567. 우측 45cm, 좌측 43cm, NRS 8, 하루 3회 식후 30분, 2주 뒤 내원. 2026-10-09 방문, 25세.';
