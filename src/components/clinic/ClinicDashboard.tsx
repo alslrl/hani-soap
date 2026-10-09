@@ -1,4 +1,6 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -168,7 +170,7 @@ export default function ClinicDashboard() {
                               className="hs-patient-row-arrow"
                               aria-hidden="true"
                             >
-                              진료실 열기 ↗
+                              진료실 열기 <ActionArrow direction="up-right" />
                             </span>
                           )}
                         </div>
@@ -211,7 +213,7 @@ export default function ClinicDashboard() {
                 </strong>
                 <p>{task.reason}</p>
               </div>
-              <span aria-hidden="true">→</span>
+              <span aria-hidden="true"><ActionArrow /></span>
             </Link>
           ))
         ) : (

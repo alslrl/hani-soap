@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { localDemo, readState, scenario } from "./helpers";
+import { localDemo, readState, scenario, chooseSelect } from "./helpers";
 
 test("existing care history supports manual responses and explicit contact resolution", async ({ page }) => {
   const initial = await localDemo(page);
@@ -13,10 +13,10 @@ test("existing care history supports manual responses and explicit contact resol
   await page.getByRole("button").filter({ hasText: patient.display_name }).first().click();
   const message = initial.state.care_messages.find((item) => item.patient_id === patientId && item.status === "sent" && item.delivery_mode === "mock" && item.stage === "day3")!;
   expect(message).toBeTruthy();
-  await page.getByLabel("확인할 안내").selectOption(message.id);
+  await chooseSelect(page, page.getByRole("combobox", { name: "확인할 안내" }), message.id);
   await expect(page.getByRole("button", { name: "승인 문안 모의 발송", exact: true })).toHaveCount(0);
-  await page.getByLabel("환자 응답").selectOption("discomfort");
-  await expect(page.getByLabel("불편 상세 선택")).toHaveValue("");
+  await chooseSelect(page, page.getByRole("combobox", { name: "환자 응답" }), "discomfort");
+  await expect(page.getByRole("combobox", { name: "불편 상세 선택" })).toHaveAttribute("data-value", "");
   await page.getByRole("button", { name: "응답 기록", exact: true }).click();
 
   await expect.poll(async () => {
@@ -32,7 +32,7 @@ test("existing care history supports manual responses and explicit contact resol
   await expect(taskRow.getByText("연락 필요", { exact: true })).toBeVisible();
 
   // A reassuring later response must not silently dispose of the earlier work.
-  await page.getByLabel("환자 응답").selectOption("taking_well");
+  await chooseSelect(page, page.getByRole("combobox", { name: "환자 응답" }), "taking_well");
   await page.getByRole("button", { name: "응답 기록", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_responses.length).toBe(discomfort.state.care_responses.length + 1);
   expect((await readState(page.request)).state.contact_tasks.find((item) => item.id === task.id)?.status).toBe("open");

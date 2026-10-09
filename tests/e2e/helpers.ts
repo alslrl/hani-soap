@@ -1,4 +1,4 @@
-import { expect, type APIRequestContext, type Page } from "@playwright/test";
+import { expect, type APIRequestContext, type Page, type Locator } from "@playwright/test";
 import type { ActionRequest, StateEnvelope } from "../../src/lib/types";
 
 export const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? "http://127.0.0.1:3000";
@@ -51,4 +51,9 @@ export async function waitForVisit(page: Page, visitId: string, status: string, 
     const visit = current.state.visits.find((item) => item.id === visitId);
     return { status: visit?.workflow_status, ...(recordStatus ? { recordStatus: visit?.record_status } : {}) };
   }).toEqual({ status, ...(recordStatus ? { recordStatus } : {}) });
+}
+
+export async function chooseSelect(page: Page, trigger: Locator, value: string) {
+  await trigger.click();
+  await page.getByRole("option").filter({ visible: true }).locator(`xpath=self::*[@data-option-value=${JSON.stringify(value)}]`).click();
 }

@@ -1,4 +1,6 @@
 "use client";
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import Link from "next/link";
 import { useState } from "react";
@@ -65,7 +67,7 @@ function MetricChart({ values, visits, state }: { values: Observation[]; visits:
       <div className={styles.detailTitle}><strong>{formatClinicDate(selected.measured_at)} · {selectedVisit?.visit_no}회차</strong><span className={styles.tag}>{selected.review_status === "reviewed" ? "의료진 검토" : "검토 필요"}</span><span className={styles.tag}>{ORIGIN_LABELS[selected.origin]}</span></div>
       <p>{answer?.answer_text ?? "연결된 상세 답변이 없습니다."}</p>
       {answer && <small>{answer.change ? `변화: ${CHANGE_LABELS[answer.change]}` : answer.comparison_visit_id ? "변화 미선택" : "첫 기록·비교 기준 없음"} · {CONFIRMATION_LABELS[answer.confirmation_status]}</small>}
-      <details className={styles.sourceDetails}><summary>기록 근거 {selected.source_refs.length}개</summary>{selected.source_refs.length ? selected.source_refs.map((source, index) => <div key={index}><span>{ORIGIN_LABELS[source.origin]} · {source.kind === "manual" ? "직접 입력/검수" : source.kind === "seed_snapshot" ? "과거 진료" : "연결 기록"}</span><p>{source.quote ?? "인용문 없음"}</p>{source.source_id && <code>{source.source_id}</code>}</div>) : <p>별도 인용 없이 직접 입력한 측정값입니다.</p>}</details>
+      <Disclosure className={styles.sourceDetails}><summary>기록 근거 {selected.source_refs.length}개</summary>{selected.source_refs.length ? selected.source_refs.map((source, index) => <div key={index}><span>{ORIGIN_LABELS[source.origin]} · {source.kind === "manual" ? "직접 입력/검수" : source.kind === "seed_snapshot" ? "과거 진료" : "연결 기록"}</span><p>{source.quote ?? "인용문 없음"}</p>{source.source_id && <code>{source.source_id}</code>}</div>) : <p>별도 인용 없이 직접 입력한 측정값입니다.</p>}</Disclosure>
     </div>
   </section>;
 }

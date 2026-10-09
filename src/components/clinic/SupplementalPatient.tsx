@@ -1,4 +1,6 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+
 
 import { useEffect, useId, useRef } from "react";
 import Image from "next/image";
@@ -29,7 +31,7 @@ export function SupplementalPatientRow({ patient, date, onSelect }: {
       <span className="hs-visit-time">{patient.scheduled_time}</span>
     </div>
     <p className="hs-chief-complaint">{patient.chief_complaint}</p>
-    <div className="hs-patient-row-bottom"><span>차트 {patient.chart_number}</span><span className="hs-patient-row-arrow" aria-hidden="true">기본 정보 보기 ↗</span></div>
+    <div className="hs-patient-row-bottom"><span>차트 {patient.chart_number}</span><span className="hs-patient-row-arrow" aria-hidden="true">기본 정보 보기 <ActionArrow direction="up-right" /></span></div>
   </button>;
 }
 
