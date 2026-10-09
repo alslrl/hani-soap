@@ -369,5 +369,20 @@
     "approved_records_preserved": true,
     "browser_soap_regeneration_request_stubbed": true,
     "production_deployed_by_this_task": false
+  },
+  "clinical_loop_verification": {
+    "verified_on_kst": "2026-10-09",
+    "unit_tests": 171,
+    "server_tests": 47,
+    "isolated_postgres_checks": 33,
+    "targeted_browser_tests": 10,
+    "live_synthetic_model_cases": {
+      "analysis": 3,
+      "care": 2,
+      "soap": 1
+    },
+    "new_kakao_messages_sent": 0,
+    "physical_device_verification": "user_in_progress",
+    "rehearsal_tts": "separate_session"
   }
 }

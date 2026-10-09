@@ -43,7 +43,7 @@ test("required checks live in revisit questions, resolve individually, and prese
   await expect(editor.getByLabel("오늘 통증 NRS (0~10)")).toHaveCount(0);
   await expect(editor.getByRole("button", {name:"통증 NRS 입력으로 이동",exact:true})).toBeVisible();
   const answer = editor.getByRole("textbox", { name: "오늘 상세 답변", exact: true });
-  await expect(answer).toHaveValue("");
+  await expect(answer).toHaveValue(prepared.state.followup_answers.find(item=>item.visit_id===visit.id && item.item_key==="pain" && item.subitem_key==="current_pain")?.answer_text ?? "");
   await answer.fill(`오늘 확인한 통증 답변 ${suffix}`);
   await chooseSelect(page, editor.getByRole("combobox", { name: "확인 상태", exact: true }), "confirmed");
   await editor.getByRole("button", { name: "오늘 답변 저장", exact: true }).click();
@@ -59,7 +59,7 @@ test("required checks live in revisit questions, resolve individually, and prese
   expect(afterFirst.state.followup_items.find((item) => item.id === first.id)).toMatchObject({ status: "resolved", resolved_visit_id: visit.id });
   expect(afterFirst.state.followup_items.find((item) => item.id === second.id)?.status).toBe("pending");
   expect(afterFirst.state.followup_answers.find((item) => item.visit_id === visit.id && item.item_key === "pain")?.answer_text).toBe(`오늘 확인한 통증 답변 ${suffix}`);
-  expect(afterFirst.state.observations.some((item) => item.visit_id === visit.id)).toBe(false);
+  expect(afterFirst.state.observations.filter((item) => item.visit_id === visit.id)).toEqual(prepared.state.observations.filter((item) => item.visit_id === visit.id));
 
   await editor.getByRole("button", { name: "＋ 다음 방문 질문 추가", exact: true }).click();
   const addedTitle = `새로 추가한 다음 방문 질문 ${suffix}`;

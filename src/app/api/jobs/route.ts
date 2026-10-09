@@ -38,7 +38,7 @@ export async function POST(request: Request) {
     const soapOnly = kind === 'soap';
     const correctionOnly = kind === 'correction';
     if (soapOnly || correctionOnly ? !transcript : !recording || !['uploaded', 'completed', 'failed'].includes(recording.status)) throw new AppError(400, 'JOB_INPUT_REQUIRED', soapOnly || correctionOnly ? '검토할 전사를 먼저 저장해 주세요.' : '음성 파일 업로드를 먼저 완료해 주세요.');
-    if (correctionOnly && state.transcripts.some(item => item.visit_id === visit.id && item.revision > transcript!.revision)) throw new AppError(409, 'TRANSCRIPT_VERSION_CONFLICT', '새 전사 버전이 있습니다. 최신 내용을 확인해 주세요.');
+    if ((soapOnly || correctionOnly) && state.transcripts.some(item => item.visit_id === visit.id && item.revision > transcript!.revision)) throw new AppError(409, 'TRANSCRIPT_VERSION_CONFLICT', '새 전사 버전이 있습니다. 최신 내용을 확인해 주세요.');
     const inputHash = createHash('sha256').update(JSON.stringify({ visitId, kind: correctionOnly ? 'correction' : soapOnly ? 'soap' : 'transcription', recordingId: recording?.id, transcriptId: transcript?.id, ...(soapOnly && transcript ? { clinicalInputHash: soapInputSnapshot(state, transcript).hash } : {}), models: AI_MODELS, ...(!soapOnly && !correctionOnly ? { transcriptionPipeline: DUAL_TRANSCRIPTION_VERSION } : {}), ...(correctionOnly ? { retrievalVersion: DICTIONARY_RETRIEVAL_VERSION } : {}) })).digest('hex');
     const existing = state.jobs.find((item) => item.input_hash === inputHash && item.status !== 'failed');
     if (existing) return jsonResponse({ jobId: existing.id, reused: true }, 200);
