@@ -1,0 +1,297 @@
+{
+  "status": "display_candidates_clinical_review_pending",
+  "source": "AcuAtlas",
+  "license": "CC BY 4.0",
+  "source_figures": "data/acupoints/figures",
+  "note": "Original source coordinates unchanged. Explicit display-only positions; no clinical accuracy claim. Medial panel reuses lateral silhouette. Not patient laterality data.",
+  "points": [
+    {
+      "code": "GB34",
+      "name_ko": "양릉천",
+      "view": "lateral",
+      "panel": 0,
+      "x": 450,
+      "y": 1095,
+      "original_candidate": [
+        450,
+        1095
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "GB39",
+      "name_ko": "현종",
+      "view": "lateral",
+      "panel": 0,
+      "x": 435,
+      "y": 1330,
+      "original_candidate": [
+        435,
+        1330
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "BL60",
+      "name_ko": "곤륜",
+      "view": "lateral",
+      "panel": 0,
+      "x": 450,
+      "y": 1400,
+      "original_candidate": [
+        450,
+        1400
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "GB40",
+      "name_ko": "구허",
+      "view": "lateral",
+      "panel": 0,
+      "x": 410,
+      "y": 1410,
+      "original_candidate": [
+        410,
+        1410
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "BL62",
+      "name_ko": "신맥",
+      "view": "lateral",
+      "panel": 0,
+      "x": 440,
+      "y": 1432,
+      "original_candidate": [
+        440,
+        1432
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "SP6",
+      "name_ko": "삼음교",
+      "view": "lateral",
+      "panel": 1,
+      "x": 433,
+      "y": 1300,
+      "original_candidate": [
+        433,
+        1300
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "KI7",
+      "name_ko": "복류",
+      "view": "lateral",
+      "panel": 1,
+      "x": 450,
+      "y": 1338,
+      "original_candidate": [
+        450,
+        1338
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "KI3",
+      "name_ko": "태계",
+      "view": "lateral",
+      "panel": 1,
+      "x": 450,
+      "y": 1395,
+      "original_candidate": [
+        450,
+        1395
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "SP5",
+      "name_ko": "상구",
+      "view": "lateral",
+      "panel": 1,
+      "x": 405,
+      "y": 1410,
+      "original_candidate": [
+        405,
+        1410
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "KI6",
+      "name_ko": "조해",
+      "view": "lateral",
+      "panel": 1,
+      "x": 430,
+      "y": 1435,
+      "original_candidate": [
+        430,
+        1435
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "ST41",
+      "name_ko": "해계",
+      "view": "anterior",
+      "panel": 2,
+      "x": 596,
+      "y": 1408,
+      "original_candidate": [
+        596,
+        1408
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "ST42",
+      "name_ko": "충양",
+      "view": "anterior",
+      "panel": 2,
+      "x": 600,
+      "y": 1430,
+      "original_candidate": [
+        600,
+        1430
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "ST43",
+      "name_ko": "함곡",
+      "view": "anterior",
+      "panel": 2,
+      "x": 604,
+      "y": 1439,
+      "original_candidate": [
+        600,
+        1448
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "LR3",
+      "name_ko": "태충",
+      "view": "anterior",
+      "panel": 2,
+      "x": 586,
+      "y": 1439,
+      "original_candidate": [
+        581,
+        1453
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "BL56",
+      "name_ko": "승근",
+      "view": "posterior",
+      "panel": 3,
+      "x": 583,
+      "y": 1170,
+      "original_candidate": [
+        583,
+        1170
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    },
+    {
+      "code": "BL57",
+      "name_ko": "승산",
+      "view": "posterior",
+      "panel": 3,
+      "x": 585,
+      "y": 1250,
+      "original_candidate": [
+        585,
+        1250
+      ],
+      "coordinate_unit": "pixel",
+      "canvas_width": 900,
+      "canvas_height": 1600,
+      "inside_silhouette_with_6px_margin": true,
+      "clinical_review_status": "pending",
+      "purpose": "demo_display_only"
+    }
+  ]
+}

@@ -1,0 +1,860 @@
+[
+  {
+    "page": 2,
+    "region": "가슴",
+    "view": "anterior",
+    "codes": [
+      "LU1",
+      "LU2",
+      "ST13",
+      "ST14",
+      "ST15",
+      "ST16",
+      "ST17",
+      "ST18"
+    ]
+  },
+  {
+    "page": 3,
+    "region": "가슴",
+    "view": "anterior",
+    "codes": [
+      "SP17",
+      "SP18",
+      "SP19",
+      "SP20",
+      "KI22",
+      "KI23",
+      "KI24",
+      "KI25"
+    ]
+  },
+  {
+    "page": 4,
+    "region": "가슴",
+    "view": "anterior",
+    "codes": [
+      "KI26",
+      "KI27",
+      "PC1",
+      "GB24",
+      "LR14",
+      "CV16",
+      "CV17",
+      "CV18"
+    ]
+  },
+  {
+    "page": 5,
+    "region": "가슴",
+    "view": "anterior",
+    "codes": [
+      "CV19",
+      "CV20",
+      "CV21"
+    ]
+  },
+  {
+    "page": 6,
+    "region": "위팔",
+    "view": "anterior",
+    "codes": [
+      "LU3",
+      "LU4",
+      "LI13",
+      "LI14",
+      "HT2",
+      "PC2"
+    ]
+  },
+  {
+    "page": 7,
+    "region": "팔꿈치",
+    "view": "anterior",
+    "codes": [
+      "LU5",
+      "LI11",
+      "LI12",
+      "HT3",
+      "PC3"
+    ]
+  },
+  {
+    "page": 8,
+    "region": "아래팔",
+    "view": "anterior",
+    "codes": [
+      "LU6",
+      "LU7",
+      "LU8",
+      "LI6",
+      "LI7",
+      "LI8",
+      "LI9",
+      "LI10"
+    ]
+  },
+  {
+    "page": 9,
+    "region": "아래팔",
+    "view": "anterior",
+    "codes": [
+      "HT4",
+      "HT5",
+      "HT6",
+      "PC4",
+      "PC5",
+      "PC6"
+    ]
+  },
+  {
+    "page": 10,
+    "region": "손목",
+    "view": "anterior",
+    "codes": [
+      "LU9",
+      "LI5",
+      "HT7",
+      "PC7"
+    ]
+  },
+  {
+    "page": 11,
+    "region": "손",
+    "view": "anterior",
+    "codes": [
+      "LU10",
+      "LU11",
+      "LI1",
+      "LI2",
+      "LI3",
+      "LI4",
+      "HT8",
+      "HT9"
+    ]
+  },
+  {
+    "page": 12,
+    "region": "손",
+    "view": "anterior",
+    "codes": [
+      "PC8",
+      "PC9"
+    ]
+  },
+  {
+    "page": 13,
+    "region": "어깨",
+    "view": "anterior",
+    "codes": [
+      "LI15",
+      "LI16"
+    ]
+  },
+  {
+    "page": 14,
+    "region": "목",
+    "view": "anterior",
+    "codes": [
+      "LI17",
+      "LI18",
+      "ST9",
+      "ST10",
+      "ST11",
+      "ST12",
+      "CV22"
+    ]
+  },
+  {
+    "page": 15,
+    "region": "얼굴",
+    "view": "anterior",
+    "codes": [
+      "LI19",
+      "LI20"
+    ]
+  },
+  {
+    "page": 16,
+    "region": "얼굴",
+    "view": "head",
+    "codes": [
+      "ST1",
+      "ST2",
+      "ST3",
+      "ST4",
+      "ST5",
+      "SI18",
+      "SI19",
+      "BL1"
+    ]
+  },
+  {
+    "page": 17,
+    "region": "얼굴",
+    "view": "head",
+    "codes": [
+      "TE21",
+      "GB2",
+      "GV25",
+      "GV26",
+      "GV27",
+      "GV28",
+      "CV24"
+    ]
+  },
+  {
+    "page": 18,
+    "region": "얼굴",
+    "view": "lateral",
+    "codes": [
+      "ST6",
+      "ST7"
+    ]
+  },
+  {
+    "page": 19,
+    "region": "머리",
+    "view": "lateral",
+    "codes": [
+      "ST8",
+      "GB8",
+      "GB9",
+      "GB10",
+      "GB11",
+      "GB13",
+      "GB14",
+      "GB15"
+    ]
+  },
+  {
+    "page": 20,
+    "region": "머리",
+    "view": "lateral",
+    "codes": [
+      "GB16",
+      "GB17",
+      "GB18",
+      "GB19"
+    ]
+  },
+  {
+    "page": 21,
+    "region": "윗배",
+    "view": "anterior",
+    "codes": [
+      "ST19",
+      "ST20",
+      "ST21",
+      "ST22",
+      "ST23",
+      "ST24",
+      "ST25",
+      "SP15"
+    ]
+  },
+  {
+    "page": 22,
+    "region": "윗배",
+    "view": "anterior",
+    "codes": [
+      "SP16",
+      "KI16",
+      "KI17",
+      "KI18",
+      "KI19",
+      "KI20",
+      "KI21",
+      "CV8"
+    ]
+  },
+  {
+    "page": 23,
+    "region": "윗배",
+    "view": "anterior",
+    "codes": [
+      "CV9",
+      "CV10",
+      "CV11",
+      "CV12",
+      "CV13",
+      "CV14",
+      "CV15"
+    ]
+  },
+  {
+    "page": 24,
+    "region": "아랫배",
+    "view": "anterior",
+    "codes": [
+      "ST26",
+      "ST27",
+      "ST28",
+      "ST29",
+      "SP13",
+      "SP14",
+      "KI11",
+      "KI12"
+    ]
+  },
+  {
+    "page": 25,
+    "region": "아랫배",
+    "view": "anterior",
+    "codes": [
+      "KI13",
+      "KI14",
+      "KI15",
+      "GB27",
+      "GB28",
+      "CV2",
+      "CV3",
+      "CV4"
+    ]
+  },
+  {
+    "page": 26,
+    "region": "아랫배",
+    "view": "anterior",
+    "codes": [
+      "CV5",
+      "CV6",
+      "CV7"
+    ]
+  },
+  {
+    "page": 27,
+    "region": "서혜부",
+    "view": "anterior",
+    "codes": [
+      "ST30",
+      "SP12",
+      "LR12"
+    ]
+  },
+  {
+    "page": 28,
+    "region": "넓적다리",
+    "view": "anterior",
+    "codes": [
+      "ST31",
+      "ST32",
+      "ST33",
+      "ST34",
+      "SP10",
+      "SP11",
+      "LR9",
+      "LR10"
+    ]
+  },
+  {
+    "page": 29,
+    "region": "넓적다리",
+    "view": "anterior",
+    "codes": [
+      "LR11"
+    ]
+  },
+  {
+    "page": 30,
+    "region": "무릎",
+    "view": "anterior",
+    "codes": [
+      "ST35",
+      "LR8"
+    ]
+  },
+  {
+    "page": 31,
+    "region": "종아리",
+    "view": "anterior",
+    "codes": [
+      "ST36",
+      "ST37",
+      "ST38",
+      "ST39",
+      "ST40",
+      "SP7",
+      "SP8",
+      "SP9"
+    ]
+  },
+  {
+    "page": 32,
+    "region": "종아리",
+    "view": "anterior",
+    "codes": [
+      "KI8",
+      "KI9",
+      "LR5",
+      "LR6",
+      "LR7"
+    ]
+  },
+  {
+    "page": 33,
+    "region": "발목",
+    "view": "anterior",
+    "codes": [
+      "ST41",
+      "LR4"
+    ]
+  },
+  {
+    "page": 34,
+    "region": "발",
+    "view": "anterior",
+    "codes": [
+      "ST42",
+      "ST43",
+      "ST44",
+      "ST45",
+      "SP1",
+      "SP2",
+      "SP3",
+      "SP4"
+    ]
+  },
+  {
+    "page": 35,
+    "region": "발",
+    "view": "anterior",
+    "codes": [
+      "KI1",
+      "KI2",
+      "KI4",
+      "KI5",
+      "LR1",
+      "LR2",
+      "LR3"
+    ]
+  },
+  {
+    "page": 36,
+    "region": "발",
+    "view": "lateral",
+    "codes": [
+      "SP5",
+      "BL61",
+      "BL62",
+      "BL63",
+      "BL64",
+      "BL65",
+      "BL66",
+      "BL67"
+    ]
+  },
+  {
+    "page": 37,
+    "region": "발",
+    "view": "lateral",
+    "codes": [
+      "KI6",
+      "GB41",
+      "GB42",
+      "GB43",
+      "GB44"
+    ]
+  },
+  {
+    "page": 38,
+    "region": "종아리",
+    "view": "lateral",
+    "codes": [
+      "SP6",
+      "KI7",
+      "GB34",
+      "GB35",
+      "GB36",
+      "GB37",
+      "GB38",
+      "GB39"
+    ]
+  },
+  {
+    "page": 39,
+    "region": "가슴",
+    "view": "lateral",
+    "codes": [
+      "SP21",
+      "GB22",
+      "GB23"
+    ]
+  },
+  {
+    "page": 40,
+    "region": "겨드랑",
+    "view": "anterior",
+    "codes": [
+      "HT1"
+    ]
+  },
+  {
+    "page": 41,
+    "region": "손",
+    "view": "posterior",
+    "codes": [
+      "SI1",
+      "SI2",
+      "SI3",
+      "TE1",
+      "TE2",
+      "TE3"
+    ]
+  },
+  {
+    "page": 42,
+    "region": "손목",
+    "view": "posterior",
+    "codes": [
+      "SI4",
+      "SI5",
+      "TE4"
+    ]
+  },
+  {
+    "page": 43,
+    "region": "아래팔",
+    "view": "posterior",
+    "codes": [
+      "SI6",
+      "SI7",
+      "TE5",
+      "TE6",
+      "TE7",
+      "TE8",
+      "TE9"
+    ]
+  },
+  {
+    "page": 44,
+    "region": "팔꿈치",
+    "view": "posterior",
+    "codes": [
+      "SI8",
+      "TE10"
+    ]
+  },
+  {
+    "page": 45,
+    "region": "어깨",
+    "view": "posterior",
+    "codes": [
+      "SI9",
+      "SI10",
+      "SI11",
+      "SI12",
+      "SI13",
+      "TE14",
+      "TE15"
+    ]
+  },
+  {
+    "page": 46,
+    "region": "등",
+    "view": "posterior",
+    "codes": [
+      "SI14",
+      "SI15",
+      "BL11",
+      "BL12",
+      "BL13",
+      "BL14",
+      "BL15",
+      "BL16"
+    ]
+  },
+  {
+    "page": 47,
+    "region": "등",
+    "view": "posterior",
+    "codes": [
+      "BL17",
+      "BL18",
+      "BL19",
+      "BL20",
+      "BL21",
+      "BL41",
+      "BL42",
+      "BL43"
+    ]
+  },
+  {
+    "page": 48,
+    "region": "등",
+    "view": "posterior",
+    "codes": [
+      "BL44",
+      "BL45",
+      "BL46",
+      "BL47",
+      "BL48",
+      "BL49",
+      "BL50",
+      "GV6"
+    ]
+  },
+  {
+    "page": 49,
+    "region": "등",
+    "view": "posterior",
+    "codes": [
+      "GV7",
+      "GV8",
+      "GV9",
+      "GV10",
+      "GV11",
+      "GV12",
+      "GV13"
+    ]
+  },
+  {
+    "page": 50,
+    "region": "목",
+    "view": "lateral",
+    "codes": [
+      "SI16",
+      "SI17",
+      "TE16",
+      "TE17",
+      "GB12",
+      "GB20"
+    ]
+  },
+  {
+    "page": 51,
+    "region": "머리",
+    "view": "head",
+    "codes": [
+      "BL2",
+      "BL3",
+      "BL4",
+      "BL5",
+      "BL6",
+      "BL7",
+      "BL8",
+      "BL9"
+    ]
+  },
+  {
+    "page": 52,
+    "region": "머리",
+    "view": "head",
+    "codes": [
+      "TE18",
+      "TE19",
+      "TE20",
+      "TE22",
+      "TE23",
+      "GB1",
+      "GB3",
+      "GB4"
+    ]
+  },
+  {
+    "page": 53,
+    "region": "머리",
+    "view": "head",
+    "codes": [
+      "GB5",
+      "GB6",
+      "GB7",
+      "GV17",
+      "GV18",
+      "GV19",
+      "GV20",
+      "GV21"
+    ]
+  },
+  {
+    "page": 54,
+    "region": "머리",
+    "view": "head",
+    "codes": [
+      "GV22",
+      "GV23",
+      "GV24"
+    ]
+  },
+  {
+    "page": 55,
+    "region": "목",
+    "view": "head",
+    "codes": [
+      "BL10",
+      "CV23"
+    ]
+  },
+  {
+    "page": 56,
+    "region": "허리",
+    "view": "posterior",
+    "codes": [
+      "BL22",
+      "BL23",
+      "BL24",
+      "BL25",
+      "BL26",
+      "BL51",
+      "BL52",
+      "GV3"
+    ]
+  },
+  {
+    "page": 57,
+    "region": "허리",
+    "view": "posterior",
+    "codes": [
+      "GV4",
+      "GV5"
+    ]
+  },
+  {
+    "page": 58,
+    "region": "엉치",
+    "view": "posterior",
+    "codes": [
+      "BL27",
+      "BL28",
+      "BL29",
+      "BL30",
+      "BL31",
+      "BL32",
+      "BL33",
+      "BL34"
+    ]
+  },
+  {
+    "page": 59,
+    "region": "엉치",
+    "view": "posterior",
+    "codes": [
+      "GV2"
+    ]
+  },
+  {
+    "page": 60,
+    "region": "엉덩이",
+    "view": "posterior",
+    "codes": [
+      "BL35",
+      "BL36",
+      "BL53",
+      "BL54"
+    ]
+  },
+  {
+    "page": 61,
+    "region": "넓적다리",
+    "view": "posterior",
+    "codes": [
+      "BL37"
+    ]
+  },
+  {
+    "page": 62,
+    "region": "무릎",
+    "view": "posterior",
+    "codes": [
+      "BL38",
+      "BL39",
+      "BL40",
+      "KI10"
+    ]
+  },
+  {
+    "page": 63,
+    "region": "종아리",
+    "view": "posterior",
+    "codes": [
+      "BL55",
+      "BL56",
+      "BL57",
+      "BL58",
+      "BL59"
+    ]
+  },
+  {
+    "page": 64,
+    "region": "발목",
+    "view": "lateral",
+    "codes": [
+      "BL60",
+      "KI3",
+      "GB40"
+    ]
+  },
+  {
+    "page": 65,
+    "region": "위팔",
+    "view": "posterior",
+    "codes": [
+      "TE11",
+      "TE12",
+      "TE13"
+    ]
+  },
+  {
+    "page": 66,
+    "region": "목",
+    "view": "posterior",
+    "codes": [
+      "GB21",
+      "GV14",
+      "GV15",
+      "GV16"
+    ]
+  },
+  {
+    "page": 67,
+    "region": "옆배",
+    "view": "lateral",
+    "codes": [
+      "GB25",
+      "GB26",
+      "LR13"
+    ]
+  },
+  {
+    "page": 68,
+    "region": "엉덩이",
+    "view": "lateral",
+    "codes": [
+      "GB29",
+      "GB30"
+    ]
+  },
+  {
+    "page": 69,
+    "region": "넓적다리",
+    "view": "lateral",
+    "codes": [
+      "GB31",
+      "GB32"
+    ]
+  },
+  {
+    "page": 70,
+    "region": "무릎",
+    "view": "lateral",
+    "codes": [
+      "GB33"
+    ]
+  },
+  {
+    "page": 71,
+    "region": "회음",
+    "view": "posterior",
+    "codes": [
+      "GV1"
+    ]
+  },
+  {
+    "page": 72,
+    "region": "회음",
+    "view": "anterior",
+    "codes": [
+      "CV1"
+    ]
+  }
+]
