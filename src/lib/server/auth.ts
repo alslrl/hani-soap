@@ -127,6 +127,19 @@ export async function revokeSession(request: Request) {
     if (error) databaseError(error);
   } else { await security((data) => { data.sessions = data.sessions.filter((v) => v.token_hash !== hash); }); }
 }
+/** OAuth callbacks use a separate Lax state cookie; the PIN cookie stays Strict. */
+export async function requireOAuthSession(id: string): Promise<DemoSession> {
+  let session: DemoSession | undefined;
+  if (storageMode() === 'supabase') {
+    const { data, error } = await getSupabase().from('demo_sessions').select('*').eq('id', id).maybeSingle();
+    if (error) databaseError(error);
+    session = data as DemoSession | undefined;
+  } else {
+    session = (await readJson<SecurityStore>(path.join(dataDirectory(), 'security.json')))?.sessions.find((v) => v.id === id);
+  }
+  if (!session || Date.parse(session.expires_at) <= Date.now() || session.pin_version !== pinVersion()) throw new AppError(401, 'AUTH_REQUIRED', 'PIN 세션이 만료되었습니다.');
+  return session;
+}
 export function sessionCookie(token: string, clear = false) {
   const secure = process.env.NODE_ENV === 'production' || Boolean(process.env.VERCEL);
   return `${SESSION_COOKIE}=${clear ? '' : token}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${clear ? 0 : SESSION_LIFETIME / 1000}${secure ? '; Secure' : ''}`;
