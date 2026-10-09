@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { localDemo, readState, origin, scenario } from './helpers';
+import { localDemo, readState, origin, scenario , chooseSelect } from './helpers';
 
 test('Kakao connection, approved self-send, public response and PC contact form one complete local flow', async ({ page }) => {
   const initial = await localDemo(page);
@@ -21,7 +21,7 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   await page.getByLabel('안내문 초안').fill(body);
   await page.getByRole('button', { name: '초안 저장', exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_messages.some((v) => v.draft_body === body)).toBe(true);
-  await page.getByRole('button', { name: '문안 승인', exact: true }).click();
+  await page.getByRole('button', { name: '내용 승인', exact: true }).click();
   await expect(page.getByRole('button', { name: '카카오톡으로 발송하기' })).toBeEnabled();
   await expect(page.getByRole('button', { name: '카카오톡으로 발송하기' })).toHaveCount(1);
   await expect(page.getByRole('button', { name: '승인 문안 모의 발송' })).toHaveCount(0);
@@ -46,7 +46,7 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   expect((await readState(page.request)).version).toBe(beforeResponse.version);
   await responder.getByRole('button', { name: '응답 전달' }).click();
   await expect(responder.getByRole('status')).toContainText('응답을 전달했습니다.');
-  await responder.getByLabel('불편한 점', { exact: true }).selectOption('stomach_discomfort');
+  await chooseSelect(responder, responder.getByRole("combobox", { name: '불편한 점' }), 'stomach_discomfort');
   await responder.getByRole('button', { name: '응답 전달' }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_responses.find((v) => v.message_id === saved.id && v.source === 'kakao_self_link')?.detail).toBe('stomach_discomfort');
   const final = await readState(page.request);

@@ -1,4 +1,6 @@
 "use client";
+import { AppSelect } from '@/components/ui/AppSelect';
+
 
 import { useState } from "react";
 import type { TreatmentLocation } from "@/lib/types";
@@ -38,13 +40,13 @@ export function RegionPicker({ match, onAdd, onClose, onMemo, onZoom, modal = fa
     </div>
     {onZoom && !catalogMode && <button type="button" className="tablet-picker-zoom" onClick={onZoom}>이 부위 확대 보기</button>}
     <div className="tablet-picker-fields">
-      <label>부위<select aria-label="선택 부위" value={region} onChange={e => setRegion(e.target.value as BodyRegion)}>
+      <label>부위<AppSelect aria-label="선택 부위" value={region} onChange={e => setRegion(e.target.value as BodyRegion)}>
         {catalogMode && <option value="">부위를 선택하세요</option>}
         {Object.entries(REGION_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-      </select></label>
-      <label>환자 기준 좌우<select aria-label="환자 기준 좌우" value={side} onChange={e => setSide(e.target.value as Laterality)}>
+      </AppSelect></label>
+      <label>환자 기준 좌우<AppSelect aria-label="환자 기준 좌우" value={side} onChange={e => setSide(e.target.value as Laterality)}>
         {Object.entries(SIDE_LABELS).map(([key, label]) => <option key={key} value={key}>{label}</option>)}
-      </select></label>
+      </AppSelect></label>
     </div>
     <div className="tablet-location-types" role="tablist" aria-label="위치 유형">
       {([['acupoint', '경혈'], ['ashi', '아시혈'], ['tenderness_point', '압통점']] as const).map(([key, label]) => <button key={key} type="button" role="tab" aria-selected={type === key} onClick={() => setType(key)}>{label}</button>)}

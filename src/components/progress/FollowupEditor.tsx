@@ -1,13 +1,16 @@
 "use client";
+import { AppSelect } from '@/components/ui/AppSelect';
+
 
 import { useEffect, useRef, useState } from "react";
 import { useAppState } from "@/lib/client";
-import type { FollowupAnswer, Observation } from "@/lib/types";
+import type { FollowupAnswer, FollowupItem, Observation } from "@/lib/types";
 import { CHANGE_LABELS, CONFIRMATION_LABELS, formatClinicDate, QUESTION_GROUPS, type FollowupKey } from "./questions";
 import styles from "./progress.module.css";
 
 type AnswerDraft = Pick<FollowupAnswer, "item_key" | "subitem_key" | "answer_text" | "change" | "confirmation_status" | "applicability">;
 const answerKey = (item: string, subitem: string) => `${item}:${subitem}`;
+const questionGroupKey = (itemKey: string): FollowupKey => QUESTION_GROUPS.find((group) => group.key === itemKey)?.key ?? "questions_concerns";
 
 export function FollowupEditor({ visitId, compact = false }: { visitId: string; compact?: boolean }) {
   const { data, act } = useAppState();
@@ -21,6 +24,10 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [failed, setFailed] = useState(false);
+  const [checkBusy, setCheckBusy] = useState("");
+  const [checkError, setCheckError] = useState("");
+  const [adding, setAdding] = useState(false);
+  const [nextTitle, setNextTitle] = useState("");
   const hydratedVisit = useRef("");
   const hydratedAnswers = useRef("");
 
@@ -53,7 +60,11 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
     setDrafts(next);
     setMetricValues(values);
     setDirty(false);
-    if (!sameVisit) setFeedback("");
+    if (!sameVisit) {
+      const requiredGroups = state.followup_items.filter((item) => item.patient_id === visit.patient_id && item.status === "pending" && state.visits.some((source) => source.id === item.source_visit_id && source.scheduled_at < visit.scheduled_at)).map((item) => questionGroupKey(item.item_key));
+      setSelectedGroup(QUESTION_GROUPS.find((group) => requiredGroups.includes(group.key))?.key ?? "chief_complaint");
+      setFeedback(""); setCheckError(""); setAdding(false); setNextTitle("");
+    }
     hydratedVisit.current = visit.id;
     hydratedAnswers.current = signature;
   }, [state, visit, dirty]);
@@ -71,7 +82,10 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
   const metricTemplates = Array.from(new Map(state.observations.filter((item) => item.patient_id === patient.id && (visitDates.get(item.visit_id) ?? "") <= visit.scheduled_at).sort((a, b) => a.measured_at.localeCompare(b.measured_at)).map((item) => [item.series_key, item])).values());
   const group = QUESTION_GROUPS.find((item) => item.key === selectedGroup)!;
   const groupDrafts = Object.entries(drafts).filter(([, item]) => item.item_key === selectedGroup);
-  const pendingItems = state.followup_items.filter((item) => item.patient_id === patient.id && item.status === "pending");
+  const visitChecks = state.followup_items.filter((item) => item.patient_id === patient.id && item.source_visit_id !== visit.id && (visitDates.get(item.source_visit_id) ?? visit.scheduled_at) < visit.scheduled_at && (item.status === "pending" || item.resolved_visit_id === visit.id));
+  const pendingItems = visitChecks.filter((item) => item.status === "pending");
+  const groupChecks = visitChecks.filter((item) => questionGroupKey(item.item_key) === selectedGroup);
+  const nextItems = state.followup_items.filter((item) => item.patient_id === patient.id && item.source_visit_id === visit.id && item.status === "pending");
   const completedCount = QUESTION_GROUPS.filter((group) => Object.values(drafts).some((item) => item.item_key === group.key && (item.confirmation_status === "confirmed" || item.applicability === "not_applicable"))).length;
 
   function update(key: string, value: Partial<AnswerDraft>) {
@@ -79,8 +93,26 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
     setDirty(true); setFeedback("");
   }
 
+  async function resolveCheck(item: FollowupItem) {
+    if (checkBusy || busy) return;
+    setCheckBusy(item.id); setCheckError("");
+    try { await act("followup.resolve", { itemId: item.id, visitId }); }
+    catch (error) { setCheckError(error instanceof Error ? error.message : "확인 완료를 저장하지 못했습니다."); }
+    finally { setCheckBusy(""); }
+  }
+
+  async function addNextQuestion() {
+    if (!nextTitle.trim() || checkBusy || busy) return;
+    setCheckBusy("new"); setCheckError("");
+    try {
+      await act("followup.create", { visitId, title: nextTitle.trim(), item_key: selectedGroup });
+      setNextTitle(""); setAdding(false);
+    } catch (error) { setCheckError(error instanceof Error ? error.message : "다음 방문 질문을 저장하지 못했습니다."); }
+    finally { setCheckBusy(""); }
+  }
+
   async function save() {
-    if (busy || !state || !visit) return;
+    if (busy || checkBusy || !state || !visit) return;
     setBusy(true); setFeedback(""); setFailed(false);
     try {
       for (const metric of metricTemplates) {
@@ -119,16 +151,26 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
   }
 
   return <section className={`${styles.followup} ${compact ? styles.compact : ""}`} aria-label="재진 확인 질문">
-    <header className={styles.editorHeader}><div><h2>오늘 확인할 것</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !dirty} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
-    {pendingItems.length > 0 && <details className={styles.pending}><summary>이어 확인할 질문 {pendingItems.length}개</summary><ul>{pendingItems.map((item) => <li key={item.id}>{item.title}</li>)}</ul></details>}
+    <header className={styles.editorHeader}><div><h2>재진 질문</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !!checkBusy || !dirty} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
+    {pendingItems.length > 0 && <div className={styles.requiredNotice} role="status"><div><strong>필수 질문 {pendingItems.length}개 남음</strong><p>노란색 항목은 오늘 꼭 질문하고 확인 완료를 남겨 주세요.</p></div><button type="button" onClick={() => setSelectedGroup(QUESTION_GROUPS.find((group) => pendingItems.some((item) => questionGroupKey(item.item_key) === group.key))!.key)}>필수 질문 보기</button></div>}
+    {visitChecks.length > 0 && pendingItems.length === 0 && <p className={styles.feedback} role="status">오늘 필수 질문을 모두 확인했습니다.</p>}
     {feedback && <p className={failed ? styles.error : styles.feedback} role={failed ? "alert" : "status"}>{feedback}</p>}
+    {checkError && <p className={styles.error} role="alert">{checkError}</p>}
     <div className={styles.questionsLayout}>
       <nav className={styles.questionNav} aria-label="재진 질문 항목">{QUESTION_GROUPS.map((item, index) => {
         const answers = Object.values(drafts).filter((answer) => answer.item_key === item.key);
         const done = answers.length > 0 && answers.every((answer) => answer.confirmation_status === "confirmed" || answer.applicability === "not_applicable");
-        return <button key={item.key} type="button" aria-current={selectedGroup === item.key ? "true" : undefined} onClick={() => setSelectedGroup(item.key)}><span>{String(index + 1).padStart(2, "0")}</span>{item.title}<i aria-label={done ? "확인 완료" : "확인 필요"}>{done ? "✓" : "·"}</i></button>;
+        const requiredCount = pendingItems.filter((check) => questionGroupKey(check.item_key) === item.key).length;
+        return <button key={item.key} type="button" className={requiredCount ? styles.requiredNav : undefined} aria-current={selectedGroup === item.key ? "true" : undefined} onClick={() => setSelectedGroup(item.key)}><span>{String(index + 1).padStart(2, "0")}</span>{item.title}{requiredCount ? <b className={styles.requiredBadge}>필수 {requiredCount}</b> : <i aria-label={done ? "확인 완료" : "확인 필요"}>{done ? "✓" : "·"}</i>}</button>;
       })}</nav>
       <div className={styles.questionBody}><h3>{group.title}</h3><p className={styles.question}>{group.question}</p>
+        {groupChecks.length > 0 && <ul className={styles.requiredList} aria-label={`${group.title} 필수 질문`}>{groupChecks.map((item) => {
+          const resolved = item.status === "resolved";
+          return <li key={item.id} className={resolved ? styles.resolvedCheck : styles.requiredCheck}>
+            <div><span className={resolved ? styles.completedBadge : styles.requiredBadge}>{resolved ? "확인 완료" : "필수 질문"}</span><p>{item.title}</p><small>{formatClinicDate(visitDates.get(item.source_visit_id)!)} 기록에서 이어 확인</small></div>
+            {resolved ? <span className={styles.completedMark} aria-label="오늘 확인 완료">✓</span> : <button type="button" aria-label={`${item.title} 확인 완료`} disabled={busy || !!checkBusy} onClick={() => resolveCheck(item)}>{checkBusy === item.id ? "저장 중…" : "확인 완료"}</button>}
+          </li>;
+        })}</ul>}
         {groupDrafts.map(([key, answer]) => {
           const subitem = group.subitems.find((item) => item.key === answer.subitem_key);
           const previous = previousAnswers.find((item) => item.item_key === answer.item_key && item.subitem_key === answer.subitem_key) ?? (groupDrafts.length === 1 ? previousAnswers.find((item) => item.item_key === answer.item_key) : undefined);
@@ -136,11 +178,16 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
             <div className={styles.previous}><span>지난 기록 {previous ? `· ${formatClinicDate(visitDates.get(previous.visit_id)!)}` : "· 첫 기록·비교 기준 없음"}</span><p>{previous?.answer_text ?? "이전 답변이 없습니다. 오늘 답변을 새로 확인해 주세요."}</p></div>
             <div className={styles.changeButtons} aria-label={`${subitem?.label ?? group.title} 변화`}>{Object.entries(CHANGE_LABELS).map(([value, label]) => <button key={value} type="button" aria-pressed={answer.change === value} onClick={() => update(key, { change: answer.change === value ? null : value as AnswerDraft["change"] })}>{label}</button>)}</div>
             <label className={styles.inputLabel}>오늘 상세 답변<textarea rows={3} placeholder="환자의 표현과 확인한 내용을 기록해 주세요." value={answer.answer_text ?? ""} onChange={(event) => update(key, { answer_text: event.target.value })} /></label>
-            <div className={styles.selectRow}><label>확인 상태<select value={answer.confirmation_status} onChange={(event) => update(key, { confirmation_status: event.target.value as AnswerDraft["confirmation_status"] })}>{Object.entries(CONFIRMATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>해당 여부<select value={answer.applicability} onChange={(event) => update(key, { applicability: event.target.value as AnswerDraft["applicability"] })}><option value="unknown">아직 확인 안 됨</option><option value="applicable">해당함</option><option value="not_applicable">해당 없음</option></select></label></div>
+            <div className={styles.selectRow}><label>확인 상태<AppSelect value={answer.confirmation_status} onChange={(event) => update(key, { confirmation_status: event.target.value as AnswerDraft["confirmation_status"] })}>{Object.entries(CONFIRMATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AppSelect></label><label>해당 여부<AppSelect value={answer.applicability} onChange={(event) => update(key, { applicability: event.target.value as AnswerDraft["applicability"] })}><option value="unknown">아직 확인 안 됨</option><option value="applicable">해당함</option><option value="not_applicable">해당 없음</option></AppSelect></label></div>
           </fieldset>;
         })}
         {metricTemplates.filter((metric) => (group.key === "pain" && metric.instrument === "NRS") || (group.key === "function_daily" && metric.instrument === "APP_FUNCTION_DISCOMFORT") || (group.key === "bowel_urine" && metric.instrument === "FREQUENCY")).map(renderMetric)}
       </div>
     </div>
+    <footer className={styles.nextQuestions}>
+      <h3>다음 방문에 확인할 질문</h3>
+      {nextItems.length > 0 ? <ul>{nextItems.map((item) => <li key={item.id}><span>{QUESTION_GROUPS.find((group) => group.key === questionGroupKey(item.item_key))!.title}</span>{item.title}</li>)}</ul> : <p>오늘 남겨 두면 다음 방문의 필수 질문으로 표시됩니다.</p>}
+      {adding ? <form onSubmit={(event) => { event.preventDefault(); void addNextQuestion(); }}><label className={styles.inputLabel}>다음 방문에 확인할 내용<input value={nextTitle} onChange={(event) => setNextTitle(event.target.value)} placeholder={`${group.title}에서 이어 확인할 질문`} /></label><div><button type="button" className={styles.secondary} disabled={!!checkBusy} onClick={() => setAdding(false)}>취소</button><button type="submit" className={styles.primary} disabled={!nextTitle.trim() || busy || !!checkBusy}>{checkBusy === "new" ? "추가 중…" : "질문 추가"}</button></div></form> : <button type="button" className={styles.secondary} onClick={() => setAdding(true)}>＋ 다음 방문 질문 추가</button>}
+    </footer>
   </section>;
 }
