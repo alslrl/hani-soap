@@ -118,25 +118,33 @@
       "path": "implementation-plan.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 37509,
-      "sha256": "7f14aba001aa9a09573ba8cff3e1f73431b49e42fc6d3f1be61528b66b2d76c5",
+      "characters": 45502,
+      "sha256": "01999d3c09b01506a0707c9815357227e640681523bf4dafbd62252f260efcd2",
       "summary": "Detailed implementation draft and decisions from the current development discussion"
     },
     {
       "path": "reference/sigmachart/README.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 3672,
-      "sha256": "35617a4ce5c69b56575eaaf327b3a3cd6dca0ec5f90afe9d8cab7b2e14d82636",
+      "characters": 4280,
+      "sha256": "58740086c95b678146e8485d7868d69ee51d70eb101fee01ee107330e0a16568",
       "summary": "Observed official SigmaChart screens and proposed HaniSOAP UI layout"
     },
     {
       "path": "reference/재진_질문_및_경과_기록.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 5099,
-      "sha256": "500533c3e67c46f842eb85e7ed76e366d4bea13e6c6cb0ddec1dc8b96459152a",
+      "characters": 5414,
+      "sha256": "64cd467a01587c1204f292a6b8664c04e01ac056e7b4a8b3c9d9c4f0d18c96d2",
       "summary": "Twelve follow-up questions, change options and detailed answers, separate symptom and activity progress charts"
+    },
+    {
+      "path": "presentation-plan.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 3119,
+      "sha256": "737f73ba950a5dfcf3b44884a8b59abc597bde9428bf2212bdde6e34eae821fd",
+      "summary": "Preliminary and final presentation outlines with Codex usage and validation evidence"
     }
   ],
   "reference_collections": [
