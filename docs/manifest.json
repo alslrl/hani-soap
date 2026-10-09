@@ -118,16 +118,16 @@
       "path": "implementation-plan.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 46062,
-      "sha256": "12f1517c207bb5833d7aec908c901356b8c8bfc66ec8a0244fcb41bfe1313163",
+      "characters": 48766,
+      "sha256": "c79b184acca1d396daf87549b31284e95885b545b486f1791302c85d06157671",
       "summary": "Detailed implementation draft and decisions from the current development discussion"
     },
     {
       "path": "reference/sigmachart/README.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 4280,
-      "sha256": "58740086c95b678146e8485d7868d69ee51d70eb101fee01ee107330e0a16568",
+      "characters": 4386,
+      "sha256": "acdbcd75433262c323f41b39c88aedf70cd5b38b1d644f7d34768324a3f1ad66",
       "summary": "Observed official SigmaChart screens and proposed HaniSOAP UI layout"
     },
     {
@@ -166,6 +166,38 @@
       "updated_on_kst": "2026-10-09",
       "characters": 4636,
       "sha256": "c164fb9da851645e164e4c4136a70916ffa68f5e9591ffa2feabac2f72ccab99"
+    },
+    {
+      "path": "demo-assets.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "summary": "Generated fictional profile photos and conditional profile-generation workflow",
+      "characters": 1981,
+      "sha256": "17c527e29efd810b2fc860dbf62ba098db13eb197a37ff99ceab5acbfa58095e"
+    },
+    {
+      "path": "data-contract.md",
+      "status": "confirmed_contract",
+      "updated_on_kst": "2026-10-09",
+      "summary": "Storage contract v1 and validated two-patient demo schema",
+      "characters": 4077,
+      "sha256": "6c0228d91544cd9019ab7ed32ae308c0263d47501e604b4b4024da60b26aeaab"
+    },
+    {
+      "path": "deployment-access.md",
+      "status": "planned",
+      "updated_on_kst": "2026-10-09",
+      "summary": "Vercel deployment and server-enforced four-digit PIN access",
+      "characters": 2782,
+      "sha256": "15d24fe7228846d21ea3f2fa6430203a8c0e808ed8fa3a4fb73613ea1a4303e4"
+    },
+    {
+      "path": "reference/sigmachart/workflow.md",
+      "status": "reviewed_reference",
+      "updated_on_kst": "2026-10-09",
+      "summary": "Observed official reception, charting and payment state transitions",
+      "characters": 1419,
+      "sha256": "98c51a3dd4631a00aa20889436e4d568a420b665c34fe3a2fccff2a854f6e1ed"
     }
   ],
   "reference_collections": [
@@ -175,6 +207,42 @@
       "image_count": 4,
       "analysis_path": "reference/sigmachart/README.md",
       "provided_five_screenshots_status": "not_located"
+    }
+  ],
+  "generated_asset_collections": [
+    {
+      "path": "../data/demo/portrait-assets.json",
+      "kind": "synthetic_demo_portraits",
+      "image_count": 2,
+      "profile_binding_status": "bound_to_validated_demo_seed"
+    }
+  ],
+  "demo_data_snapshots": [
+    {
+      "schema_path": "../data/demo/demo.schema.json",
+      "seed_path": "../data/demo/patients.seed.json",
+      "schema_version": "1.0.0",
+      "seed_sha256": "788135055a621aea3ffd0d19b2bc34ca36957026f584a6f694480ecff0cb8ac5",
+      "counts": {
+        "patients": 2,
+        "visits": 6,
+        "transcripts": 0,
+        "soap_documents": 4,
+        "treatments": 3,
+        "followup_answers": 76,
+        "observations": 4,
+        "followup_items": 10,
+        "medication_courses": 2,
+        "care_messages": 6,
+        "care_responses": 3,
+        "contact_tasks": 1,
+        "scenario_inputs": 2
+      },
+      "validated_on_kst": "2026-10-09",
+      "validator_path": "../scripts/validate_demo_data.py",
+      "negative_and_boundary_checks": 30,
+      "database_import_status": "not_run",
+      "schema_sha256": "9b7a6846d26721a6d5481383f8f684affafee07239844addd1c86c4b0cbdf654"
     }
   ]
 }

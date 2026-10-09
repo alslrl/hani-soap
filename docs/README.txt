@@ -86,3 +86,13 @@ HaniSOAP 문서 및 데모 자료
 - reference/sigmachart/images/: 공식 홈페이지 공개 PNG 원본 4장, 이미지 내용 미수정
 - reference/sigmachart/source-manifest.json: 원본 URL·파일명·크기·SHA-256·확인 범위
   연화가 별도로 참고한 화면 5장은 원본 파일을 찾지 못했으며 동일 자료로 간주하지 않습니다.
+
+[저장 형식과 배포 결정]
+- data-contract.md: 저장 계약 v1과 방문·기록 상태, 두 환자 seed의 데이터 형식
+- ../data/demo/demo.schema.json: 엄격한 JSON Schema. 유침시간·약침 약제·용량 입력 제외
+- deployment-access.md: Vercel 배포, 4자리 PIN 세션, 서버 API 보호, Workflow 실행
+- reference/sigmachart/workflow.md: 공식 접수·차팅·수납 동작에서 확인한 상태 전환
+- demo-assets.md, ../data/demo/portrait-assets.json: 합성 환자 사진 2장과 생성 기록
+- ../data/demo/patients.seed.json: 가상 환자 2명·6방문·안내·응답·연락 상태의 검증된 seed
+- ../scripts/validate_demo_data.py, requirements-demo.txt: 스키마·관계·상태·사진 무결성 검증
+  파일 생성·검증과 실제 DB 주입·API 실행·Vercel 배포 완료는 구분합니다.

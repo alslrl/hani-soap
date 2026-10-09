@@ -18,6 +18,10 @@ PC 화면 배치 결정: 사용자 제공 시그마차트 차팅 화면을 기�
 
 고객 케어 화면 결정: 연락 필요·안내 발송 검토·복약 관리로 분류하고, 왼쪽 환자 목록·중앙 진료와 안내·응답 이력·오른쪽 안내 검토와 연락 처리의 기본 배치를 사용한다. 진료실의 선택 환자 요약과 별도로 전체 환자의 후속 관리 업무를 처리한다.
 
+오늘 환자 현황과 데모 준비 결정: 첫 화면은 상태별 환자 목록에서 환자를 선택해 해당 진료실로 들어가는 구조로 한다. 가상 환자 프로필·방문·관리 데이터는 저장 스키마 확정 후 서브 에이전트가 생성한다. 프로필 사진은 증명사진 스타일의 합성 이미지로 준비하고 실제 인물 사진을 사용하지 않는다.
+
+배포·접근·범위 추가 결정: Vercel에 배포하고 계정 로그인 없이 4자리 PIN 세션으로 접근한다. 데모 환자는 기존 사례의 두 명으로 한다. 유침시간과 약침 약제·농도·용량 입력은 제외한다. 저장 형식은 [저장 계약 v1](data-contract.md)과 [데모 JSON Schema](../data/demo/demo.schema.json)를 기준으로 한다.
+
 진료 녹음과 치료실 기록을 한 방문에 모으고, 한의사가 검토한 기록을 환자 안내와 다음 재진으로 연결한다. 기존 기획서의 P0, P1, P2 순서를 따른다. P0의 핵심 순환을 실제 데이터로 완성한 뒤 아이패드와 실시간 기능을 붙인다.
 
 ## 1 확정 사항과 구현 기본안
@@ -26,7 +30,7 @@ PC 화면 배치 결정: 사용자 제공 시그마차트 차팅 화면을 기�
 | --- | --- |
 | 사용 기기 | 진료실 PC와 아이패드 모두 브라우저 웹앱 |
 | 애플리케이션 | 하나의 Next.js 프로젝트, TypeScript, App Router와 Route Handlers |
-| 데이터 | Supabase Postgres, Storage, Realtime |
+| 데이터 | Supabase Postgres·비공개 Storage. PIN 보호 API를 통한 기기 동기화 |
 | 음성 입력 | 진료실 PC에서 외장 또는 선택한 마이크로 한 번 수음. 아이패드에서 별도로 녹음하지 않음 |
 | 파일 입력 | 진료실 화면에서 별도 음성 파일 업로드 지원. 마이크 없이 일반 데모 실행 |
 | 음성 처리 | 녹음 시작 한 번으로 같은 입력의 전체 녹음 저장과 실시간 전사를 함께 실행. 종료 후 저장 파일을 정밀 전사 |
@@ -36,11 +40,12 @@ PC 화면 배치 결정: 사용자 제공 시그마차트 차팅 화면을 기�
 | P0 메시지 | 알림톡 형식 미리보기와 모의 응답으로 전체 순환 완성 |
 | P1 메시지 | 카카오 나에게 보내기로 발표자 본인에게 발송하는 데모 |
 | EMR | P2에서 복사와 시그마차트 모의 전송 |
-| 실행 환경 | 선택 대기. 기본안은 맥북의 Node.js 앱과 워커, 아이패드는 HTTPS 주소로 접속 |
+| 실행 환경 | Vercel 배포의 HTTPS 주소. AI 작업은 Vercel Workflow |
+| 접근 | 계정 가입·로그인 없이 4자리 PIN. 서버 API까지 세션 검사 |
 | 외부 서버 조건 | 사용자가 현장에 별도 제한이 없었다고 확인 |
 | 발표 산출물 | 예선 4분·본선 10분 PDF를 추후 별도 제작. 이 계획에서는 개발만 다룸 |
 
-하나의 진료실과 사전에 등록한 의료진 계정으로 시작한다. 기관 구분 필드는 처음부터 두되 기관 가입, 요금제, 복잡한 관리자 기능은 후속 범위로 둔다.
+하나의 데모 진료실과 PIN 세션으로 시작한다. 기관 구분 필드는 두되 사용자 계정·회원 가입·요금제는 이번 범위에 넣지 않는다. 승인·변경은 데모 세션과 시각으로 추적한다.
 
 ### 기능별 초기 모델 구성
 
@@ -82,17 +87,16 @@ flowchart TD
   INPUT --> LIVE[PC 실시간 전사 연결]
   PC[진료실 웹앱] --> API[Next.js API]
   TAB[아이패드 웹앱] --> API
-  PC --> AUTH[Supabase Auth]
-  TAB --> AUTH
+  PC --> ACCESS[서버 PIN 세션]
+  TAB --> ACCESS
   API --> DB[(Supabase Postgres)]
   REC --> STORE[비공개 Storage]
   TAB -->|펜 메모 파일| STORE
-  DB --> RT[Realtime 변경 알림]
-  RT --> PC
-  RT --> TAB
+  PC -->|1초 최신 버전 조회| API
+  TAB -->|1초 최신 버전 조회| API
   API --> JOB[AI 작업 등록]
   JOB --> DB
-  WORKER[Node.js 작업 워커] --> DB
+  WORKER[Vercel Workflow] --> DB
   WORKER --> STORE
   WORKER --> AI[전사와 LLM API]
   WORKER --> DB
@@ -102,27 +106,27 @@ flowchart TD
   API --> KAKAO[카카오 본인 발송]
 ```
 
-화면은 기록을 보여주고 입력을 받는다. API는 로그인·소속·방문 연결을 검증하고 변경을 저장한다. 워커는 오래 걸리는 전사와 LLM 작업을 수행한다. Realtime은 변경을 알리고, 각 화면은 권한이 있는 최신 데이터를 다시 읽는다.
+화면은 기록을 보여주고 입력을 받는다. API는 PIN 세션·기관 범위·방문 연결을 검증하고 변경을 저장한다. Vercel Workflow가 전사와 LLM 작업을 수행하며 각 화면은 보호된 API로 최신 버전을 읽는다.
 
-마이크 입력과 실시간 전사 연결의 소유자는 진료실 PC다. PC에서 감지한 시술 이벤트가 API·DB·Realtime을 거쳐 아이패드로 전달된다. 아이패드는 마이크 권한이나 별도 오디오 전송 없이 혈자리·좌우·펜 기록을 입력한다.
+마이크 입력과 실시간 전사 연결의 소유자는 진료실 PC다. PC에서 감지한 시술 이벤트가 API·DB와 최신 상태 조회를 거쳐 아이패드로 전달된다. 아이패드는 마이크 권한이나 별도 오디오 전송 없이 혈자리·좌우·펜 기록을 입력한다.
 
 ### 3.1 코드와 라이브러리 기본안
 
 - Next.js와 React, TypeScript를 사용한다. 버전은 착수 시 호환 조합을 확인해 고정하고 lockfile을 커밋한다.
-- Supabase 공식 클라이언트와 Next.js SSR 인증 도구를 사용한다.
+- Supabase 공식 서버 클라이언트를 사용한다. 앱 접근은 PIN 세션으로 관리하며 Supabase Auth 계정은 만들지 않는다.
 - 화면과 API가 공유하는 데이터 형식은 Zod 등 하나의 스키마 정의로 검증한다.
-- OpenAI 공식 JavaScript SDK를 서버·워커에서 호출한다. 모델 호출부를 기능별 모듈로 감싸 교체 범위를 제한한다.
+- 전사·LLM 호출은 서버·Workflow step에서 수행한다. 전사 전용 기능은 해당 API를 사용하고 배포 시 지원되는 provider 설정을 검증한다. 모델 호출부를 기능별 모듈로 감싸 교체 범위를 제한한다.
 - 스타일은 CSS 변수와 Tailwind 계열 유틸리티로 구성한다. 색·간격·타이포그래피를 토큰으로 관리한다.
 - 첫 화면 데이터는 서버에서 읽고, 편집·진행 상태·기기 동기화가 필요한 부분만 클라이언트 상태로 관리한다.
 - 서버 데이터와 미저장 편집값을 구분한다. 화면마다 전역 환자 상태를 복사해 별도 진실로 만들지 않는다.
 
 ### 3.2 앱 실행 방식
 
-기본안은 맥북에서 Next.js Node.js 서버와 작업 워커를 함께 실행하고, 아이패드는 HTTPS 터널 주소로 접속하는 것이다. Supabase와 AI API는 외부 서비스를 사용한다. Next.js는 Node.js 서버로 실행할 수 있다. [Next.js Self Hosting](https://nextjs.org/docs/app/guides/self-hosting)
+Next.js 앱과 API를 Vercel에 배포하고 PC·아이패드에서 같은 HTTPS 주소로 접속한다. 4자리 PIN 세션으로 화면과 API를 보호한다. 상세한 세션·요청 상한·DB 접근은 [배포와 접근 계약](deployment-access.md)을 따른다.
 
-브라우저 마이크 접근에는 HTTPS 또는 localhost 같은 보안 컨텍스트가 필요하다. 마이크 권한과 외장 마이크 입력은 PC에서 확인한다. 아이패드는 HTTPS 주소로 접속·로그인·동기화를 확인하며 마이크 권한을 요청하지 않는다. [MDN getUserMedia](https://developer.mozilla.org/en-US/docs/Web/API/MediaDevices/getUserMedia)
+PC에서 선택한 마이크를 한 번 열어 전체 녹음과 WebRTC 전사를 함께 처리한다. 아이패드는 녹음하지 않고 같은 방문의 상태·시술 후보를 보호된 API로 조회한다. 긴 파일은 Storage 직접 업로드를 사용한다.
 
-Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함께 정한다. 로컬 워커를 유지할 수도 있고 별도의 내구성 있는 작업 실행 수단으로 옮길 수도 있다. API 응답 뒤 임의의 비동기 함수를 계속 돌리는 것을 작업 보장으로 삼지 않는다. 호스팅 변경은 데이터·AI 기능 모듈을 바꾸지 않고 실행부에서 처리한다.
+로컬 상시 워커 대신 Vercel Workflow로 등록한 AI 작업을 실행한다. 문서 입력 버전·결과는 DB에 저장하고 사용자 승인 뒤의 단계는 새 작업으로 시작한다. [Vercel Workflows](https://vercel.com/docs/workflows)
 
 ## 4 화면과 사용자 흐름
 
@@ -147,7 +151,7 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 
 ### 4.2 아이패드 웹앱
 
-경로는 `/tablet/visits/[visitId]`로 둔다. 로그인 후 PC에서 선택한 방문의 QR 또는 연결 코드를 사용한다. 코드에는 방문 연결 정보만 넣고 권한을 대신하지 않는다. 다른 계정은 같은 진료실 소속인지 검증한다.
+경로는 `/tablet/visits/[visitId]`로 둔다. 같은 PIN으로 접근한 뒤 PC의 방문 QR 또는 연결 코드를 사용한다. 코드는 방문 연결만 돕고 권한을 대신하지 않는다. 서버가 PIN 세션과 고정 기관 범위·방문을 검증한다.
 
 화면에는 환자·방문 고정 헤더, PC 녹음·실시간 연결 상태, 시술 선택, 큰 앞·뒤 인체 캔버스, 메모 도구, 저장 상태를 둔다. 처음부터 모든 혈자리 점·이름·목록을 펼치지 않는다. 시술을 선택하고 부위에 체크 표시를 그릴 때 해당 영역의 후보 팝업을 연다. 녹음 시작 버튼과 마이크 권한 요청은 두지 않는다. PC가 다른 환자를 선택하더라도 아이패드의 방문을 자동 전환하지 않는다. 새 방문 연결을 명시적으로 선택한다.
 
@@ -181,7 +185,7 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 
 중앙 차팅 영역에 가장 넓은 공간을 배정한다. 좌우 패널의 정확한 폭, 전사 대조를 여는 방식, 좁은 화면에서의 접기·스크롤, 버튼 세부 배치는 다음 와이어프레임에서 결정한다. 고정한 환자·방문과 녹음 상태는 작업 중 계속 확인할 수 있게 한다.
 
-시술 입력은 시술 종류, 세부 기법, 부위·혈자리, 좌우, 도구·약제·수량·시간을 구분한다. 정중선·좌우 해당 없음과 투자법의 시작·도달 혈자리도 표현할 수 있는 구조를 검토한다. 실제 초기 필수 항목은 [시술 차팅 목록](reference/한방_시술_차팅_목록.md)에서 연화와 선별한다.
+초기 시술 입력은 종류·기법 후보·부위·혈자리·좌우로 제한한다. 일반 침·도침·약침은 실시간 전사에서 구분해 아이패드 후보로 보여주고 실제 입력은 의료진이 확인한다. 유침시간과 약침 약제·농도·용량은 제외한다. 전체 [시술 차팅 목록](reference/한방_시술_차팅_목록.md)은 확장 참고로 유지한다.
 
 오늘 현황과 환자 한 명의 진료 작업은 분리하고 같은 환자 선택·상태 표현을 유지한다. 아이패드에는 같은 명칭을 쓰되 부위 확대와 큰 목록을 적용한다. PC 주요 영역 배치는 확정했으며 전체 계획의 나머지 UI와 세부 상호작용은 초안 상태다. 실제 화면 구현은 아직 수행하지 않았다.
 
@@ -202,9 +206,23 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 
 환자 선택과 작업 중인 안내문을 함께 고정해 다른 환자로 바꿀 때 미저장 내용을 보호한다. 이미 정한 승인 문안 고정, 불편 응답 즉시 연락 작업 생성, 중복 응답 처리 규칙은 같은 화면에 적용한다.
 
+### 4.6 확정한 오늘 환자 현황
+
+첫 화면은 오늘 환자를 상태별 목록으로 나눠 보여주고, 환자를 선택하면 해당 방문의 진료실로 연결한다. 진료 상태의 세부 명칭과 DB 값은 저장 스키마 단계에서 맞춘다. 선택만으로 새 방문을 중복 생성하지 않고 명시적인 진료 시작 동작을 구분한다.
+
+환자 목록에는 프로필 사진·가상 이름·주소증 요약·진료 상태를 표시한다. 연락 필요는 진료 단계와 별도의 상태로 표시하고 고객 케어 화면으로 연결한다. 상세 화면에서도 같은 환자 사진과 식별 정보를 사용한다. 사진이 없는 경우에도 이니셜 등 기본 표시로 환자를 선택할 수 있게 한다.
+
+방문 상태는 대기(waiting) → 진료 중(in_progress) → 진료 완료(completed)로 정한다. 환자 선택은 조회이며 첫 녹음·파일 처리 또는 진료 시작에서 진료 중으로 전환한다. 오늘 진료 마침은 의료진의 명시적 동작이다. 녹음 종료·SOAP 승인은 방문 완료와 분리한다. [시그마차트 공식 흐름 확인](reference/sigmachart/workflow.md)과 [저장 계약](data-contract.md)을 기준으로 한다.
+
+### 4.7 데모 환자 사진
+
+현재 성인·소아 시나리오에 사용할 증명사진 스타일의 합성 사진 2장을 준비했다. 파일은 `public/demo/portraits/`에 두고 [사진 준비 문서](demo-assets.md)와 [생성 기록](../data/demo/portrait-assets.json)에 프롬프트·크기·해시를 저장했다. 이 단계에서는 사진 자산만 준비하고 환자 ID·인적 정보와 연결하지 않는다.
+
 ## 5 데이터 설계
 
 ### 5.1 공통 규칙
+
+실제 저장 형식은 [저장 계약 v1](data-contract.md)과 [데모 JSON Schema](../data/demo/demo.schema.json)를 정본으로 한다. 아래 표는 서버 전용·런타임 데이터까지 포함한 개념 요약이며 seed와 DB의 매핑은 계약 문서에 정의한다.
 
 - 사용자 데이터는 `clinic_id`를 가진다. 환자·방문·파일·생성 결과가 같은 기관에 속하는지 서버와 DB 제약으로 확인한다.
 - 시간은 UTC `timestamptz`로 저장하고 날짜 표시와 예정일 계산은 `Asia/Seoul` 기준으로 한다.
@@ -218,10 +236,11 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 | 테이블 | 핵심 필드 | 역할 |
 | --- | --- | --- |
 | `clinics` | id, name, timezone | 한의원 설정 |
-| `clinic_members` | clinic_id, user_id, role | 계정과 기관 소속. 계정당 기관 소속을 서버가 확인 |
-| `patients` | id, clinic_id, display_name, demographic_summary, chief_complaint, is_demo | 환자 기본 정보. 데모는 가명·가상 정보 사용 |
-| `visits` | id, clinic_id, patient_id, visited_at, status, version, approved_soap_id | 방문의 중심 레코드 |
-| `audio_sessions` | id, clinic_id, visit_id, owner_user_id, owner_device_id, capture_state, recording_state, realtime_state, started_at, ended_at, heartbeat_at | PC의 단일 수음 세션과 두 처리 경로의 상태 |
+| `demo_sessions` | id, token_hash, expires_at, revoked_at | PIN 통과 세션. 서버 전용 |
+| `demo_access_attempts` | scope_key, window_start, failure_count | PIN 실패·AI 작업 상한의 공유 카운터. 서버 전용 |
+| `patients` | id, clinic_id, display_name, sex, birth_date, chief_complaint, guardian, portrait_asset_key, is_demo | 환자 기본 정보. 데모는 가명·가상 정보와 합성 프로필 사진 사용 |
+| `visits` | id, clinic_id, patient_id, scheduled_at, started_at, completed_at, workflow_status, record_status, version, approved_soap_id | 방문 상태와 기록 상태를 분리한 중심 레코드 |
+| `audio_sessions` | id, clinic_id, visit_id, owner_session_id, owner_device_id, capture_state, recording_state, realtime_state, started_at, ended_at, heartbeat_at | PC의 단일 수음 세션과 두 처리 경로의 상태 |
 | `recordings` | id, clinic_id, visit_id, audio_session_id, source, object_path, mime, bytes, duration, checksum, status | PC 녹음·직접 파일 업로드와 처리 상태. 파일 업로드만 한 경우 audio_session_id는 null |
 | `transcripts` | id, clinic_id, visit_id, recording_id, parent_id, revision, kind, text, model_id | 원문·보정·검토 전사 버전 |
 | `transcript_segments` | id, transcript_id, ordinal, text, start_offset, end_offset, speaker, speaker_status, start_ms, end_ms | 근거 구간. 모델이 주지 않은 시간은 null |
@@ -233,7 +252,7 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 | `care_messages` | id, clinic_id, patient_id, visit_id, stage, scheduled_at, revision, draft_body, approved_body, approved_hash, status, channel | 안내와 시점별 확인 메시지 |
 | `care_responses` | id, clinic_id, message_id, option, detail, source, received_at, event_key | 모의·카카오 링크 응답 |
 | `contact_tasks` | id, clinic_id, patient_id, response_id, reason, status, resolution_note, closed_by, closed_at | 오늘 연락 필요, 연락 처리 내용과 완료 |
-| `ai_jobs` | id, clinic_id, visit_id, kind, input_refs, input_hash, status, attempts, lease_until, output_ref, error_code | AI 단계별 작업과 복구 |
+| `ai_jobs` | id, clinic_id, visit_id, kind, input_refs, input_hash, status, attempts, workflow_run_id, output_ref, error_code | Workflow 작업과 앱 입력·결과 버전 연결 |
 
 `visit_documents.kind`는 `analysis`, `soap`, `briefing`으로 구분하고 P2에서 `handwriting`을 추가한다. 손글씨 결과에는 원본 annotation ID·revision, 범위·시술 종류, 추출 텍스트, 판독 불가 구간과 검토 상태를 저장한다. 독립 테이블을 과도하게 늘리지 않고 버전과 입력 참조를 공통 관리한다. 안내는 승인 문안·발송 상태가 중요하므로 별도 테이블로 둔다.
 
@@ -254,7 +273,7 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 ### 5.4 제약과 인덱스
 
 - 환자 참조와 방문 참조에 기관을 포함한 복합 FK 또는 동등한 DB 검증을 둔다. 부모와 다른 `clinic_id`의 자식 행을 거절한다.
-- `visits(patient_id, visited_at)`, `recordings(visit_id)`, `transcripts(visit_id, revision)`, `visit_documents(visit_id, kind, revision)`을 인덱싱한다.
+- `visits(patient_id, scheduled_at)`, `recordings(visit_id)`, `transcripts(visit_id, revision)`, `visit_documents(visit_id, kind, revision)`을 인덱싱한다.
 - `observations(patient_id, series_key, visit_id)`, `followup_answers(patient_id, item_key, subitem_key, visit_id)`, `followup_items(patient_id, status)`, `contact_tasks(clinic_id, status)`을 인덱싱한다.
 - NRS는 0~10 범위를 검사한다. 점수 저장의 중복 판정은 같은 방문·같은 series_key의 활성 승인값을 기준으로 설계한다. 같은 방문의 다른 통증 부위나 계단·걷기 점수가 서로 덮어쓰이지 않게 한다.
 - 재진 답변은 같은 방문·질문·세부 항목의 활성 버전을 하나로 관리하고 수정 이력을 보존한다. 이전 방문의 답변은 덮어쓰지 않는다.
@@ -263,13 +282,13 @@ Vercel을 선택하면 웹앱과 API를 배포하고 워커 실행 위치도 함
 - 시술 저장은 항목 ID와 버전으로 갱신하며 체크 해제·재선택으로 같은 기록을 중복 추가하지 않는다.
 - Foreign Key에는 필요한 조회 인덱스를 별도로 둔다. [PostgreSQL Foreign Keys](https://www.postgresql.org/docs/current/ddl-constraints.html#DDL-CONSTRAINTS-FK)
 
-### 5.5 인증과 저장소
+### 5.5 PIN 접근과 저장소
 
-Supabase Auth로 미리 등록한 팀원 계정을 사용한다. 공개 회원 가입 화면은 만들지 않는다. API는 서버에서 사용자 신원을 검증하고 `clinic_members`로 소속을 확인한다. 사용자 수정 가능 메타데이터를 권한 판단에 쓰지 않는다.
+별도 계정·로그인은 만들지 않고 4자리 PIN을 서버에서 검증한다. 성공한 세션은 HttpOnly·Secure 쿠키와 서버 세션 레코드로 관리한다. PIN 실패와 AI 요청 상한은 서버 인스턴스 간 공유되는 DB 카운터로 검사한다. 화면뿐 아니라 각 API에서 세션과 대상 방문을 확인한다.
 
-노출 스키마의 사용자 데이터 테이블에는 RLS를 적용한다. 단순히 로그인 여부만 검사하지 않고 기관 소속으로 행 접근을 제한한다. UPDATE에는 기존 행 조건과 변경 후 조건을 함께 둔다. Realtime에도 같은 읽기 권한을 적용한다. [Supabase RLS](https://supabase.com/docs/guides/database/postgres/row-level-security)
+Supabase는 서버 전용 secret으로 접근한다. 애플리케이션 테이블에 RLS를 켜고 anon·authenticated의 직접 접근 권한을 주지 않는다. 서버의 privileged 접근 전에는 PIN 세션·고정 clinic_id·환자·방문을 검증한다. [Supabase API 보호](https://supabase.com/docs/guides/api/securing-your-api)
 
-녹음과 메모 파일은 private bucket에 저장한다. 경로는 `clinic_id/visit_id/recording_id`처럼 구성하고 소속을 검사한다. 조회는 인증 다운로드 또는 짧게 유효한 signed URL을 사용한다. 서버 secret key는 워커·관리 작업에만 두고 브라우저에는 publishable key와 사용자 인증만 전달한다. [Supabase Private Buckets](https://supabase.com/docs/guides/storage/buckets/fundamentals)
+녹음과 메모는 private bucket에 저장한다. 브라우저에는 지정 경로의 제한된 업로드 권한과 필요한 파일의 짧은 signed URL만 전달한다. OpenAI·Supabase secret은 서버와 Workflow step에만 둔다. [세부 접근 계약](deployment-access.md)
 
 ## 6 음성 입력과 파일 업로드
 
@@ -299,7 +318,7 @@ PC 녹음 종료 후의 파일과 직접 업로드한 파일은 같은 저장·�
 2. `getUserMedia`를 한 번 호출해 마이크 입력을 얻는다. 같은 입력을 입력 레벨 표시, 전체 녹음, 실시간 전사에 공유한다.
 3. 전체 녹음을 바로 시작하고 같은 시작 동작에서 실시간 세션도 연결한다. 두 경로의 준비·실행 상태를 따로 표시한다. 실제 연결이 완료되기 전부터 실시간 처리가 됐다고 표시하거나 시작 시각을 소급하지 않는다.
 4. 전체 녹음 청크는 PC의 IndexedDB에 순서·방문·수음 세션·녹음 ID와 함께 보관한다. 실시간 경로는 같은 오디오를 스트리밍하고 감지 결과를 같은 수음 세션에 연결한다.
-5. PC가 감지한 시술 이벤트를 저장하면 아이패드는 Realtime으로 받아 표시한다. 아이패드에서 별도 수음하지 않는다.
+5. PC가 감지한 시술 이벤트를 저장하면 아이패드는 보호된 상태 API의 최신 조회로 표시한다. 아이패드에서 별도 수음하지 않는다.
 6. 녹음 종료 한 번으로 신규 입력을 끝내고, 실시간 전사의 남은 turn을 마무리하며, 전체 녹음의 마지막 청크까지 수집한다. 각 경로의 flush·완료 이벤트를 처리한 뒤 공용 마이크 자원을 해제한다.
 7. 전체 파일을 Storage에 올리고 종료 후 정밀 전사·사전 보정·SOAP 흐름을 실행한다. 업로드 완료까지 PC의 로컬 청크를 유지한다.
 
@@ -397,7 +416,7 @@ LLM 응답의 자신감 점수만으로 자동 교정을 결정하지 않는다.
 | 안내 초안 | 승인 SOAP, 승인한 안내 항목 | 환자용 문안 | 승인 SOAP·안내 조건 변경 |
 | 재진 브리핑 | 이전 승인 기록, 선택한 확인 항목, 환자 응답, NRS | 오늘 확인할 것과 과거 요약 | 해당 출처 변경 |
 
-브리핑의 확인 항목·응답·NRS는 DB에서 결정적으로 구성한다. 긴 과거 기록의 요약만 필요할 때 LLM을 사용한다. 화면을 열거나 Realtime 이벤트가 올 때마다 전체 AI 파이프라인을 다시 호출하지 않는다.
+브리핑의 확인 항목·응답·NRS는 DB에서 결정적으로 구성한다. 긴 과거 기록의 요약만 필요할 때 LLM을 사용한다. 화면을 열거나 동기화 응답이 올 때마다 전체 AI 파이프라인을 다시 호출하지 않는다.
 
 텍스트 모델은 `gpt-6.1-sol`로 통일한다. 용어 보정과 환자용 안내문은 `reasoning.effort: low`, 진료 분석·SOAP·과거 기록 요약은 `reasoning.effort: medium`으로 호출하며 Structured Outputs로 결과를 받는다. 모델 ID와 추론 수준은 기능별 설정으로 분리한다. 정답이 검수된 영상 2와 재진 대본에서 용어·부정·수치·시점·근거 정확성, 지연과 비용을 검증한 뒤 필요하면 조정한다. Responses API 요청은 저장 설정을 명시하되 그 설정을 전체 무보관 보장으로 설명하지 않는다. [OpenAI 데이터 제어](https://developers.openai.com/api/docs/guides/your-data)
 
@@ -475,7 +494,7 @@ SOAP 승인 시 서버가 입력 전사·분석·시술 버전이 최신인지 �
 
 ### 10.2 시점별 확인
 
-복용 시작일이 확인된 환자에 대해 3일차, 1주차, 종료 3일 전 예정 메시지를 만든다. 복용 시작일과 처방 종료일을 방문일로 임의 대체하지 않는다. 날짜 계산 규칙은 KST로 통일하고 중복·겹치는 일정은 의료진이 검토한다.
+복용 시작일이 확인된 환자에 대해 3일차, 1주차, 종료 3일 전 예정 메시지를 만든다. day3는 시작일을 1일차로 센 +2일, week1은 시작 +7일, end_minus3는 확인한 종료 -3일로 계산한다. 복용 시작일과 처방 종료일을 방문일로 임의 대체하지 않는다. 날짜 계산은 KST로 통일하고 중복·겹치는 일정은 의료진이 검토한다.
 
 | 시점 | 선택지 | 응답 처리 |
 | --- | --- | --- |
@@ -493,7 +512,7 @@ P0에서는 예정일과 상태를 저장하고 데모 시간 이동 또는 담�
 
 ### 10.4 P1 카카오 본인 발송
 
-- 앱 로그인과 카카오 연결을 분리한다. 카카오 OAuth의 state, 등록 Redirect URI, 동의 범위와 토큰 갱신을 서버에서 관리한다.
+- 앱의 PIN 접근과 카카오 연결을 분리한다. 카카오 OAuth의 state, 등록 Redirect URI, 동의 범위와 토큰 갱신을 서버에서 관리한다.
 - 나에게 보내기는 로그인한 카카오 사용자 본인에게 보내는 데모다. 앱의 가상 환자 이름을 표시하더라도 실제 환자의 카카오 신원을 연결한 것으로 취급하지 않는다.
 - 앱에 등록한 HTTPS 도메인으로 메시지 링크를 구성하고 현재 API·템플릿 규격을 착수 시 확인한다.
 - 발송 문안은 승인 해시와 일치해야 한다. 앱 내부의 중복 호출은 막고, 외부 API 타임아웃으로 성공 여부가 불분명하면 unknown으로 남겨 자동 재발송하지 않는다.
@@ -516,7 +535,13 @@ km-agent 명칭 자료는 해당 저장소의 CC BY 4.0 조건에 맞춰 저자�
 
 연화는 제공한 발목 루틴의 정규 혈자리 16개와 아시혈을 데모 후보로 지정했다. [발목 데모 혈자리](reference/발목_데모_혈자리.md)를 따른다. 기존 로컬 AcuAtlas 좌표·그림은 이번 기본 후보가 아니며 몸 밖 점 문제로 사용 보류다. chino-meds의 실제 채택 파일·사용 조건·좌우·위치 검수는 별도로 확인한다.
 
-### 11.2 선택과 저장
+### 11.2 초기 시술 종류와 기법
+
+실시간 전사에서 일반 침은 acupuncture·standard_acupuncture, 도침은 acupuncture·needle_knife, 약침은 pharmacopuncture 후보로 구분한다. 긴 용어를 먼저 판별해 도침·약침을 일반 침으로 중복 감지하지 않는다. 감지된 종류·기법을 아이패드에 보여주되 입력 중인 탭을 임의 전환하지 않고 의료진이 오늘 시행을 확인한다.
+
+유침시간과 약침 약제·농도·용량 입력은 제외한다. 한약의 복약 안내 정보는 이 제외 범위와 별개로 유지한다. 현재 저장 필드는 [저장 계약 v1](data-contract.md)을 따른다.
+
+### 11.3 선택과 저장
 
 1. 시술 종류를 선택한다. 실시간 감지는 선택 후보를 띄우며 현재 입력 중인 시술을 자동 전환하지 않는다.
 2. 현재 시술의 부위 표시와 선택 결과만 보여준다. 다른 시술의 마킹·혈자리는 숨기고 처음에는 인체와 필요한 도구만 표시한다.
@@ -534,7 +559,7 @@ km-agent 명칭 자료는 해당 저장소의 CC BY 4.0 조건에 맞춰 저자�
 
 경혈 선택은 필수가 아니며 같은 시술에서 경혈과 아시혈·압통점을 함께 기록할 수 있다. 압통 관찰은 O의 소견, 실제 시행 확인은 P의 시술로 구분하고 위치를 연결한다. 아시혈에 가까운 경혈 코드를 자동 부여하지 않는다. 상세 요구사항은 [시술 위치 기록](reference/시술_위치_기록.md)을 따른다.
 
-### 11.3 체크 패턴 인식과 펜 좌표
+### 11.4 체크 패턴 인식과 펜 좌표
 
 원본 SVG의 viewBox와 좌표계를 검증하고 동일 기준으로 인체·혈자리·stroke를 저장한다. 기획서의 `0 0 200 580` 값은 실제 채택 SVG와 일치하는지 확인한다. 원본 점 좌표가 비율형인지 SVG 단위인지 구별해 한 번 변환하고 좌표 버전을 둔다.
 
@@ -550,7 +575,7 @@ Pointer Events의 `pointerType`으로 펜·손가락을 구분한다. 펜을 떼
 
 시술별 부위 표시와 시술 전용 필기는 해당 시술에 묶어 저장한다. 일반 메모는 오늘 방문의 공통 메모로 저장하고 필요할 때 시술을 연결한다. 인체에 연결된 좌표와 화면 전체 자유 필기의 좌표를 구별한다. 자유 필기는 필기 캔버스 크기·방향·원본 좌표를 함께 보존해 화면 크기 변경으로 위치가 뒤틀리지 않게 한다.
 
-### 11.4 화면 전체 메모와 텍스트 추출
+### 11.5 화면 전체 메모와 텍스트 추출
 
 인체 그림 안으로 필기 범위를 제한하지 않고 화면 전체를 필기 공간으로 쓴다. 기본 흐름에서는 부위 선택과 메모 사이의 모드 전환을 요구하지 않고, 인체 위에서 명확한 체크로 인식한 획만 선택 명령으로 태그를 붙인다. 동그라미를 포함한 나머지 획은 메모로 보존한다. 공통 메모와 시술 전용 메모의 연결 범위를 표시하며 시술 전환으로 메모를 다른 시술에 잘못 귀속시키지 않는다. 펜 필기와 손가락의 일반 버튼 조작을 실제 UI에서 구분한다.
 
@@ -568,7 +593,7 @@ Pointer Events의 `pointerType`으로 펜·손가락을 구분한다. 펜을 떼
 
 감지기는 침, 약침, 뜸, 부항, 추나와 검수한 표현을 다룬다. 단순 부분 문자열 포함 여부로 판정하지 않는다.
 
-PC의 확정 전사 turn에서 규칙을 실행한 뒤 감지 이벤트를 API에 보내고, DB·Realtime을 거쳐 같은 방문을 보는 PC와 아이패드에 표시한다. 이벤트에는 `audio_session_id`를 포함한다. 아이패드가 잠시 오프라인이었다가 돌아오면 최신 후보·확인한 시술을 다시 읽는다.
+PC의 확정 전사 turn에서 규칙을 실행한 뒤 감지 이벤트를 API에 보내고, DB에 저장하고 보호된 API의 최신 조회로 같은 방문의 PC·아이패드에 표시한다. 이벤트에는 `audio_session_id`를 포함한다. 아이패드가 잠시 오프라인이었다가 돌아오면 최신 후보·확인한 시술을 다시 읽는다.
 
 - 아침, 기침, 침대의 침을 제외한다.
 - 약침을 침과 중복 감지하지 않도록 더 긴 용어를 먼저 판별한다.
@@ -580,10 +605,12 @@ PC의 확정 전사 turn에서 규칙을 실행한 뒤 감지 이벤트를 API�
 
 ## 13 API 계약
 
-API 경로는 다음을 기본안으로 한다. 모든 의료진 API는 로그인·기관·방문 소속을 검증한다. 아래 경로는 아직 구현된 파일이 아니라 구현 시 생성할 계약이다.
+API 경로는 다음을 기본안으로 한다. 모든 의료진 API는 PIN 세션·기관 범위·방문 연결을 검증한다. 아래 경로는 아직 구현된 파일이 아니라 구현 시 생성할 계약이다.
 
 | 우선순위 | 메서드와 경로 | 역할 |
 | --- | --- | --- |
+| P0 | `POST /api/access/unlock` | PIN 검증·서버 세션 발급·실패 제한 |
+| P0 | `POST /api/access/logout` | 현재 PIN 세션 만료 |
 | P0 | `GET/POST /api/patients` | 환자 조회·등록 |
 | P0 | `GET /api/patients/[id]/history` | 방문·NRS·안내·응답 이력 |
 | P0 | `GET /api/patients/[id]/progress` | 별도 경과 화면의 항목별 점수 시리즈·척도·방문별 답변·근거 |
@@ -609,7 +636,7 @@ API 경로는 다음을 기본안으로 한다. 모든 의료진 API는 로그�
 | P0 | `GET /api/contact-tasks` | 기관의 연락 필요 목록 |
 | P0 | `GET/PATCH /api/contact-tasks/[id]` | 연락 작업 조회·완료. 목록은 별도 list query |
 | P1 | `POST /api/visits/[id]/device-links` | 만료가 있는 방문 연결 코드 생성 |
-| P1 | `POST /api/device-links/[code]/connect` | 로그인·기관 확인 후 해당 방문 연결 |
+| P1 | `POST /api/device-links/[code]/connect` | PIN 세션·기관 확인 후 해당 방문 연결 |
 | P1 | `GET/PUT /api/visits/[id]/treatments` | 시술 항목별 버전 검사·오늘 시행 확인 |
 | P1 | `GET/PUT /api/visits/[id]/annotations` | 방문·시술 범위, 부위 표시·자유 메모 목적, 좌표계를 구분해 펜 기록 버전 저장 |
 | P1 | `POST /api/visits/[id]/realtime-session` | 활성 수음 세션의 소유 PC에 제한된 실시간 전사 세션 생성 |
@@ -628,13 +655,11 @@ API 경로는 다음을 기본안으로 한다. 모든 의료진 API는 로그�
 
 ### 14.1 작업 상태
 
-`queued → running → succeeded`를 기본으로 하고 failed, canceled 상태를 둔다. 입력·대기·실행·완료 상태는 UI와 DB가 같은 뜻으로 사용한다.
+queued, running, succeeded, failed, canceled를 사용한다. PIN 세션과 요청 상한을 통과한 API가 입력 해시로 job을 등록하고 Vercel Workflow run ID를 연결한다. 같은 입력의 중복 요청은 기존 job을 반환한다.
 
-로컬 Node.js 워커는 DB의 작업을 원자적으로 선점하고 lease와 heartbeat를 갱신한다. 두 워커가 같은 작업을 동시에 실행하지 않도록 `FOR UPDATE SKIP LOCKED` 등 원자적인 claim을 사용한다. 이 관리 함수는 공개 API 호출 권한을 주지 않는다.
+Workflow step이 전사·보정·분석·생성을 실행하고 결과를 DB에 저장한다. 일시적 오류는 제한된 재시도와 backoff, 권한·형식·지원 파일 오류는 원인 해결 후 재요청으로 처리한다. 복구는 실행 플랫폼이 맡고 앱은 중복 결과 방지와 입력 최신성을 검사한다. [Vercel Workflows](https://vercel.com/docs/workflows)
 
-중단된 running 작업은 lease 만료 후 복구한다. 네트워크·429·일시적 서비스 오류는 제한된 횟수와 backoff로 재시도하고 형식 오류·지원하지 않는 파일·권한 오류는 원인을 해결한 뒤 다시 요청한다. 최초안은 최대 2회 재시도이며 실제 API 규격과 시간 예산으로 조정한다.
-
-각 단계 성공 결과는 한 번 저장하고 다음 단계의 입력 참조로 넘긴다. 작업 프로세스가 결과 저장 직후 중단돼도 동일 입력 해시의 재실행이 중복 문서를 만들지 않게 한다. 원격 모델 호출의 성공 여부가 모호하면 비용이 중복될 수 있으므로 앱 결과의 중복 방지와 외부 API의 정확히 한 번 실행을 구분한다.
+페이지 종료가 이미 등록한 작업을 다른 방문으로 옮기거나 결과를 삭제하지 않는다. 서버가 요청을 받았지만 run 등록에 실패한 경우 실패 상태와 재시도를 표시한다. API 응답 뒤 단순 비동기 함수를 실행하는 방식으로 작업 지속을 보장하지 않는다.
 
 ### 14.2 오래된 결과와 동시 편집
 
@@ -642,11 +667,11 @@ API 경로는 다음을 기본안으로 한다. 모든 의료진 API는 로그�
 
 PC의 SOAP 수정과 아이패드의 시술 입력은 서로 다른 레코드를 갱신한다. 전체 방문 객체를 마지막 저장으로 덮어쓰지 않는다. 같은 문서의 동시 편집은 revision을 검사하고 충돌 내용을 보여준다.
 
-### 14.3 Realtime과 재연결
+### 14.3 PIN 보호 기기 동기화와 재연결
 
-초기 소규모 데모는 RLS를 적용한 Postgres Changes로 시작한다. 더 큰 규모에서는 private Broadcast를 검토한다. 공식 문서도 두 방식을 구분하며 Postgres Changes는 설정이 단순한 방법으로 설명한다. [Supabase DB 변경 구독](https://supabase.com/docs/guides/realtime/subscribing-to-database-changes)
+초기 데모는 활성 화면이 PIN 보호 API를 1초 주기로 조회한다. 변경 버전이 같으면 가벼운 상태 응답만 받고, 시술 확정 직후에는 즉시 재조회한다. 백그라운드에서는 주기를 낮추고 돌아오거나 재연결될 때 최신 상태를 읽는다.
 
-방문별 구독은 화면 진입 때 만들고 이동 시 해제한다. 이벤트는 최신 상태 재조회 신호로 사용하고 이벤트 payload를 무조건 정답으로 덮어쓰지 않는다. 재연결 시 전체 최신 버전을 다시 읽는다. 연결이 끊기면 그 상태를 표시하고 현재 방문에 한해 제한적인 polling으로 보완한다.
+Supabase Auth 계정 없이 브라우저의 DB·Realtime 접근을 열지 않는다. 실제 음성의 실시간 스트리밍은 PC WebRTC 경로로 처리하며 기기 상태 조회 주기와 분리한다. 상세 실행 방식은 [배포와 접근 계약](deployment-access.md)을 따른다.
 
 ## 15 개발 순서와 단계별 완료 조건
 
@@ -654,9 +679,9 @@ PC의 SOAP 수정과 아이패드의 시술 입력은 서로 다른 레코드를
 
 | 순서 | 작업 | 산출물 | 통과 조건 |
 | --- | --- | --- | --- |
-| 0 | 기반 준비 | Next.js·TypeScript, 환경 변수 틀, Supabase 연결, 로그인, HTTPS 접속, 공통 데이터 형식 | PC·실제 아이패드 로그인, 서버 DB 읽기, PC 마이크 접근 확인 |
+| 0 | 기반 준비 | Next.js·TypeScript, Vercel 연결, PIN 보호, Supabase 서버 접근, 공통 데이터 형식 | 배포 주소의 PC·iPad PIN 접근, 미인증 API 차단, PC 마이크 확인 |
 | 1 | 환자와 방문 | 최소 스키마·RLS, 가상 환자 A·B, 방문 생성·이력, 고정 헤더 | 새로고침 유지, 다른 환자·기관 혼입 방지 |
-| 2 | PC 녹음·업로드와 작업 | PC 전체 녹음·로컬 복구, 수음 세션, Storage, AI 작업 워커, 진행·오류 UI | PC 외장 마이크 녹음과 MP3 업로드, 파일 전사 완료, 실패한 작업 재시도 |
+| 2 | PC 녹음·업로드와 작업 | PC 전체 녹음·로컬 복구, 수음 세션, Storage, Vercel Workflow 작업, 진행·오류 UI | PC 외장 마이크 녹음과 MP3 업로드, 파일 전사 완료, 실패한 작업 재시도 |
 | 3 | 사전과 전사 검토 | 사전 변환·후보 검색, LLM 보정, 교정 선택·수기 편집 | 보정 결과의 원문·후보 근거 확인, 원문 유지와 판단 불가 동작 |
 | 4 | 진료 분석과 SOAP | 사실·NRS·확인 목록, 근거 연결 SOAP, 편집·승인 | 오늘·과거 구분, 근거 검증, 승인한 문서 유지 |
 | 5 | 재진 브리핑 | 확인 항목 선택·해결, 전체 NRS 이력, 지난 응답 표시 | 수면 언급·답변 보류가 다음 방문에 연결 |
@@ -676,6 +701,8 @@ P1 작업이 P0를 막지 않도록 시술 데이터 입력 인터페이스는 4
 ## 16 가상 데이터와 검증 계획
 
 ### 16.1 고정 시나리오
+
+제공 사례의 예상 SOAP와 확인 수치·표현은 [연화 검수 자료](verification/데모_정답차팅_초안.md)를 우선한다. 시행 계획과 실제 시행, 야뇨와 화장실 방문, 재내원 간격과 처방 일수를 구분하며 최초 전사본은 보존한다.
 
 | 데이터 | 사용 목적 | 확인할 결과 |
 | --- | --- | --- |
@@ -707,7 +734,7 @@ P1 작업이 P0를 막지 않도록 시술 데이터 입력 인터페이스는 4
 
 | 범위 | 필수 사례 |
 | --- | --- |
-| 인증·권한 | 미로그인, 다른 기관의 환자·방문·파일 접근, RLS가 적용된 Realtime |
+| 접근·권한 | PIN 미통과·만료·실패 상한, 미인증 AI 요청 차단, 다른 기관·방문 접근, 브라우저 DB 직접 접근 거절 |
 | 업로드·녹음 | PC 외장 마이크 선택, 빈 파일, 지원하지 않는 형식, 용량 초과, 중단·재개, 새로고침 복구, 마이크 거부·분리 |
 | 별도 파일 데모 | 마이크 권한 없이 파일 선택·업로드·전사·보정·SOAP까지 실행, 여러 파일 구분, 기존 승인 결과 보존 |
 | 단일 수음과 분기 | 한 번의 getUserMedia, 단일 시작·종료, 이중 클릭·다중 탭 중복 방지, 실시간 단절에도 전체 파일 유지, 마지막 청크 보존, 아이패드 마이크 접근 없음 |
@@ -724,6 +751,14 @@ P1 작업이 P0를 막지 않도록 시술 데이터 입력 인터페이스는 4
 | 카카오 | OAuth state 불일치, 토큰 만료, 미리보기 GET, 만료 링크, 불명확한 발송 결과 |
 
 자동 테스트는 데이터 변환·사전 검색·시술 감지·날짜 계산·상태 전환·중복 방지에 집중한다. UI의 단순 텍스트 존재를 반복 검사하는 테스트보다 실제 DB 통합과 핵심 흐름의 브라우저 검증을 우선한다. Supabase 스키마는 advisor와 실제 권한 쿼리로 검증한다. 실제 iPad·카카오 수신은 브라우저 시뮬레이션과 별도로 확인한다.
+
+### 16.4 확정 저장 형식과 생성한 두 환자
+
+사용자가 저장 형식을 위임해 [저장 계약 v1](data-contract.md)과 [데모 JSON Schema](../data/demo/demo.schema.json)를 확정했다. 그 조건을 충족한 뒤 서브 에이전트로 [patients.seed.json](../data/demo/patients.seed.json)을 생성했다. 두 환자·6방문·4SOAP·76질문행·4측정·6안내·3응답·1연락 작업을 준비하고 합성 사진에 가상 patient ID를 연결했다.
+
+성인 A의 과거 NRS는 8→7→6이며 오늘 재진은 대기·빈 답변이다. 오늘 대본의 5점을 seed에 미리 넣지 않는다. A의 과거 3일차 메시지에 전날 저녁 늦게 불편 응답을 한 가상 설정으로 오늘 연락 필요를 보여준다. 소아 B의 야뇨 빈도는 통증 NRS와 분리하고 보호자 응답을 연결한다. 원본 사례와 합성 이력·응답은 origin으로 구분한다.
+
+JSON Schema와 UUID·기관·환자 관계, 시간 순서, 12개 질문 범주와 오늘 빈 값, 점수 시리즈, 승인 문안·모의 발송, 불편 응답 연락 작업, 사진 SHA를 검증했다. 30개 메모리 내 오류·경계 변형 검사도 통과했다. 실행 명령과 사진 자료는 [데모 준비 문서](demo-assets.md)에 정리했다. 실제 DB 주입·API 실행·앱 배포는 아직 수행하지 않았다.
 
 ## 17 구현 파일 구성 제안
 
@@ -763,7 +798,10 @@ src/
 scripts/
   import-terms.ts
   seed-demo.ts
-  worker.ts
+  validate_demo_data.py
+workflows/
+  process-recording.ts
+  generate-visit-documents.ts
   evaluate-transcription.ts
 supabase/
   migrations/             CLI로 생성한 migration만 사용
@@ -781,7 +819,7 @@ tests/
 
 사전 원본과 미공개 임상 자료는 별도의 비공개 위치를 사용한다. `.env.local`과 서버 토큰은 Git에서 제외한다. `.env.example`에는 변수 이름과 설명만 둔다. API 키·음성·전사를 로그에 출력하지 않고 작업 ID·오류 코드·시간·사용량을 남긴다.
 
-처음 사용할 환경 변수는 Supabase URL·publishable key, 서버 전용 secret key, OpenAI API key, 기능별 모델 ID, 앱 origin이다. P1에서 카카오 client ID·client secret·redirect URI·토큰 암호화 키·응답 서명 키를 추가한다. 실제 값은 채팅·문서·소스에 적지 않는다.
+처음 사용할 환경 변수는 Supabase URL·서버 전용 secret key, PIN 해시, OpenAI API key, 기능별 모델 ID, 앱 origin이다. P1에서 카카오 client ID·client secret·redirect URI·토큰 암호화 키·응답 서명 키를 추가한다. 실제 값은 채팅·문서·소스에 적지 않는다.
 
 ## 18 역할과 착수 전 확인 사항
 
@@ -794,8 +832,8 @@ tests/
 
 | 선택·확인 사항 | 기본안 또는 처리 시점 |
 | --- | --- |
-| 앱 실행 방식 | 맥북 Node.js 서버·워커와 HTTPS 접속. Vercel 선택 시 worker 실행부를 함께 결정 |
-| Supabase 프로젝트 | HaniSOAP용 전용 프로젝트와 최소 팀 계정. 실제 생성은 구현 착수 시 진행 |
+| 앱 실행 방식 | Vercel 배포 확정. PIN 보호·Workflow 실행·실제 기기 검증 |
+| Supabase 프로젝트 | HaniSOAP 전용 프로젝트, 서버 전용 접근, private Storage. 별도 사용자 계정 없음 |
 | AI 모델·접근 | 기능별 초기 모델·추론 수준 선정 완료. 환경 변수로 분리하고 실제 계정 접근·음성·필기 품질 검증 |
 | 화자 분리 경로 | 사후·업로드 전사는 gpt-4o-transcribe-diarize로 처리. 화자 역할 검토와 사전+LLM 보정 흐름 검증 |
 | 전문 용어 원출처 | data의 한자·원문·출처 기록과 정리 기준 확인. 배포 조건과 애매한 이명·숫자 구분은 검수 |
@@ -807,8 +845,8 @@ tests/
 
 첫 착수 범위는 0~1단계와 2단계의 업로드 뼈대다. 다음 결과를 한 번에 연결한다.
 
-1. Next.js·TypeScript 프로젝트, 공통 화면 토큰, 환경 변수 틀과 로그인.
-2. 기관·팀 계정·환자·방문·파일·AI 작업의 최소 스키마와 RLS.
+1. Next.js·TypeScript 프로젝트, 공통 화면 토큰, Vercel 배포 환경과 PIN 세션 보호.
+2. 데모 기관·PIN 세션·환자·방문·파일·AI 작업의 저장 계약과 RLS·서버 접근 권한.
 3. 가상 환자 A·B와 기존 방문·NRS 이력 조회.
 4. 오늘 방문 생성과 PC·아이패드의 동일 방문 연결.
 5. 파일 업로드와 작업 상태 표시. 실제 AI 처리는 다음 묶음에서 연결.
