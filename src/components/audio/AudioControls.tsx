@@ -118,7 +118,7 @@ export function AudioControls({ visitId, onChanged }: Props) {
     {(ownerHere && active || localWork || selectedWork) && <AudioProgress work={focusWork} local={localWork} audio={ownerHere && active ? audio : undefined} now={now} busy={busy || active || reviewDirty} onRetry={retry} onNewRecording={beginRecording} onPickFile={()=>input.current?.click()} />}
     {historyWorks.length>0 && <Disclosure className={styles.processingHistory}><summary>지난 음성 처리 {historyWorks.length}건</summary>{historyWorks.map(work=><div key={work.id} className={styles.historyRow}><div><strong>{sourceLabel(work)}</strong><p>{workTitle(work)}</p></div><button type="button" className={styles.button} disabled={active || busy || reviewDirty} onClick={()=>{setSelectedWorkId(work.id);setLocalWork(null);}}>진행·결과 보기</button></div>)}</Disclosure>}
     {reviewDirty && <p className={styles.notice}>전사에서 수정한 내용을 먼저 저장해 주세요. 편집 중에는 다른 녹음으로 전환하지 않습니다.</p>}
-    <p className={styles.notice}>텍스트 AI에는 등록된 이름·정형 식별정보를 가린 사본을 보냅니다. 음성 원본·실시간 음성은 가림 없이 OpenAI로 전송됩니다.</p>
+    <p className={styles.notice}>텍스트 AI에는 등록·자기소개 이름과 생년월일 문맥·정형 식별정보를 가린 사본을 보냅니다. 파일 전사는 음량 보정·메타데이터 제거 후 보내며, 발화 내용과 실시간 음성은 가리지 않습니다.</p>
     {latestJob && <TextPrivacyNotice audit={latestJob.result?.text_privacy}/>}
     {active && !ownerHere && <div className={styles.error}>다른 방문의 녹음이 진행 중입니다. 종료한 음성은 원래 방문에 저장됩니다.</div>}
     {active && <p className={styles.notice}>로컬 복구본: {({ ready: '준비 중', saved: '브라우저에 저장됨', failed: '저장 실패' })[audio.recoveryStatus]} · 아이패드는 별도로 녹음하지 않습니다.</p>}
@@ -188,6 +188,7 @@ export function TranscriptReview({ job, transcript, sourceTranscripts = [], revi
       </header>
       {edited && <p className={styles.notice}>편집·선택한 내용을 먼저 저장한 뒤 용어를 다시 검사해 주세요.</p>}
       {alignment?.warnings?.map((warning, index) => <p key={`alignment-${index}`} className={styles.reviewWarning}>{warning}</p>)}
+      {Array.isArray(job.result?.fact_coverage) && job.result.fact_coverage.some((f: { covered?: boolean }) => !f.covered) && <Disclosure className={styles.original}><summary>SOAP 반영을 확인할 원문</summary>{job.result.fact_coverage.filter((f: { covered?: boolean }) => !f.covered).map((f: { segment_id: string; quote: string; status: string }, i: number) => <p key={`${f.segment_id}-${i}`}>{f.status === 'speaker_review' ? '화자 확인 필요' : 'SOAP 누락 확인'}: {f.quote}</p>)}</Disclosure>}
       {typeof job.result?.speaker_role_note === 'string' && <p className={styles.notice}>{job.result.speaker_role_note}</p>}
       {typeof job.result?.correction_note === 'string' && <p className={styles.notice}>{job.result.correction_note}</p>}
       {Array.isArray(job.result?.warnings) && job.result.warnings.map((warning, index) => <p key={index} className={styles.reviewWarning}>검토할 내용: {String(warning)}</p>)}
@@ -221,6 +222,8 @@ export function TranscriptReview({ job, transcript, sourceTranscripts = [], revi
         <div className={styles.speakerList}>{roleTranscript.segments.length ? roleTranscript.segments.map((segment, index) => <article className={styles.speaker} key={segment.id}>
           <header><div><strong>{speakerRoleLabels[currentRole(segment)]}{segment.raw_speaker ? ` · ${segment.raw_speaker}` : ''}</strong><span>구간 {String(index + 1).padStart(2, '0')}</span>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><AppSelect className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={currentRole(segment)} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value as SpeakerRole }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></AppSelect>{(speakers[segment.id] !== null && (speakers[segment.id] !== undefined || segment.speaker_override !== undefined)) && <button type="button" className={styles.button} onClick={() => setSpeakers(current => ({ ...current, [segment.id]: null }))}>그룹 역할로 되돌리기</button>}</header>
           <p>{segment.text}</p>
+          {segment.timing_review && <p className={styles.notice}>원음 시간 구간이 겹치거나 불명확해 시간 표시를 보류했습니다.</p>}
+          {segment.alignment_method === 'audio_recheck' && <p className={styles.notice}>해당 시간대의 원음을 다시 전사해 복원한 응답입니다.</p>}
           {segment.alignment_status === 'review_needed' && <p className={styles.reviewWarning}>자동 화자 대응을 확인하지 못한 구간입니다. 원문을 확인하고 역할을 지정해 주세요.</p>}
           {segment.transcription_changed && segment.source_segment_ids?.length && diarizedSource && <Disclosure className={styles.original}><summary>두 전사의 표현 비교</summary><p>화자 구분용: {diarizedSource.segments.filter(item => segment.source_segment_ids?.includes(item.id)).map(item => item.text).join(' ')}</p><p>현재 본문: {segment.text}</p></Disclosure>}
         </article>) : <p className={styles.empty}>화자별 구간이 없는 전사입니다. 전사 편집에서 전체 내용을 확인해 주세요.</p>}</div>

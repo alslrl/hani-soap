@@ -36,14 +36,15 @@ export async function transcribeAudio(blob: Blob, filename: string) {
 }
 
 
-export async function transcribeContentAudio(blob: Blob, filename: string) {
+export async function transcribeContentAudio(blob: Blob, filename: string, shortRecheck = false) {
   const form = new FormData();
   form.set('file', blob, privateAudioFilename(filename));
   form.set('model', AI_MODELS.transcription);
   form.append('languages[]', 'ko');
+  form.set('prompt', '한국어 진료 대화입니다. 짧은 응답과 반복 발화도 실제로 들리는 대로 전사합니다. 한의학 용어, 숫자, 단위, 좌우, 부정 표현을 보존합니다.');
   const response = await fetch('https://api.openai.com/v1/audio/transcriptions', {
     method: 'POST', headers: { Authorization: `Bearer ${getApiKey()}` }, body: form,
-    signal: AbortSignal.timeout(240_000),
+    signal: AbortSignal.timeout(shortRecheck ? 30_000 : 240_000),
   });
   if (!response.ok) {
     const temporary = response.status === 429 || response.status >= 500;

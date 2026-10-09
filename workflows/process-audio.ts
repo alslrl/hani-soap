@@ -1,15 +1,19 @@
 import { FatalError, RetryableError } from 'workflow';
-import { transcribeStep, correctionStep, soapStep, failJob } from '@/lib/ai/pipeline';
+import { transcribeStep, transcribeSourcesStep, correctionStep, soapStep, failJob } from '@/lib/ai/pipeline';
 import { encodeAudioFailure } from '@/lib/audio/processing-error';
 import { AppError } from '@/lib/server/errors';
 
 async function transcribe(jobId: string) {
   'use step';
-  try { await transcribeStep(jobId); }
+  try { await transcribeSourcesStep(jobId); }
   catch (error) {
     if (error instanceof AppError && error.code === 'TRANSCRIPTION_RETRYABLE') throw new RetryableError(encodeAudioFailure(error,'transcribing'), { retryAfter: '10s' });
     throw new FatalError(encodeAudioFailure(error,'transcribing'));
   }
+}
+async function refine(jobId: string) {
+  'use step';
+  try { await transcribeStep(jobId); } catch(error) { throw new Error(encodeAudioFailure(error,'alignment_review')); }
 }
 async function correct(jobId: string) {
   'use step';
@@ -28,6 +32,7 @@ export async function processAudioWorkflow(jobId: string) {
   'use workflow';
   try {
     await transcribe(jobId);
+    await refine(jobId);
     await correct(jobId);
     await draftSoap(jobId);
   } catch (error) {
