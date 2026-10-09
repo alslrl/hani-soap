@@ -180,8 +180,8 @@
       "status": "confirmed_contract",
       "updated_on_kst": "2026-10-09",
       "summary": "Storage contract v1 and validated two-patient demo schema",
-      "characters": 5122,
-      "sha256": "3b4d41516df768b5bb364c9562f88745e0b780bf57a5422af5be8d133c5ab54a"
+      "characters": 5272,
+      "sha256": "1825b2ae0eb9578652fcaa535cb3ff8b59ce69394ce84f05ef652bd5d87c4216"
     },
     {
       "path": "deployment-access.md",
@@ -236,16 +236,24 @@
       "status": "locally_verified_implementation",
       "updated_on_kst": "2026-10-09",
       "summary": "Bounded text request masking and opaque audio filenames; original audio and image inputs excluded",
-      "characters": 2914,
-      "sha256": "b5dfd88b0d574801cf90a471b1c666ba4b8f0418d5d44264450fd9025f697085"
+      "characters": 3086,
+      "sha256": "e8a21e55c2e72969071970f6f5a7fd6dfff9bbe8b85347b08f942a5ddb1c0569"
     },
     {
       "path": "dual-transcription.md",
       "status": "locally_verified_implementation",
       "updated_on_kst": "2026-10-09",
-      "characters": 2945,
-      "sha256": "129ad9d6839df42c6177ccf1559b6a634d236f7af7f213a116908ffd57ac6047",
+      "characters": 3029,
+      "sha256": "c1b3150a28c182a1186f70f1238f11a75057a584a2ae70fbc6c65476f93d0d1e",
       "summary": "Parallel content and speaker transcription, conservative local alignment, immutable original results and clinician review"
+    },
+    {
+      "path": "asr-refinement.md",
+      "status": "production_verified_with_remaining_review",
+      "summary": "Sentence alignment, audio rechecks, text masking and real-video before/after comparison",
+      "updated_on_kst": "2026-10-09",
+      "characters": 3382,
+      "sha256": "0849ff7b8b4928423d9458bcb6d850d514a2fd0565874fb84c42357166596eb7"
     }
   ],
   "reference_collections": [
@@ -306,7 +314,7 @@
       "validator_path": "../scripts/validate_demo_data.py",
       "negative_and_boundary_checks": 30,
       "database_import_status": "applied_and_verified",
-      "schema_sha256": "6485641c1f582c369d27f26bf30933f76e4c3da5cb2da15bd8378fa38baf3632",
+      "schema_sha256": "804e0d5bef3405e6ef81ef7faf60391de2dd8f9e6e5cd0b73f411c40782bafac",
       "database_project_ref": "jolrgsvhgitoajuscdto",
       "database_imported_on_kst": "2026-10-09"
     }
@@ -384,5 +392,35 @@
     "new_kakao_messages_sent": 0,
     "physical_device_verification": "user_in_progress",
     "rehearsal_tts": "separate_session"
+  },
+  "asr_refinement_verification": {
+    "version": "dual-asr-v2.1",
+    "unit_tests": 181,
+    "server_tests": 47,
+    "real_production_uploads": 2,
+    "ankle_unknown_char_percent": [
+      52.73,
+      0.62
+    ],
+    "pediatric_unknown_char_percent": [
+      100,
+      0.77
+    ],
+    "ankle_seconds": [
+      239.059,
+      534.411
+    ],
+    "pediatric_seconds": [
+      137.121,
+      254.71
+    ],
+    "approved_records_preserved": 4,
+    "prior_transcripts_preserved": 11,
+    "clinician_approval_performed": false,
+    "remaining_issues": [
+      "short reply mismatches",
+      "clinical term discrepancies",
+      "increased latency"
+    ]
   }
 }
