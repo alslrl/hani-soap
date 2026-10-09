@@ -12,11 +12,13 @@ import type { RuntimeJob, RuntimeRecording, Transcript, SpeakerRole } from '@/li
 import { audioStore, closeRecoveredSession, commitLiveTurn, startRecording, stopRecording, startTranscriptionJob, uploadAudio } from '@/lib/audio/client';
 import { listRecoveries, readRecovery, removeRecovery, type RecoveryMetadata } from '@/lib/audio/recovery';
 import { applyAcceptedCorrections, type CorrectionSpan, type ValidatedCorrection } from '@/lib/ai/correction';
+import { AudioProgress, type LocalAudioWork } from './AudioProgress';
+import { audioWorks, sourceLabel, workTitle } from '@/lib/audio/progress';
 import styles from './AudioControls.module.css';
 
 type Props = { visitId: string; onChanged?: () => void };
 type JobsResponse = { jobs: RuntimeJob[]; recordings: RuntimeRecording[]; transcripts: Transcript[] };
-const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '본문 전사·화자 구간 분석 중', speaker_roles: '대화 문맥으로 화자 역할 추론 중', dictionary_correction: '사전 용어 검토 중', correction_review_needed: '용어 제안 검토 대기', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
+
 const time = (milliseconds: number) => `${Math.floor(milliseconds / 60_000).toString().padStart(2, '0')}:${Math.floor(milliseconds / 1000 % 60).toString().padStart(2, '0')}`;
 async function api<T>(url: string, body?: unknown): Promise<T> {
   const response = await fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
@@ -34,6 +36,11 @@ export function AudioControls({ visitId, onChanged }: Props) {
   const [configured, setConfigured] = useState<boolean | null>(null);
   const [data, setData] = useState<JobsResponse>({ jobs: [], recordings: [], transcripts: [] });
   const [recoveries, setRecoveries] = useState<RecoveryMetadata[]>([]);
+  const [reviewDirty,setReviewDirty] = useState(false);
+  const [localWork, setLocalWork] = useState<LocalAudioWork | null>(null);
+  const [selectedWorkId, setSelectedWorkId] = useState<string | null>(null);
+  const [now,setNow] = useState(Date.now());
+  const [localVisit,setLocalVisit] = useState(visitId);
   const [reference, setReference] = useState<{ label: string; notice: string; sections: Record<string, string> | null } | null>(null);
   const input = useRef<HTMLInputElement>(null);
   const callback = useRef(onChanged); callback.current = onChanged;
@@ -60,17 +67,34 @@ export function AudioControls({ visitId, onChanged }: Props) {
     catch (failure) { setError(failure instanceof Error ? failure.message : '음성 처리를 완료하지 못했습니다.'); }
     finally { setBusy(false); recover(); }
   };
+  useEffect(() => { if(localVisit !== visitId) { setLocalWork(null);setSelectedWorkId(null);setReference(null);setLocalVisit(visitId); } },[visitId,localVisit]);
+  const hasProcessing = active || Boolean(localWork && localWork.phase !== 'failed') || data.jobs.some(job => ['transcription','soap'].includes(job.kind) && ['queued','running'].includes(job.status));
+  useEffect(() => { setNow(Date.now());if(!hasProcessing)return;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer); },[hasProcessing]);
   const saveAndProcess = async (file: File | Blob, filename: string, ownedVisit = visitId, audioSessionId?: string, durationMs?: number, recoveryId?: string) => {
-    const recordingId = await uploadAudio(file, { visitId: ownedVisit, filename, audioSessionId, durationMs });
-    if (recoveryId) await removeRecovery(recoveryId).catch(() => {});
-    // Save file even when model configuration is missing. A later retry uses this recording ID.
-    await startTranscriptionJob(ownedVisit, recordingId);
+    const startedAt=Date.now();let recordingId: string | undefined;
+    setLocalWork({phase:'saving',startedAt,durationMs});setSelectedWorkId(null);
+    try {
+      recordingId = await uploadAudio(file, { visitId: ownedVisit, filename, audioSessionId, durationMs });
+      if (recoveryId) await removeRecovery(recoveryId).catch(() => {});
+      setSelectedWorkId(recordingId);setLocalWork({phase:'starting_ai',startedAt,durationMs,recordingId});
+      await startTranscriptionJob(ownedVisit, recordingId);
+      await refresh();setLocalWork(null);
+    } catch(failure) {
+      setLocalWork({phase:'failed',startedAt,finishedAt:Date.now(),durationMs,recordingId,error:failure instanceof Error?failure.message:'음성을 저장하지 못했어요.'});
+      await refresh();
+    }
   };
-  const latestJob = [...data.jobs].reverse().find((job) => job.kind === 'transcription' && job.result?.transcriptId);
-  const transcript = data.transcripts.find((item) => item.id === latestJob?.result?.transcriptId);
-  const latestRevision = Math.max(0, ...data.transcripts.map((item) => item.revision));
-  const pending = data.jobs.filter((job) => ['queued', 'running', 'failed'].includes(job.status));
-  const retryableFiles = data.recordings.filter((recording) => ['uploaded', 'failed'].includes(recording.status) && !data.jobs.some((job) => job.recording_id === recording.id && ['queued', 'running'].includes(job.status)));
+  const works=audioWorks(data.recordings.filter(item=>item.visit_id===visitId),data.jobs.filter(item=>item.visit_id===visitId));
+  const selectedWork=selectedWorkId ? works.find(work=>work.id===selectedWorkId) : works[0];
+  const focusWork=ownerHere && active ? undefined : localWork ? works.find(work=>work.id===localWork.recordingId) : selectedWork;
+  const historyWorks=works.filter(work=>work.id!==focusWork?.id);
+  const latestJob=!(ownerHere && active) && !localWork && selectedWork?.primary?.result?.transcriptId ? selectedWork.primary : undefined;
+  const transcript = data.transcripts.find(item=>item.id===latestJob?.result?.transcriptId);
+  const latestRevision = Math.max(0, ...data.transcripts.map(item=>item.revision));
+  const pending=data.jobs.filter(job=>['transcription','soap'].includes(job.kind) && ['queued','running'].includes(job.status));
+  const retry = (recordingId:string)=>void execute(async()=>{setSelectedWorkId(recordingId);setLocalWork({phase:'starting_ai',startedAt:Date.now(),recordingId});try{await startTranscriptionJob(visitId,recordingId);await refresh();setLocalWork(null);}catch(failure){setLocalWork({phase:'failed',startedAt:Date.now(),finishedAt:Date.now(),recordingId,error:failure instanceof Error?failure.message:'전사를 시작하지 못했어요.'});}});
+  const beginRecording=()=>void execute(async()=>{setLocalWork(null);setSelectedWorkId(null);await startRecording(visitId,deviceId || undefined);});
+
 
   return <section className={styles.root} aria-label="녹음과 음성 처리">
     <div className={styles.controls}>
@@ -82,36 +106,35 @@ export function AudioControls({ visitId, onChanged }: Props) {
         const filename = `consultation-${result.recoveryId}.${result.blob.type.includes('mp4') ? 'm4a' : 'webm'}`;
         await saveAndProcess(result.blob, filename, result.visitId, result.audioSessionId, result.durationMs, result.recoveryId);
       })}><Square size={13} fill="currentColor" /> 녹음 종료</button>
-        : <button className={`${styles.button} ${styles.primary}`} disabled={active || busy} onClick={() => void execute(async () => { await startRecording(visitId, deviceId || undefined); })}><Mic size={15} /> {audio.status === 'starting' ? '마이크 연결 중' : audio.status === 'stopping' ? '녹음 저장 중' : '녹음 시작'}</button>}
-      <button className={styles.button} disabled={busy || active} onClick={() => input.current?.click()}><Upload size={14} /> 음성 파일</button>
+        : <button className={`${styles.button} ${styles.primary}`} disabled={active || busy || reviewDirty} onClick={beginRecording}><Mic size={15} /> {audio.status === 'starting' ? '마이크 연결 중' : audio.status === 'stopping' ? '녹음 저장 중' : '녹음 시작'}</button>}
+      <button className={styles.button} disabled={busy || active || reviewDirty} onClick={() => input.current?.click()}><Upload size={14} /> 음성 파일</button>
       <input ref={input} type="file" accept=".mp3,.mp4,.mpeg,.mpga,.m4a,.wav,.webm" hidden onChange={(event) => {
         const file = event.target.files?.[0]; event.target.value = '';
         if (file) void execute(() => saveAndProcess(file, file.name));
       }} />
-      {active && <span className={styles.status}><span className={styles.dot} /> {time(audio.elapsed)} <span className={styles.meter}><span style={{ width: `${audio.level * 100}%` }} /></span></span>}
-      {active && <span className={styles.status}>전체 녹음 {audio.status === 'recording' ? '진행 중' : '준비/저장 중'} · 실시간 {({ off: '꺼짐', connecting: '연결 중', connected: '연결됨', failed: '연결 실패' })[audio.liveStatus]}</span>}
+      {active && <span className={styles.status}>마이크 입력 <span className={styles.meter}><span style={{ width: `${audio.level * 100}%` }} /></span></span>}
       {audio.status === 'recording' && audio.liveStatus === 'connected' && <button className={styles.button} onClick={commitLiveTurn}>발화 확정</button>}
-      {!active && !pending.length && <span className={styles.status}>PC 마이크 한 번으로 전체 녹음과 실시간 전사</span>}
     </div>
+    {(ownerHere && active || localWork || selectedWork) && <AudioProgress work={focusWork} local={localWork} audio={ownerHere && active ? audio : undefined} now={now} busy={busy || active || reviewDirty} onRetry={retry} onNewRecording={beginRecording} onPickFile={()=>input.current?.click()} />}
+    {historyWorks.length>0 && <Disclosure className={styles.processingHistory}><summary>지난 음성 처리 {historyWorks.length}건</summary>{historyWorks.map(work=><div key={work.id} className={styles.historyRow}><div><strong>{sourceLabel(work)}</strong><p>{workTitle(work)}</p></div><button type="button" className={styles.button} disabled={active || busy || reviewDirty} onClick={()=>{setSelectedWorkId(work.id);setLocalWork(null);}}>진행·결과 보기</button></div>)}</Disclosure>}
+    {reviewDirty && <p className={styles.notice}>전사에서 수정한 내용을 먼저 저장해 주세요. 편집 중에는 다른 녹음으로 전환하지 않습니다.</p>}
     <p className={styles.notice}>텍스트 AI에는 등록된 이름·정형 식별정보를 가린 사본을 보냅니다. 음성 원본·실시간 음성은 가림 없이 OpenAI로 전송됩니다.</p>
     {latestJob && <TextPrivacyNotice audit={latestJob.result?.text_privacy}/>}
     {active && !ownerHere && <div className={styles.error}>다른 방문의 녹음이 진행 중입니다. 종료한 음성은 원래 방문에 저장됩니다.</div>}
     {active && <p className={styles.notice}>로컬 복구본: {({ ready: '준비 중', saved: '브라우저에 저장됨', failed: '저장 실패' })[audio.recoveryStatus]} · 아이패드는 별도로 녹음하지 않습니다.</p>}
     {configured === false && <p className={styles.notice}>AI가 아직 연결되지 않았습니다. 파일은 저장할 수 있고, 연결 후 전사할 수 있습니다. <Link href="/settings">연결 설정</Link></p>}
     {(error || (active && audio.error)) && <div role="alert" className={styles.error}>{error || audio.error}</div>}
-    {ownerHere && (audio.liveText || audio.partialText) && <section className={styles.liveSection} aria-label="실시간 전사"><header><strong>실시간 전사</strong><span>발화 순서대로 표시됩니다.</span></header><div className={styles.live} aria-live="polite">{audio.liveText.split('\n').filter(Boolean).map((line, index) => <p key={index}>{line}</p>)}{audio.partialText && <p className={styles.partial}><span>인식 중</span>{audio.partialText}</p>}</div></section>}
-    {pending.map((job) => <div key={job.id} className={styles.job}><span className={styles.jobName}>{stageLabels[job.stage] || job.stage}</span><span>{job.status === 'failed' ? job.error : '실제 AI 작업'}</span></div>)}
-    {data.jobs.filter((job) => job.stage === 'stale_input').map((job) => <p className={styles.notice} key={job.id}>생성 중 전사가 변경되어 이전 입력의 SOAP는 별도로 보관했습니다. 최신 전사를 검토한 뒤 다시 생성해 주세요.</p>)}
-    {retryableFiles.map((recording) => <div key={recording.id} className={styles.job}><span className={`${styles.jobName} ${styles.filename}`}>{recording.filename}</span><button className={styles.button} disabled={busy} onClick={() => void execute(async () => { await startTranscriptionJob(visitId, recording.id); })}><RotateCcw size={12} /> 전사 실행</button></div>)}
-    {recoveries.filter((item) => item.visitId === visitId && item.id !== (active ? audio.audioSessionId : null)).length > 0 && <Disclosure className={styles.details}><summary>브라우저에 남은 녹음 복구본</summary>{recoveries.filter((item) => item.visitId === visitId).map((item) => <div className={styles.job} key={item.id}><span className={styles.jobName}>{new Date(item.createdAt).toLocaleString('ko-KR')}</span><button className={styles.button} disabled={busy || active} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); if (recovery.audioSessionId) await closeRecoveredSession(recovery.visitId, recovery.audioSessionId); await saveAndProcess(recovery.blob, recovery.filename, recovery.visitId, recovery.audioSessionId, undefined, recovery.id); })}><Upload size={12} /> 복구 후 처리</button><button className={styles.button} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); const url = URL.createObjectURL(recovery.blob); const a = document.createElement('a'); a.href = url; a.download = recovery.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); })}><Download size={12} /> 다운로드</button></div>)}</Disclosure>}
-    {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} sourceTranscripts={data.transcripts.filter(item => item.id === latestJob.result?.diarizedTranscriptId || item.id === latestJob.result?.contentTranscriptId)} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} recheckEnabled={configured === true && !active && !data.jobs.some(item => ['queued', 'running'].includes(item.status))} onSaved={() => { void refresh(); callback.current?.(); }} />}
+    {ownerHere && (audio.liveText || audio.partialText) && <section className={styles.liveSection} aria-label="실시간 전사"><header><strong>녹음 중 실시간 전사</strong><span>현재 대화 표시 · 종료 후 최종 전사를 별도로 정리해요.</span></header><div className={styles.live} aria-live="polite">{audio.liveText.split('\n').filter(Boolean).map((line, index) => <p key={index}>{line}</p>)}{audio.partialText && <p className={styles.partial}><span>인식 중</span>{audio.partialText}</p>}</div></section>}
+    {recoveries.filter((item) => item.visitId === visitId && item.id !== (active ? audio.audioSessionId : null)).length > 0 && <Disclosure className={styles.details}><summary>브라우저에 남은 녹음 복구본</summary>{recoveries.filter((item) => item.visitId === visitId).map((item) => <div className={styles.job} key={item.id}><span className={styles.jobName}>{new Date(item.createdAt).toLocaleString('ko-KR')}</span><button className={styles.button} disabled={busy || active || reviewDirty} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); if (recovery.audioSessionId) await closeRecoveredSession(recovery.visitId, recovery.audioSessionId); await saveAndProcess(recovery.blob, recovery.filename, recovery.visitId, recovery.audioSessionId, undefined, recovery.id); })}><Upload size={12} /> 복구 후 처리</button><button className={styles.button} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); const url = URL.createObjectURL(recovery.blob); const a = document.createElement('a'); a.href = url; a.download = recovery.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); })}><Download size={12} /> 다운로드</button></div>)}</Disclosure>}
+    {latestJob && transcript && selectedWork && <div className={styles.resultSource}><strong>선택한 음성의 전사 결과</strong><span>{sourceLabel(selectedWork)}</span>{latestJob.status === 'running' && <span>후처리 진행 중 · 검토 전</span>}</div>}
+    {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} sourceTranscripts={data.transcripts.filter(item => item.id === latestJob.result?.diarizedTranscriptId || item.id === latestJob.result?.contentTranscriptId)} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} onEditing={setReviewDirty} recheckEnabled={configured === true && !active && !data.jobs.some(item => ['queued', 'running'].includes(item.status))} onSaved={() => { void refresh(); callback.current?.(); }} />}
     <Disclosure className={styles.details} onToggle={(event) => {
       if (event.currentTarget.open && !reference) void api<typeof reference>(`/api/jobs/reference?visitId=${encodeURIComponent(visitId)}`).then(setReference).catch((failure: Error) => setError(failure.message));
     }}><summary>초진 사례 검수 자료 미리보기 · 읽기 전용</summary>{reference && <><p className={styles.notice}>{reference.notice}</p><div className={styles.preview}>{Object.entries(reference.sections || {}).map(([key, value]) => <span key={key} style={{ display: 'contents' }}><strong>{key.toUpperCase()}</strong><span>{value}</span></span>)}</div></>}</Disclosure>
   </section>;
 }
 
-export function TranscriptReview({ job, transcript, sourceTranscripts = [], reviewedTranscript, latestRevision, recheckEnabled = false, onSaved }: { job: RuntimeJob; transcript: Transcript; sourceTranscripts?: Transcript[]; reviewedTranscript?: Transcript; latestRevision: number; recheckEnabled?: boolean; onSaved: () => void }) {
+export function TranscriptReview({ job, transcript, sourceTranscripts = [], reviewedTranscript, latestRevision, recheckEnabled = false, onSaved, onEditing }: { job: RuntimeJob; transcript: Transcript; sourceTranscripts?: Transcript[]; reviewedTranscript?: Transcript; latestRevision: number; recheckEnabled?: boolean; onSaved: () => void; onEditing?: (dirty:boolean)=>void }) {
   const alignment = job.result?.alignment as { warnings?: string[] } | undefined;
   const diarizedSource = sourceTranscripts.find(item => item.id === job.result?.diarizedTranscriptId);
   const contentSource = sourceTranscripts.find(item => item.id === job.result?.contentTranscriptId);
@@ -138,6 +161,7 @@ export function TranscriptReview({ job, transcript, sourceTranscripts = [], revi
   });
   const corrected = applyAcceptedCorrections(transcript.text, effectiveCorrections);
   const edited = Object.keys(decisions).length > 0 || Object.keys(selections).length > 0 || (manualText !== null && manualText !== (reviewedTranscript?.text ?? corrected)) || Object.keys(speakers).length > 0 || Object.keys(speakerGroups).length > 0;
+  useEffect(()=>{onEditing?.(edited);return()=>onEditing?.(false);},[edited,onEditing]);
   const recheck = async () => {
     setBusy(true); setError(null);
     try { await api('/api/jobs', { visitId: transcript.visit_id, transcriptId: reviewedTranscript?.id ?? transcript.id, kind: 'correction' }); onSaved(); }

@@ -12,6 +12,7 @@ import { AI_MODELS } from './config';
 import { effectiveSpeaker } from '@/lib/audio/speaker-roles';
 import type { RuntimeJob, Transcript } from '@/lib/types';
 import { collectClinicalSoapSources, soapInputSnapshot, soapEvidenceRef } from './soap-inputs';
+import { audioFailure } from '@/lib/audio/processing-error';
 import { ensureClinicalAnalysis } from './clinical-analysis-jobs';
 
 export async function patchJob(jobId: string, patch: Partial<RuntimeJob>) {
@@ -134,8 +135,12 @@ export async function soapStep(jobId: string) {
 }
 
 export async function failJob(jobId: string, error: unknown) {
-  const safe = error instanceof AppError ? error.message : '설정된 AI 모델 처리 중 오류가 발생했습니다. 모델 접근·요청 한도·파일을 확인하고 다시 시도해 주세요.';
-  await patchJob(jobId, { status: 'failed', stage: 'failed', error: safe });
+  const {state}=await readState();
+  const job=state.jobs.find(item=>item.id===jobId);
+  const isAudioJob=job?.kind === 'transcription' || job?.kind === 'soap';
+  const failure=isAudioJob ? audioFailure(error,job?.stage) : null;
+  const safe=failure?.message || (error instanceof AppError ? error.message : '설정된 AI 모델 처리 중 오류가 발생했습니다. 모델 접근·요청 한도·파일을 확인하고 다시 시도해 주세요.');
+  await patchJob(jobId, { status: 'failed', stage: 'failed', error: safe, ...(failure ? {result:{failure}} : {}) });
   await updateState((state) => {
     const job = state.jobs.find((item) => item.id === jobId);
     const recording = state.recordings.find((item) => item.id === job?.recording_id);
