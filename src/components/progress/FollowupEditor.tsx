@@ -4,21 +4,22 @@ import { useEffect, useRef, useState } from "react";
 import { useAppState } from "@/lib/client";
 import type { FollowupAnswer, Observation } from "@/lib/types";
 import { CHANGE_LABELS, CONFIRMATION_LABELS, formatClinicDate, QUESTION_GROUPS, type FollowupKey } from "./questions";
-import { ClinicalAnalysisReview } from "./ClinicalAnalysisReview";
+import { getTranscriptAnswerProposals, prefillTranscriptAnswerDrafts, transcriptDraftAnalysisSignature, type NrsPanelTarget, type TranscriptAnswerDraftBinding } from "@/lib/ai/clinical-analysis-drafts";
+import { ClinicalAnalysisReview, TranscriptAnswerDraftBadge } from "./ClinicalAnalysisReview";
 import styles from "./progress.module.css";
 
 type AnswerDraft = Pick<FollowupAnswer, "item_key" | "subitem_key" | "answer_text" | "change" | "confirmation_status" | "applicability">;
 const answerKey = (item: string, subitem: string) => `${item}:${subitem}`;
 
-type NrsTarget = Pick<Observation, "metric_key" | "body_region" | "laterality" | "activity_key" | "measurement_context"> & { inputId: string };
-
-export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitId: string; compact?: boolean; nrsTarget?: NrsTarget }) {
-  const { data, act } = useAppState();
+export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitId: string; compact?: boolean; nrsTarget?: NrsPanelTarget }) {
+  const { data, act, refresh } = useAppState();
   const state = data?.state;
   const visit = state?.visits.find((item) => item.id === visitId);
   const patient = state?.patients.find((item) => item.id === visit?.patient_id);
   const [selectedGroup, setSelectedGroup] = useState<FollowupKey>("chief_complaint");
   const [drafts, setDrafts] = useState<Record<string, AnswerDraft>>({});
+  const [transcriptDrafts, setTranscriptDrafts] = useState<Record<string, TranscriptAnswerDraftBinding>>({});
+  const [hasUnsavedAiDrafts, setHasUnsavedAiDrafts] = useState(false);
   const [metricValues, setMetricValues] = useState<Record<string, string>>({});
   const [dirty, setDirty] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -30,7 +31,7 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
   useEffect(() => {
     if (!state || !visit) return;
     const sameVisit = hydratedVisit.current === visit.id;
-    const signature = JSON.stringify([state.followup_answers.filter((item) => item.visit_id === visit.id), state.observations.filter((item) => item.visit_id === visit.id)]);
+    const signature = JSON.stringify([state.followup_answers.filter((item) => item.visit_id === visit.id), state.observations.filter((item) => item.visit_id === visit.id), transcriptDraftAnalysisSignature(state, visit.id)]);
     if (sameVisit && (dirty || hydratedAnswers.current === signature)) return;
     const next: Record<string, AnswerDraft> = {};
     for (const group of QUESTION_GROUPS) {
@@ -53,7 +54,10 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
     }
     const values: Record<string, string> = {};
     for (const observation of state.observations.filter((item) => item.visit_id === visit.id)) values[observation.series_key] = String(observation.value);
-    setDrafts(next);
+    const prefilled = prefillTranscriptAnswerDrafts(state, visit.id, next);
+    setDrafts(prefilled.drafts);
+    setTranscriptDrafts(prefilled.bindings);
+    setHasUnsavedAiDrafts(prefilled.hasUnsavedAiDrafts);
     setMetricValues(values);
     setDirty(false);
     if (!sameVisit) setFeedback("");
@@ -97,7 +101,13 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
         const value = Number(input);
         if (!Number.isFinite(value) || value < (metric.scale_min ?? 0) || (metric.scale_max !== null && value > metric.scale_max) || (metric.instrument === "NRS" && !Number.isInteger(value))) throw new Error("점수·횟수의 범위를 확인해 주세요. NRS는 0~10 정수로 입력합니다.");
       }
-      let saved = await act("followup.save", { visitId, answers: Object.values(drafts) });
+      let saved;
+      if (Object.keys(transcriptDrafts).length) {
+        const response = await fetch('/api/clinical-analysis/answers', { method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({visitId,patientId:visit.patient_id,answers:Object.values(drafts),transcriptDrafts:Object.values(transcriptDrafts),expectedVersion:data?.version}) });
+        const body = await response.json();
+        if (!response.ok) throw new Error(body.error ?? '전사 초안과 답변을 저장하지 못했습니다.');
+        saved = body as import('@/lib/types').StateEnvelope;
+      } else saved = await act("followup.save", { visitId, answers: Object.values(drafts) });
       for (const metric of editableMetrics) {
         const input = metricValues[metric.series_key];
         if (input === undefined || input.trim() === "") continue;
@@ -109,7 +119,7 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
         const answer = saved.state.followup_answers.find((answer) => answer.visit_id === visitId && sourceAnswer && answer.item_key === sourceAnswer.item_key && answer.subitem_key === sourceAnswer.subitem_key);
         saved = await act("observation.save", { visitId, followupAnswerId: answer?.id, metric_key: metric.metric_key, series_key: metric.series_key, instrument: metric.instrument, value, unit: metric.unit, body_region: metric.body_region, laterality: metric.laterality, activity_key: metric.activity_key, measurement_context: metric.measurement_context });
       }
-      setDirty(false); setFeedback("오늘 확인한 답변을 저장했습니다.");
+      setDirty(false); setHasUnsavedAiDrafts(false); await refresh(); setFeedback("오늘 확인한 답변을 저장했습니다.");
     } catch (error) { setFailed(true); setFeedback(error instanceof Error ? error.message : "저장하지 못했습니다. 입력 내용을 확인해 주세요."); }
     finally { setBusy(false); }
   }
@@ -135,8 +145,8 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
   }
 
   return <section className={`${styles.followup} ${compact ? styles.compact : ""}`} aria-label="재진 확인 질문">
-    <header className={styles.editorHeader}><div><h2>오늘 확인할 것</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !dirty} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
-    <ClinicalAnalysisReview visitId={visitId} disabled={dirty || busy} />
+    <header className={styles.editorHeader}><div><h2>오늘 확인할 것</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !dirty && !hasUnsavedAiDrafts} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
+    <ClinicalAnalysisReview visitId={visitId} disabled={dirty || busy} nrsTarget={nrsTarget} />
     {pendingItems.length > 0 && <details className={styles.pending}><summary>이어 확인할 질문 {pendingItems.length}개</summary><ul>{pendingItems.map((item) => <li key={item.id}>{item.title}</li>)}</ul></details>}
     {feedback && <p className={failed ? styles.error : styles.feedback} role={failed ? "alert" : "status"}>{feedback}</p>}
     <div className={styles.questionsLayout}>
@@ -158,6 +168,7 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
             <div className={styles.previous}><span>지난 기록 {previous ? `· ${formatClinicDate(visitDates.get(previous.visit_id)!)}` : "· 첫 기록·비교 기준 없음"}</span><p>{previous?.answer_text ?? "이전 답변이 없습니다. 오늘 답변을 새로 확인해 주세요."}</p></div>
             <div className={styles.changeButtons} aria-label={`${subitem?.label ?? group.title} 변화`}>{Object.entries(CHANGE_LABELS).map(([value, label]) => <button key={value} type="button" aria-pressed={answer.change === value} onClick={() => update(key, { change: answer.change === value ? null : value as AnswerDraft["change"] })}>{label}</button>)}</div>
             <label className={styles.inputLabel}>오늘 상세 답변<textarea rows={3} placeholder="환자의 표현과 확인한 내용을 기록해 주세요." value={answer.answer_text ?? ""} onChange={(event) => update(key, { answer_text: event.target.value })} /></label>
+            {transcriptDrafts[key] && <TranscriptAnswerDraftBadge state={state} binding={transcriptDrafts[key]} edited={answer.answer_text !== getTranscriptAnswerProposals(state,visitId).find(proposal => proposal.candidate.id === transcriptDrafts[key].candidateId)?.candidate.text} />}
             <div className={styles.selectRow}><label>확인 상태<select value={answer.confirmation_status} onChange={(event) => update(key, { confirmation_status: event.target.value as AnswerDraft["confirmation_status"] })}>{Object.entries(CONFIRMATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>해당 여부<select value={answer.applicability} onChange={(event) => update(key, { applicability: event.target.value as AnswerDraft["applicability"] })}><option value="unknown">아직 확인 안 됨</option><option value="applicable">해당함</option><option value="not_applicable">해당 없음</option></select></label></div>
           </fieldset>;
         })}

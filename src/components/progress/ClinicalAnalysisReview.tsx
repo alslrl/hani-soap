@@ -2,11 +2,13 @@
 import { useState } from 'react';
 import { useAppState } from '@/lib/client';
 import type { AnalysisCandidate } from '@/lib/ai/clinical-analysis';
+import { matchesTranscriptNrsCandidate, type NrsPanelTarget, type TranscriptAnswerDraftBinding } from '@/lib/ai/clinical-analysis-drafts';
+import type { AppState } from '@/lib/types';
 import { QUESTION_GROUPS } from './questions';
 import styles from './ClinicalAnalysisReview.module.css';
 const signalLabels = { worry: '직접 표현한 걱정', effect_question: '효과에 대한 질문', understanding_gap: '설명 이해 확인', practice_difficulty: '관리 실천 어려움', open_question: '미해결 질문' };
 const units: Record<string,string> = { score: '점', count_per_night: '회/밤', count_per_day: '회/일', episodes_per_night: '회/밤' };
-export function ClinicalAnalysisReview({ visitId, disabled = false }: { visitId: string; disabled?: boolean }) {
+export function ClinicalAnalysisReview({ visitId, disabled = false, nrsTarget }: { visitId: string; disabled?: boolean; nrsTarget?: NrsPanelTarget }) {
   const { data, refresh } = useAppState();
   const [busy, setBusy] = useState(false), [error, setError] = useState('');
   const [edits, setEdits] = useState<Record<string, { text?: string; value?: string }>>({});
@@ -60,12 +62,14 @@ export function ClinicalAnalysisReview({ visitId, disabled = false }: { visitId:
       const group = candidate.kind !== 'signal' ? QUESTION_GROUPS.find(group => group.key === candidate.item_key) : undefined;
       const label = candidate.kind === 'signal' ? signalLabels[candidate.category] : `${group?.title ?? candidate.item_key} · ${group?.subitems.find(item => item.key === candidate.subitem_key)?.label ?? candidate.subitem_key}`;
       const conflict = conflicts[candidate.id];
+      const linkedNrs = Boolean(nrsTarget && matchesTranscriptNrsCandidate(candidate,{...nrsTarget,instrument:'NRS'}));
       return <article key={candidate.id} className={styles.candidate} aria-label={label}>
         <div className={styles.heading}><strong>{label}</strong><span>{candidate.role === 'guardian' ? '보호자 보고' : candidate.role === 'clinician' ? '의료진 측정' : '환자 발화'}{candidate.temporal === 'recent' ? ' · 최근 보고' : ''} · {candidate.status === 'confirmed' ? '확인 완료' : candidate.status === 'rejected' ? '제외' : '검토 필요'}</span></div>
         {candidate.kind === 'measurement' && <p className={styles.measurement}>{candidate.instrument === 'NRS' ? '현재 통증 NRS' : candidate.instrument === 'FREQUENCY' ? '현재 횟수' : '현재 불편 점수'} {candidate.manual_review?.value ?? candidate.value}{units[candidate.unit] ?? candidate.unit}</p>}
         {candidate.evidence.map((ref, i) => <blockquote key={i}>{ref.quote}</blockquote>)}
         {candidate.manual_review && <p>의료진 검토: {candidate.manual_review.text}</p>}
-        {candidate.status === 'pending' && <>
+        {candidate.status === 'pending' && linkedNrs && <button type="button" aria-controls={nrsTarget?.inputId} onClick={() => { const input = nrsTarget ? document.getElementById(nrsTarget.inputId) : null; if (!(input instanceof HTMLInputElement)) return; input.scrollIntoView({block:'center',behavior:window.matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth'}); input.focus({preventScroll:true}); }}>통증 NRS 입력으로 이동</button>}
+        {candidate.status === 'pending' && !linkedNrs && <>
           <details><summary>후보 직접 수정</summary><label>검토할 내용<textarea aria-label={`${label} 후보 내용`} value={edits[candidate.id]?.text ?? candidate.text} onChange={event => setEdits(current => ({ ...current, [candidate.id]: { ...current[candidate.id], text: event.target.value } }))} /></label>{candidate.kind === 'measurement' && <label>검토 측정값<input type="number" aria-label={`${label} 후보 측정값`} min="0" max={candidate.instrument === 'FREQUENCY' ? undefined : '10'} step="1" value={edits[candidate.id]?.value ?? String(candidate.value)} onChange={event => setEdits(current => ({ ...current, [candidate.id]: { ...current[candidate.id], value: event.target.value } }))} /></label>}<p>수정 내용은 원래 인용 근거와 수기 출처를 함께 보존합니다.</p></details>
           {conflict && <div className={styles.conflict}><p>기존 의료진 기록: {conflict.current || '확인 상태가 저장되어 있습니다.'}</p><p>현재 기록을 보존하거나, 검토한 후보로 명시적으로 교체할 수 있습니다.</p><button type="button" disabled={busy || disabled} onClick={() => void review(candidate, 'confirm', true)}>현재 기록을 후보로 교체</button></div>}
           <div className={styles.actions}><button type="button" disabled={busy || disabled} onClick={() => void review(candidate, 'confirm')}>확인 후 반영</button><button type="button" disabled={busy || disabled} onClick={() => void review(candidate, 'reject')}>후보 제외</button></div>
@@ -75,4 +79,10 @@ export function ClinicalAnalysisReview({ visitId, disabled = false }: { visitId:
     {!stale && missing.length > 0 && <details><summary>아직 전사 답변이 없는 항목 {missing.length}개</summary><ul>{missing.map(field => <li key={`${field.item_key}:${field.subitem_key}`}>{field.question}</li>)}</ul></details>}
     {!active && !stale && job && candidates.length === 0 && !job.error && <p>확인 가능한 답변 후보가 없습니다. 미확인 항목을 직접 질문해 주세요.</p>}
   </details>;
+}
+
+export function TranscriptAnswerDraftBadge({ state, binding, edited = false }: { state: AppState; binding: TranscriptAnswerDraftBinding; edited?: boolean }) {
+  const candidate = (state.jobs.find(job => job.id === binding.jobId)?.result?.candidates as AnalysisCandidate[] | undefined)?.find(candidate => candidate.id === binding.candidateId && candidate.kind === 'answer');
+  if (!candidate) return null;
+  return <div className={styles.draftBadge} role="note" aria-label="전사 기반 AI 초안"><strong>전사 기반 AI 초안 · 검토 전{edited ? ' · 의료진 편집' : ''}</strong><details><summary>원문 인용 근거</summary>{candidate.evidence.map((evidence,index) => <blockquote key={index}>{evidence.quote}</blockquote>)}</details></div>;
 }
