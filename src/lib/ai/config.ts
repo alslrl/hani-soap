@@ -4,6 +4,7 @@ export const AI_MODELS = {
   correction: process.env.OPENAI_MODEL_CORRECTION || 'gpt-6.1-sol',
   soap: process.env.OPENAI_MODEL_SOAP || 'gpt-6.1-sol',
   care: process.env.OPENAI_MODEL_CARE || 'gpt-6.1-sol',
+  analysis: process.env.OPENAI_MODEL_ANALYSIS || 'gpt-6.1-sol',
   briefing: process.env.OPENAI_MODEL_BRIEFING || 'gpt-6.1-sol',
 } as const;
 
