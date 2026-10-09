@@ -499,6 +499,13 @@
         },
         "transcription_changed": {
           "type": "boolean"
+        },
+        "alignment_method": {
+          "enum": [
+            "sentence",
+            "model_review",
+            "audio_recheck"
+          ]
         }
       }
     },

@@ -1,14 +1,18 @@
 import { FatalError, RetryableError } from 'workflow';
-import { transcribeStep, correctionStep, soapStep, failJob } from '@/lib/ai/pipeline';
+import { transcribeStep, transcribeSourcesStep, correctionStep, soapStep, failJob } from '@/lib/ai/pipeline';
 import { AppError } from '@/lib/server/errors';
 
 async function transcribe(jobId: string) {
   'use step';
-  try { await transcribeStep(jobId); }
+  try { await transcribeSourcesStep(jobId); }
   catch (error) {
     if (error instanceof AppError && error.code === 'TRANSCRIPTION_RETRYABLE') throw new RetryableError('전사 서비스 일시 오류', { retryAfter: '10s' });
     throw new FatalError(error instanceof AppError ? error.message : '음성 전사를 완료하지 못했습니다.');
   }
+}
+async function refine(jobId: string) {
+  'use step';
+  await transcribeStep(jobId);
 }
 async function correct(jobId: string) {
   'use step';
@@ -27,6 +31,7 @@ export async function processAudioWorkflow(jobId: string) {
   'use workflow';
   try {
     await transcribe(jobId);
+    await refine(jobId);
     await correct(jobId);
     await draftSoap(jobId);
   } catch (error) {
