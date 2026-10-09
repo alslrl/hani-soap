@@ -7,6 +7,12 @@ HaniSOAP 문서 및 데모 자료
 마크다운 표시를 정리하고, 내보내기 내부 문서 링크는 원본 노션 URL로 바꿨습니다.
 원본 Markdown 내보내기 ZIP도 notion 폴더에 보관했습니다.
 
+[로컬 문서 업데이트 · 2026-10-09]
+- notion/02_HaniSOAP_기획서.txt: chino-meds의 검수한 좌표·2D SVG를 기반으로 부위 선택 → 확대 → 큰 한글 목록에서 혈자리·좌우 체크하는 화면을 만들기로 결정한 내용을 반영했습니다. km-agent 한글 명칭 연결, 데이터·SVG 사용 조건 확인과 실제 iPad·Apple Pencil 검증 항목을 추가했습니다.
+- notion/05_재진_대화_녹음_대본.txt: 발목 시술 체크 장면을 같은 흐름으로 맞췄습니다. 녹음 대사는 수정하지 않았습니다.
+- 위 두 TXT는 수집 후 편집한 작업 사본입니다. 원본 노션 페이지는 현재 연결에서 찾을 수 없어 동기화하지 않았습니다. 수집 시각과 원본 내보내기 ZIP은 유지했습니다.
+- manifest.json의 characters·export_member는 최초 수집 정보를 유지하고, local_revision은 수정한 로컬 파일의 날짜·길이·SHA-256을 기록합니다.
+
 [노션 문서]
 - notion/01_해커톤_기획_초안.txt
   제목: HaniSOAP | 10월 9일 해커톤 기획 초안
@@ -55,3 +61,16 @@ HaniSOAP 문서 및 데모 자료
 - ../data/처방명_출처및정리기준.md: 수집 범위와 명칭 정리 기준
 - ../data/처방명_출처기록.json: 원자료 출처 기록
   용어 인식·차팅 참고용이며, 명칭 목록만으로 진단이나 처방을 결정하지 않습니다.
+
+[구현 계획 초안]
+- implementation-plan.md
+  PC·아이패드 웹앱, Next.js·TypeScript·Supabase, PC 단일 수음의 전체 녹음·실시간 처리,
+  별도 음성 파일 업로드, 사전·LLM 보정, SOAP 검토, 고객 케어의 전체 구현 계획입니다.
+  확정한 방향과 제안 중인 스키마·API·모델·UI를 구분합니다. 앱 구현 완료를 의미하지 않습니다.
+  현재 대화에서 변경한 녹음 담당과 외부 서버 조건은 이 계획을 기준으로 봅니다.
+
+[시그마차트 원본 화면과 UI 초안]
+- reference/sigmachart/README.md: 공식 원본 화면 4장 관찰과 HaniSOAP 화면 배치 제안
+- reference/sigmachart/images/: 공식 홈페이지 공개 PNG 원본 4장, 이미지 내용 미수정
+- reference/sigmachart/source-manifest.json: 원본 URL·파일명·크기·SHA-256·확인 범위
+  연화가 별도로 참고한 화면 5장은 원본 파일을 찾지 못했으며 동일 자료로 간주하지 않습니다.

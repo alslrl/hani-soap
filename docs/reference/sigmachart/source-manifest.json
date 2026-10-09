@@ -1,0 +1,54 @@
+{
+  "reviewed_on_kst": "2026-10-09",
+  "source_page": "https://www.sigmachart.co.kr/",
+  "embedded_page": "https://iframe.sigmachart.co.kr/",
+  "source_type": "Official public website image assets",
+  "provided_five_screenshots_status": "Not located; identity with official assets unverified",
+  "rights": "Reference screenshots published by SigmaChart. Rights remain with the original owner. Not licensed as HaniSOAP application assets.",
+  "images": [
+    {
+      "title": "환자 현황과 선택 환자 정보",
+      "path": "images/01-patient-board.png",
+      "original_filename": "20251022_173912.64f5ac7c7486aa7545f4.png",
+      "url": "https://iframe.sigmachart.co.kr/static/media/20251022_173912.64f5ac7c7486aa7545f4.png",
+      "bytes": 535923,
+      "width": 1920,
+      "height": 1020,
+      "sha256": "5eb8a075ec56af6259bd2896e94dc103625829c8121a76a83e7889fa51bf0aaa",
+      "modified": false
+    },
+    {
+      "title": "진료기록 작성과 시술 선택",
+      "path": "images/02-consultation-workspace.png",
+      "original_filename": "20251022_174017.399f33b4cff559d86b22.png",
+      "url": "https://iframe.sigmachart.co.kr/static/media/20251022_174017.399f33b4cff559d86b22.png",
+      "bytes": 481828,
+      "width": 1920,
+      "height": 1020,
+      "sha256": "11386ef3a68a763cbe6e07fe49550a6386362ddca07ff580355c72dae4399d2b",
+      "modified": false
+    },
+    {
+      "title": "시술 기법 및 혈자리 선택창",
+      "path": "images/03-procedure-acupoint-dialog.png",
+      "original_filename": "20251022_174155.e330a2995a1c34c78c10.png",
+      "url": "https://iframe.sigmachart.co.kr/static/media/20251022_174155.e330a2995a1c34c78c10.png",
+      "bytes": 502682,
+      "width": 1920,
+      "height": 1020,
+      "sha256": "a450cd8b3ddf252cfe76e304cbb8bb71a4f069e6821e0a6c4004643d96f3e180",
+      "modified": false
+    },
+    {
+      "title": "환자 현황과 내부 채팅",
+      "path": "images/04-patient-board-chat.png",
+      "original_filename": "20251022_174203.0e668f5805d9de9cb954.png",
+      "url": "https://iframe.sigmachart.co.kr/static/media/20251022_174203.0e668f5805d9de9cb954.png",
+      "bytes": 518207,
+      "width": 1920,
+      "height": 1020,
+      "sha256": "c95eae1523e2c23795bc1eecdf894baa1eafd641eb546320a49d2fa86a7d5b2d",
+      "modified": false
+    }
+  ]
+}

@@ -16,7 +16,14 @@
       "source_url": "https://app.notion.com/p/HaniSOAP-3f3fb029db3080db9096cfe60345e8ab",
       "path": "notion/02_HaniSOAP_기획서.txt",
       "characters": 10589,
-      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 기획서 (새로 작성 중) 3f3fb029db3080db9096cfe60345e8ab.md"
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 기획서 (새로 작성 중) 3f3fb029db3080db9096cfe60345e8ab.md",
+      "local_revision": {
+        "updated_on_kst": "2026-10-09",
+        "characters": 13455,
+        "sha256": "3e09fb6c80447becc989126254bf66655d54ac3c305d56c4d22e5f003bf880c0",
+        "summary": "chino-meds 2D SVG and reviewed coordinates; region zoom and Korean checklist; laterality; licensing and iPad verification",
+        "notion_sync_status": "not_synced"
+      }
     },
     {
       "title": "HaniSOAP | 화면 구성·기존 구현·신규 개발 범위",
@@ -40,7 +47,14 @@
       "source_url": "https://app.notion.com/p/1-3f3fb029db308009b921d42203664598",
       "path": "notion/05_재진_대화_녹음_대본.txt",
       "characters": 1566,
-      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 기획서 (새로 작성 중)/재진 대화 녹음 대본 (약 1분) 3f3fb029db308009b921d42203664598.md"
+      "export_member": "개인 페이지 & 공유된 페이지/HaniSOAP 10월 9일 해커톤 기획 초안/HaniSOAP 기획서 (새로 작성 중)/재진 대화 녹음 대본 (약 1분) 3f3fb029db308009b921d42203664598.md",
+      "local_revision": {
+        "updated_on_kst": "2026-10-09",
+        "characters": 1843,
+        "sha256": "1b040d82ffd30181dea0f37c6c62e5143393fed6e7ce8033dd22687598472adb",
+        "summary": "Align ankle treatment capture scene with region zoom and Korean checklist; spoken dialogue unchanged",
+        "notion_sync_status": "not_synced"
+      }
     }
   ],
   "copied_files": [
@@ -97,6 +111,33 @@
       "path": "notion/원본_노션_내보내기.zip",
       "bytes": 30743,
       "sha256": "b5dd5c88066c4bae2c3f1d27bc4958af8dbba7d66a491a172135eb2c6758744f"
+    }
+  ],
+  "working_documents": [
+    {
+      "path": "implementation-plan.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 35845,
+      "sha256": "dd4e00d6f5649bc8ea88e5221914059d572f4b94f1aae6bef2c2d8cb2543d1d3",
+      "summary": "Detailed implementation draft and decisions from the current development discussion"
+    },
+    {
+      "path": "reference/sigmachart/README.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 3672,
+      "sha256": "35617a4ce5c69b56575eaaf327b3a3cd6dca0ec5f90afe9d8cab7b2e14d82636",
+      "summary": "Observed official SigmaChart screens and proposed HaniSOAP UI layout"
+    }
+  ],
+  "reference_collections": [
+    {
+      "path": "reference/sigmachart/source-manifest.json",
+      "kind": "official_public_screenshots",
+      "image_count": 4,
+      "analysis_path": "reference/sigmachart/README.md",
+      "provided_five_screenshots_status": "not_located"
     }
   ]
 }
