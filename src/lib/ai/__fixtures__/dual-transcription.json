@@ -1,0 +1,200 @@
+{
+  "notice": "Synthetic TTS test, no real patient data. Model outputs are unedited; role labels below are local test expectations only.",
+  "content": "안녕하세요. 제 이름은 김서연이에요. 김서연으로 예약했어요. 전화번호는 010-0000-0000입니다. 오른쪽 발목으로 다시 오셨네요. 지난번 통증 점수는 6점이었죠. 오늘 통증은 몇 점인가요? 오늘은 5점이에요. 걸을 때는 괜찮지만 계단을 내려갈 때 아파요. 약은 안내받은 대로 하루 3번, 식후 30분에 드셨나요? 아침 약과 저녁 약은 먹었어요. 점심에는 바빠서 두 번 못 먹었어요. 걷기 운동은 다시 해도 되나요? 당분간 걷기 운동은 쉬고 무리한 체중 부하는 피해 주세요. 누워 있을 때는 발을 높여 주세요. 네, 알겠습니다. 오늘 통증은 5점이고 오른쪽 발목이 불편해요. 오늘은 오른쪽 발목에 침 치료를 할 계획입니다. 실제 시술 내용은 치료 후 따로 확인해서 기록할게요.",
+  "diarized": [
+    {
+      "id": "63ccf5c1-c78f-4867-ac29-320efc843300",
+      "source_segment_id": "63ccf5c1-c78f-4867-ac29-320efc843300",
+      "raw_speaker": "A",
+      "ordinal": 1,
+      "speaker": "unknown",
+      "text": " 안녕하세요.",
+      "start_ms": 0,
+      "end_ms": 600
+    },
+    {
+      "id": "2612ba94-2aa8-48bb-a229-534ae98f5031",
+      "source_segment_id": "2612ba94-2aa8-48bb-a229-534ae98f5031",
+      "raw_speaker": "A",
+      "ordinal": 2,
+      "speaker": "unknown",
+      "text": " 제 이름은 김서현이에요.",
+      "start_ms": 1250,
+      "end_ms": 3300
+    },
+    {
+      "id": "3df469da-2a17-4e16-8682-8e9492e036c2",
+      "source_segment_id": "3df469da-2a17-4e16-8682-8e9492e036c2",
+      "raw_speaker": "A",
+      "ordinal": 3,
+      "speaker": "unknown",
+      "text": " 김서현으로 예약했어요.",
+      "start_ms": 4000,
+      "end_ms": 5500
+    },
+    {
+      "id": "b05d5c55-2e88-4768-84cb-50b87b837805",
+      "source_segment_id": "b05d5c55-2e88-4768-84cb-50b87b837805",
+      "raw_speaker": "A",
+      "ordinal": 4,
+      "speaker": "unknown",
+      "text": " 전화번호는 010-0000-0000입니다.",
+      "start_ms": 6200,
+      "end_ms": 10400
+    },
+    {
+      "id": "b54359a4-67ce-448b-8905-8a3ca9a32040",
+      "source_segment_id": "b54359a4-67ce-448b-8905-8a3ca9a32040",
+      "raw_speaker": "B",
+      "ordinal": 5,
+      "speaker": "unknown",
+      "text": " 오른쪽 발목으로 다시 오셨네요.",
+      "start_ms": 10950,
+      "end_ms": 12950
+    },
+    {
+      "id": "1ae427b6-0011-4426-a0e8-e4b84c94f9a7",
+      "source_segment_id": "1ae427b6-0011-4426-a0e8-e4b84c94f9a7",
+      "raw_speaker": "B",
+      "ordinal": 6,
+      "speaker": "unknown",
+      "text": " 지난번 통증 점수는 6점이었죠.",
+      "start_ms": 13650,
+      "end_ms": 16000
+    },
+    {
+      "id": "7f5046e2-a1cd-4de4-a323-b919c61e1aaf",
+      "source_segment_id": "7f5046e2-a1cd-4de4-a323-b919c61e1aaf",
+      "raw_speaker": "B",
+      "ordinal": 7,
+      "speaker": "unknown",
+      "text": " 오늘 통증은 몇 점인가요?",
+      "start_ms": 16350,
+      "end_ms": 18050
+    },
+    {
+      "id": "2462860e-80b0-4e2e-bb3d-b443ef4f107c",
+      "source_segment_id": "2462860e-80b0-4e2e-bb3d-b443ef4f107c",
+      "raw_speaker": "A",
+      "ordinal": 8,
+      "speaker": "unknown",
+      "text": " 오늘은 5점이에요.",
+      "start_ms": 18600,
+      "end_ms": 20250
+    },
+    {
+      "id": "8058672d-c77e-445d-95ea-802bb1737d38",
+      "source_segment_id": "8058672d-c77e-445d-95ea-802bb1737d38",
+      "raw_speaker": "A",
+      "ordinal": 9,
+      "speaker": "unknown",
+      "text": " 걸을 때는 괜찮지만 계단을 내려갈 때 아파요.",
+      "start_ms": 20850,
+      "end_ms": 24600
+    },
+    {
+      "id": "ffeefec9-98a9-4101-86d3-372cbaab63f2",
+      "source_segment_id": "ffeefec9-98a9-4101-86d3-372cbaab63f2",
+      "raw_speaker": "B",
+      "ordinal": 10,
+      "speaker": "unknown",
+      "text": " 야근 안내받은 대로 하루 세 번 식후 서른 분에 드셨나요?",
+      "start_ms": 25172,
+      "end_ms": 30272
+    },
+    {
+      "id": "d3507340-c082-48b4-9119-b3e32e83e1cf",
+      "source_segment_id": "d3507340-c082-48b4-9119-b3e32e83e1cf",
+      "raw_speaker": "A",
+      "ordinal": 11,
+      "speaker": "unknown",
+      "text": " 아침 약과 저녁 약은 먹었어요.",
+      "start_ms": 31122,
+      "end_ms": 33672
+    },
+    {
+      "id": "df375e6c-0e8a-41db-a74b-4bf882a1d453",
+      "source_segment_id": "df375e6c-0e8a-41db-a74b-4bf882a1d453",
+      "raw_speaker": "A",
+      "ordinal": 12,
+      "speaker": "unknown",
+      "text": " 점심에는 바빠서 두 번 못 먹었어요.",
+      "start_ms": 34422,
+      "end_ms": 36872
+    },
+    {
+      "id": "8ec521bf-30be-4511-8e42-131633046923",
+      "source_segment_id": "8ec521bf-30be-4511-8e42-131633046923",
+      "raw_speaker": "A",
+      "ordinal": 13,
+      "speaker": "unknown",
+      "text": " 걷기 운동은 다시 해도 되나요?",
+      "start_ms": 37622,
+      "end_ms": 39522
+    },
+    {
+      "id": "b39a308c-5684-49dc-8fa6-ec2072c7d891",
+      "source_segment_id": "b39a308c-5684-49dc-8fa6-ec2072c7d891",
+      "raw_speaker": "B",
+      "ordinal": 14,
+      "speaker": "unknown",
+      "text": " 당분간 걷기 운동은 쉬고 무리한 체중 부하를 피해 주세요.",
+      "start_ms": 40322,
+      "end_ms": 44772
+    },
+    {
+      "id": "3b0ec5ee-48e6-4edb-91aa-e138980f6166",
+      "source_segment_id": "3b0ec5ee-48e6-4edb-91aa-e138980f6166",
+      "raw_speaker": "B",
+      "ordinal": 15,
+      "speaker": "unknown",
+      "text": " 누워 있을 때는 발을 꼭 펴주세요.",
+      "start_ms": 45622,
+      "end_ms": 47622
+    },
+    {
+      "id": "fe2d0136-4392-4b4f-9764-6bf53511cc1c",
+      "source_segment_id": "fe2d0136-4392-4b4f-9764-6bf53511cc1c",
+      "raw_speaker": "A",
+      "ordinal": 16,
+      "speaker": "unknown",
+      "text": " 네 알겠습니다.",
+      "start_ms": 48084,
+      "end_ms": 49584
+    },
+    {
+      "id": "e8513537-8bd2-451b-8d84-42c3c7d02966",
+      "source_segment_id": "e8513537-8bd2-451b-8d84-42c3c7d02966",
+      "raw_speaker": "A",
+      "ordinal": 17,
+      "speaker": "unknown",
+      "text": " 오늘 통증은 5점이고 오른쪽 발목이 불편해요.",
+      "start_ms": 50284,
+      "end_ms": 54834
+    },
+    {
+      "id": "d3e55bde-39e9-45cf-9bb2-32dd2f6bd047",
+      "source_segment_id": "d3e55bde-39e9-45cf-9bb2-32dd2f6bd047",
+      "raw_speaker": "B",
+      "ordinal": 18,
+      "speaker": "unknown",
+      "text": " 오늘은 오른쪽 발목에 침치료를 할 계획입니다.",
+      "start_ms": 55334,
+      "end_ms": 59034
+    },
+    {
+      "id": "804005a0-0f18-4cf4-a1e2-289c2a0d5b18",
+      "source_segment_id": "804005a0-0f18-4cf4-a1e2-289c2a0d5b18",
+      "raw_speaker": "B",
+      "ordinal": 19,
+      "speaker": "unknown",
+      "text": " 실제 시술 내용은 치료 후 따로 확인해서 기록할게요.",
+      "start_ms": 59984,
+      "end_ms": 63484
+    }
+  ],
+  "expected_roles_by_group": {
+    "A": "patient",
+    "B": "clinician"
+  }
+}

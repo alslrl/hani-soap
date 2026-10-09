@@ -86,3 +86,7 @@ JSON Schema의 형식·필수값·enum 검증 뒤 관계·시간·상태 검증�
 ## AI 전송용 식별정보 가림 기록
 
 `jobs.result.text_privacy`는 단계별 처리 버전, 검사 여부, 식별정보 종류별 개수, 가린 위치 수만 보관한다. 대응표·탐지된 원문 값은 포함하지 않는다. 실제 전사·승인 문안·근거 인용의 저장 계약은 바꾸지 않는다. 임의 표식은 해당 요청의 서버 메모리에서 복원한 뒤 기존 인용 검증을 거친다. 상세한 보호 범위와 제외 사항은 [식별정보 가림](text-privacy.md)을 따른다.
+
+## 두 경로 전사와 원문 보존
+
+작업의 `diarizedTranscriptId`·`contentTranscriptId`·`transcriptId`는 화자 모델 원본·본문 모델 원본·결합 전사의 별도 revision을 가리킨다. Segment의 선택 필드 `source_segment_ids`는 원래 화자 구간들, `alignment_status`는 자동 대응/검토 필요, `transcription_changed`는 모델별 표현 차이를 기록한다. 결합 구간을 이어 붙인 문자열은 본문 모델 원문과 정확히 같아야 한다. 기존 승인 문서와 전사 revision은 수정하지 않는다.

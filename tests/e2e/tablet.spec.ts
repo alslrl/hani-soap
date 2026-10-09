@@ -21,6 +21,8 @@ async function screenPoints(page: Page, points: Point[]) {
   }, points);
 }
 async function draw(page: Page, points: Point[]) {
+  const pen = page.getByRole("radio", { name: "펜", exact: true });
+  if (await pen.isEnabled()) await pen.click();
   const transformed = await screenPoints(page, points);
   await page.mouse.move(transformed[0].x, transformed[0].y);
   await page.mouse.down();
@@ -28,10 +30,15 @@ async function draw(page: Page, points: Point[]) {
   await page.mouse.up();
 }
 async function directSelection(page: Page, anchor: Point) {
-  await page.getByRole("button", { name: "부위 직접 선택", exact: true }).click();
+  await page.getByRole("radio", { name: "부위 선택", exact: true }).click();
   const [point] = await screenPoints(page, [anchor]);
   await page.mouse.click(point.x, point.y);
   await expect(pickerOf(page)).toBeVisible();
+}
+async function markAndSelect(page: Page, x: number, y: number) {
+  await draw(page, check(x, y));
+  await expect(pickerOf(page)).toHaveCount(0);
+  await directSelection(page, [x, y]);
 }
 async function openRecords(page: Page) {
   await page.locator(".tablet-records-toggle").click();
@@ -117,7 +124,7 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await draw(page, check(446, 894));
   await expect(pickerOf(page)).toHaveCount(0);
   await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "마지막 필기 취소", exact: true }).click();
+  await page.getByRole("button", { name: "필기 작업 되돌리기", exact: true }).click();
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(0);
   await page.getByRole("button", { name: "이전 도해 기록", exact: true }).click();
   await expect(canvas).toHaveAttribute("data-coordinate-version", "body-map-v1");
@@ -126,7 +133,7 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await expect(canvas.locator('[data-ink-kind="check"]')).toHaveAttribute("d", "M430.00,875.00 L446.00,894.00 L481.00,843.00");
   await expect(page.getByTestId("legacy-body-map-notice")).toContainText("읽기 전용");
   await expect(page.getByRole("button", { name: "초안 저장", exact: true })).toHaveCount(0);
-  await expect(page.getByRole("button", { name: "마지막 필기 취소", exact: true })).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "필기 작업 되돌리기", exact: true })).toHaveCount(0);
   await draw(page, check(419, 894));
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(1);
   await capture(page, testInfo, "hani-portrait-female-history.png");
@@ -135,7 +142,7 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(0);
 
   const bodyBeforeSheet = await canvas.boundingBox();
-  await draw(page, check(419, 894));
+  await markAndSelect(page, 419, 894);
   await expectRegion(page, "right");
   await expect(pickerOf(page)).toHaveAttribute("aria-modal", "true");
   expect(await canvas.boundingBox()).toEqual(bodyBeforeSheet);
@@ -152,31 +159,30 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await expect.poll(async () => (await readState(page.request)).state.annotations.some(row => row.visit_id === visitId && row.coordinate_version === femaleVersion && row.view === "front" && row.modality === "acupuncture")).toBe(true);
   await closeRecords(page); await dismissToast(page);
   await draw(page, [[480, 400], [500, 400], [520, 400]]);
+  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(2);
+  await page.getByRole("button", { name: "필기 작업 되돌리기", exact: true }).click();
   await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "마지막 필기 취소", exact: true }).click();
-  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(0);
-  await expect(canvas.locator('[data-ink-kind="check"]')).toHaveCount(1);
 
   await page.getByRole("tab", { name: /^약침/ }).click();
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(0);
-  await draw(page, check(419, 894));
+  await markAndSelect(page, 419, 894);
   await expectRegion(page, "right");
   await addPoint(page, /신맥.*BL62/);
   await page.locator(".tablet-toolbar-save").click();
   await expect.poll(async () => (await readState(page.request)).state.treatments.some(row => row.visit_id === visitId && row.modality === "pharmacopuncture" && row.acupoints.some(point => point.code === "BL62"))).toBe(true);
   await dismissToast(page);
   await page.getByRole("tab", { name: /^침/ }).click();
-  const originalInk = await canvas.locator('[data-ink-kind="check"]').getAttribute("d");
+  const originalInk = await canvas.locator('[data-ink-kind="memo"]').getAttribute("d");
   await page.setViewportSize({ width: 1366, height: 1024 });
   await expect(canvas).toHaveAttribute("viewBox", "0 0 1000 1000");
-  await expect(canvas.locator('[data-ink-kind="check"]')).toHaveAttribute("d", originalInk!);
+  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveAttribute("d", originalInk!);
   await page.setViewportSize({ width: 834, height: 1194 });
   await expect(canvas).toHaveAttribute("viewBox", portraitBox);
-  await expect(canvas.locator('[data-ink-kind="check"]')).toHaveAttribute("d", originalInk!);
+  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveAttribute("d", originalInk!);
   await page.getByRole("button", { name: "뒷면", exact: true }).click();
   await expect(canvas.locator("image")).toHaveAttribute("href", artPath("back", true));
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(0);
-  await draw(page, check(580, 894));
+  await markAndSelect(page, 580, 894);
   await expectRegion(page, "right");
   await addPoint(page, /곤륜.*BL60/);
   records = await openRecords(page);
@@ -187,8 +193,8 @@ test("female portrait defaults to its own frame while old ink remains read-only 
   await page.reload();
   await expect(canvas).toHaveAttribute("data-coordinate-version", femaleVersion);
   await expect(canvas.locator("image")).toHaveAttribute("href", artPath("front", true));
-  await expect(canvas.locator('[data-ink-kind="check"]')).toHaveAttribute("d", originalInk!);
-  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(0);
+  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveAttribute("d", originalInk!);
+  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(1);
   await capture(page, testInfo, "hani-portrait-female-front.png");
   const final = await readState(page.request);
   expect(final.state.annotations.find(row => row.id === annotationId)).toEqual(oldAnnotation);
@@ -214,13 +220,13 @@ test("male portrait keeps v2 gestures, zoom coordinates and separate front/back 
   await expect(canvas).toHaveAttribute("data-coordinate-version", maleVersion);
   await expect(canvas.locator("image")).toHaveAttribute("href", artPath("front", false));
   await expect(canvas).toHaveAttribute("viewBox", portraitBox);
-  await draw(page, check(446, 894));
+  await markAndSelect(page, 446, 894);
   await expectRegion(page, "right");
   await pickerOf(page).getByRole("button", { name: "이 부위 확대 보기", exact: true }).click();
   await expect(pickerOf(page)).toHaveCount(0);
   expect((await canvas.getAttribute("viewBox"))?.split(" ").slice(-2)).toEqual(["360", "360"]);
   await draw(page, [[480, 800], [500, 800], [520, 800]]);
-  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(1);
+  await expect(canvas.locator('[data-ink-kind="memo"]')).toHaveCount(2);
   await page.getByRole("button", { name: "전체 인체 보기", exact: true }).click();
   await expect(canvas).toHaveAttribute("viewBox", portraitBox);
   await directSelection(page, [446, 894]);
@@ -228,7 +234,7 @@ test("male portrait keeps v2 gestures, zoom coordinates and separate front/back 
   await page.locator(".tablet-toolbar-save").click();
   await expect.poll(async () => (await readState(page.request)).state.annotations.some(row => row.visit_id === visitId && row.coordinate_version === maleVersion && row.view === "front" && row.strokes.length === 2)).toBe(true);
   const saved = (await readState(page.request)).state.annotations.find(row => row.visit_id === visitId && row.coordinate_version === maleVersion && row.view === "front")!;
-  const memo = saved.strokes.find(row => row.kind === "memo")!;
+  const memo = saved.strokes.at(-1)!;
   expect(memo.points[0].x).toBeCloseTo(0.48, 2);
   expect(memo.points[0].y).toBeCloseTo(0.8, 2);
   await dismissToast(page);
@@ -238,7 +244,7 @@ test("male portrait keeps v2 gestures, zoom coordinates and separate front/back 
   await expect(canvas.locator("[data-ink-kind]")).toHaveCount(2);
   await page.getByRole("button", { name: "뒷면", exact: true }).click();
   await expect(canvas.locator("image")).toHaveAttribute("href", artPath("back", false));
-  await draw(page, check(446, 894));
+  await markAndSelect(page, 446, 894);
   await expectRegion(page, "left");
   await addPoint(page, /태계.*KI3/);
   const records = await openRecords(page);
@@ -272,8 +278,8 @@ test("male portrait keeps v2 gestures, zoom coordinates and separate front/back 
       expect(dimensions.height).toBeLessThanOrEqual(viewport.height + 1);
       await reachable(page, page.getByRole("button", { name: "앞면", exact: true }));
       await reachable(page, page.getByRole("button", { name: "뒷면", exact: true }));
-      await reachable(page, page.getByRole("button", { name: "부위 직접 선택", exact: true }));
-      await reachable(page, page.getByRole("button", { name: "마지막 필기 취소", exact: true }));
+      await reachable(page, page.getByRole("radio", { name: "부위 선택", exact: true }));
+      await reachable(page, page.getByRole("button", { name: "필기 작업 되돌리기", exact: true }));
       const beforeSheet = await canvas.boundingBox();
       if (portrait) {
         expect(beforeSheet!.width).toBeGreaterThanOrEqual(viewport.width * 0.95);

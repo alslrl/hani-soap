@@ -2,7 +2,7 @@ import { expect, test } from "@playwright/test";
 import { localDemo, scenario } from "./helpers";
 
 for (const failure of ["capture_lost", "coalesced_metadata"] as const) {
-  test(`Pencil check survives ${failure} and opens a region picker`, async ({ page }) => {
+  test(`Pencil check survives ${failure} as memo in pen mode`, async ({ page }) => {
     await page.setViewportSize({ width: 834, height: 1194 });
     const initial = await localDemo(page);
     const demo = failure === "capture_lost" ? "A" : "B";
@@ -10,6 +10,7 @@ for (const failure of ["capture_lost", "coalesced_metadata"] as const) {
     await page.goto(`/tablet/visits/${visitId}`);
     const canvas = page.getByTestId("treatment-canvas");
     await expect(canvas).toHaveAttribute("data-readonly", "false");
+    await page.getByRole("radio", { name: "펜", exact: true }).click();
     await canvas.evaluate((element, args) => {
       const svg = element as SVGSVGElement;
       const matrix = svg.getScreenCTM()!;
@@ -31,10 +32,10 @@ for (const failure of ["capture_lost", "coalesced_metadata"] as const) {
       if (args.failure === "capture_lost") emit("lostpointercapture", ...vertices.at(-1)! as [number, number]);
       emit("pointerup", ...vertices.at(-1)! as [number, number]);
     }, { demo, failure });
-    await expect(canvas.locator("[data-ink-kind='check']")).toHaveCount(1);
+    await expect(canvas.locator("[data-ink-kind='memo']")).toHaveCount(1);
     const picker = page.getByRole("dialog", { name: "부위별 위치 선택" });
-    await expect(picker).toBeVisible();
-    await expect(picker.getByLabel("선택 부위")).toHaveValue("ankle");
-    await expect(picker.getByLabel("환자 기준 좌우")).toHaveValue("right");
+    await expect(picker).toHaveCount(0);
+    const path = await canvas.locator("[data-ink-kind='memo']").getAttribute("d");
+    expect(path?.split("L").length).toBeGreaterThan(20);
   });
 }

@@ -3,7 +3,8 @@ import { randomUUID } from 'node:crypto';
 import { readState, updateState } from '@/lib/server/store';
 import { AppError } from '@/lib/server/errors';
 import { readAudio } from '@/lib/audio/storage';
-import { transcribeAudio } from './transcribe';
+import { transcribeAudio, transcribeContentAudio } from './transcribe';
+import { alignTranscriptContent, DUAL_TRANSCRIPTION_VERSION } from './transcription-alignment';
 import { DICTIONARY_RETRIEVAL_VERSION, loadDictionary, retrieveCorrectionSpans } from './dictionary';
 import { validateCorrections } from './correction';
 import { generateSoap, proposeCorrections, inferSpeakerRoles } from './provider';
@@ -26,29 +27,58 @@ export async function transcribeStep(jobId: string) {
   const { state } = await readState();
   const job = state.jobs.find((item) => item.id === jobId);
   if (!job) throw new AppError(404, 'JOB_NOT_FOUND', 'AI 작업을 찾을 수 없습니다.');
+  const visitId = job.visit_id;
   if (typeof job.result?.transcriptId === 'string') return job.result.transcriptId;
-  const recording = state.recordings.find((item) => item.id === job.recording_id && item.visit_id === job.visit_id);
+  const recording = state.recordings.find((item) => item.id === job.recording_id && item.visit_id === visitId);
   if (!recording) throw new AppError(404, 'RECORDING_NOT_FOUND', '전사할 음성을 찾을 수 없습니다.');
-  await patchJob(jobId, { status: 'running', stage: 'transcribing' });
-  const result = await transcribeAudio(await readAudio(recording), recording.filename);
+  const priorDiarized = state.transcripts.find((item) => item.id === job.result?.diarizedTranscriptId && item.visit_id === visitId);
+  const priorContent = state.transcripts.find((item) => item.id === job.result?.contentTranscriptId && item.visit_id === visitId);
+  await patchJob(jobId, { status: 'running', stage: 'transcribing', result: { transcription_pipeline: DUAL_TRANSCRIPTION_VERSION } });
+  const audio = !priorDiarized || !priorContent ? await readAudio(recording) : null;
+  const [diarized, content] = await Promise.allSettled([
+    priorDiarized ? Promise.resolve(priorDiarized) : transcribeAudio(audio!, recording.filename),
+    priorContent ? Promise.resolve(priorContent) : transcribeContentAudio(audio!, recording.filename),
+  ]);
+  // Persist each successful channel before throwing, so retry only calls the missing channel.
+  await updateState((next) => {
+    const currentJob = next.jobs.find((item) => item.id === jobId)!;
+    currentJob.result = { ...currentJob.result, transcription_pipeline: DUAL_TRANSCRIPTION_VERSION, model: AI_MODELS.transcription, diarization_model: AI_MODELS.diarization };
+    function saveSource(key: 'diarizedTranscriptId' | 'contentTranscriptId', text: string, segments: Transcript['segments']) {
+      if (typeof currentJob.result?.[key] === 'string') return;
+      const id = randomUUID();
+      const revision = Math.max(0, ...next.transcripts.filter((item) => item.visit_id === visitId).map((item) => item.revision)) + 1;
+      next.transcripts.push({ id, clinic_id: next.clinic.id, visit_id: visitId, revision, status: 'raw', source_asset_key: 'manual_seed', text, segments, origin: 'manual_demo' });
+      currentJob.result![key] = id;
+    }
+    if (diarized.status === 'fulfilled') saveSource('diarizedTranscriptId', diarized.value.text, diarized.value.segments);
+    if (content.status === 'fulfilled') saveSource('contentTranscriptId', content.value.text, [{ id: randomUUID(), ordinal: 1, speaker: 'unknown', text: content.value.text, start_ms: null, end_ms: null }]);
+    currentJob.updated_at = new Date().toISOString();
+  });
+  if (content.status === 'rejected') throw content.reason;
+  if (diarized.status === 'rejected') throw diarized.reason;
+  const saved = (await readState()).state;
+  const savedJob = saved.jobs.find((item) => item.id === jobId)!;
+  const original = saved.transcripts.find((item) => item.id === savedJob.result?.diarizedTranscriptId)!;
+  const primary = saved.transcripts.find((item) => item.id === savedJob.result?.contentTranscriptId)!;
+  const alignment = alignTranscriptContent(primary.text, original.segments);
   await patchJob(jobId, { stage: 'speaker_roles' });
-  const privacy = new AiTextPrivacy(identitiesForVisit(state, job.visit_id));
+  const privacy = new AiTextPrivacy(identitiesForVisit(saved, visitId));
   let speakerRoles: NonNullable<Transcript['speaker_roles']> = {};
   let speakerNote: string | null = null;
-  try { speakerRoles = await inferSpeakerRoles(result.text, result.segments, privacy); }
+  try { speakerRoles = await inferSpeakerRoles(primary.text, alignment.segments, privacy); }
   catch { speakerNote = '화자 역할 자동 추론에 실패해 미확인으로 남겼습니다. 전사 검토에서 그룹 또는 구간 역할을 수정할 수 있습니다.'; }
-  const segments = result.segments.map(segment => ({ ...segment, speaker: effectiveSpeaker(segment, speakerRoles) }));
-  const id = randomUUID();
+  const segments = alignment.segments.map(segment => ({ ...segment, speaker: effectiveSpeaker(segment, speakerRoles) }));
   await updateState((next) => {
     const currentJob = next.jobs.find((item) => item.id === jobId)!;
     if (currentJob.result?.transcriptId) return;
-    const transcript: Transcript = { id, clinic_id: next.clinic.id, visit_id: job.visit_id, revision: Math.max(0, ...next.transcripts.filter((item) => item.visit_id === job.visit_id).map((item) => item.revision)) + 1, status: 'raw', source_asset_key: 'manual_seed', text: result.text, segments, speaker_roles: speakerRoles, origin: 'manual_demo' };
+    const id = randomUUID();
+    const transcript: Transcript = { id, clinic_id: next.clinic.id, visit_id: visitId, revision: Math.max(0, ...next.transcripts.filter((item) => item.visit_id === visitId).map((item) => item.revision)) + 1, status: 'raw', source_asset_key: 'manual_seed', text: primary.text, segments, speaker_roles: speakerRoles, origin: 'manual_demo' };
     next.transcripts.push(transcript);
-    currentJob.result = { ...currentJob.result, mode: 'actual_ai', transcriptId: id, rawSpeakers: result.rawSpeakers, model: result.model, speaker_role_model: AI_MODELS.correction, speaker_role_note: speakerNote, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'speaker_roles', privacy) };
+    const rawSpeakers = Object.fromEntries(segments.flatMap((segment) => segment.raw_speaker ? [[segment.id, segment.raw_speaker]] : []));
+    currentJob.result = { ...currentJob.result, mode: 'actual_ai', transcriptId: id, rawSpeakers, model: AI_MODELS.transcription, diarization_model: AI_MODELS.diarization, speaker_role_model: AI_MODELS.correction, speaker_role_note: speakerNote, alignment: { algorithm: alignment.algorithm, changed_groups: alignment.changed_groups, unassigned_groups: alignment.unassigned_groups, warnings: alignment.warnings }, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'speaker_roles', privacy) };
     currentJob.updated_at = new Date().toISOString();
   });
-  const latest = await readState();
-  return latest.state.jobs.find((item) => item.id === jobId)!.result!.transcriptId as string;
+  return (await readState()).state.jobs.find((item) => item.id === jobId)!.result!.transcriptId as string;
 }
 
 export async function correctionStep(jobId: string) {
