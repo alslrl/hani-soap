@@ -31,7 +31,7 @@ beforeEach(async () => {
       return Response.json({ access_token: 'private-access', refresh_token: 'private-refresh', expires_in: 3600, refresh_token_expires_in: 86400 });
     }
     if (url.endsWith('/access_token_info')) return Response.json({ id: 10234567, app_id: 1602111 });
-    if (url.endsWith('/user/scopes')) return Response.json({ scopes: [{ id: 'talk_message', consented: true }] });
+    if (url.endsWith('/user/scopes')) return Response.json({ scopes: [{ id: 'talk_message', agreed: true }] });
     assert.equal(url, 'https://kapi.kakao.com/v2/api/talk/memo/default/send');
     sends.push(JSON.parse(new URLSearchParams(String(init?.body)).get('template_object')!));
     if (sendFailure === 'timeout') throw new Error('network lost after submission');
@@ -139,7 +139,7 @@ test('missing message consent leaves the previously connected account intact', a
   const session = await unlock(req(), '1234'); const start = await beginKakaoConnection(session.session.id);
   const state = new URL(start.url).searchParams.get('state')!;
   const old = globalThis.fetch;
-  globalThis.fetch = async (input, init) => String(input).endsWith('/user/scopes') ? Response.json({ scopes: [] }) : old(input, init);
+  globalThis.fetch = async (input, init) => String(input).endsWith('/user/scopes') ? Response.json({ scopes: [{ id: 'talk_message', agreed: false, using: true }] }) : old(input, init);
   await assert.rejects(finishKakaoConnection(new Request(`http://localhost:3000/api/auth/kakao/callback?code=x&state=${state}`, { headers: { cookie: `${KAKAO_OAUTH_COOKIE}=${state}` } })), hasCode('KAKAO_SCOPE_REQUIRED'));
   assert.equal((await readKakaoPrivate()).connection!.id, before);
 });
