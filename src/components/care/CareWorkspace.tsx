@@ -44,7 +44,7 @@ function CareStrategyPanel({ result }: { result: Record<string, unknown> | null 
   const recipient = objectValue(strategy?.recipient);
   return <section className={styles.careStrategy} aria-label="맞춤 안내 방향과 근거">
     <header><h4>안내 방향 제안</h4><span>의료진 검토 전</span></header><p className={styles.strategyAudience}>{recipient?.kind === "guardian" ? "보호자에게 설명할 안내" : "환자에게 설명할 안내"}{typeof strategy?.stage === "string" && strategy.stage in STAGE_LABELS ? ` · ${STAGE_LABELS[strategy.stage as CareMessage["stage"]]}` : ""}</p>
-    {focus.map((item, index) => <div className={styles.focusItem} key={index}><strong>{String(item.title)}</strong><p>{String(item.why)}</p><details><summary>이 방향의 날짜·원문 근거</summary>{Array.isArray(item.evidence) && item.evidence.map((evidence, number) => <CareEvidenceItem key={number} value={evidence} />)}</details></div>)}
+    {focus.map((item, index) => <div className={styles.focusItem} key={index}><strong>{String(item.title)}</strong><p>{String(item.why)}</p><Disclosure><summary>이 방향의 날짜·원문 근거</summary>{Array.isArray(item.evidence) && item.evidence.map((evidence, number) => <CareEvidenceItem key={number} value={evidence} />)}</Disclosure></div>)}
   </section>;
 }
 

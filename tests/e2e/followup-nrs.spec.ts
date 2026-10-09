@@ -26,11 +26,11 @@ test('pain shortcut preserves answers and unsaved scores; answer save cannot rep
   await action(page.request, 'observation.save', { ...measure, value: 4 });
   await expect(followup.getByText('오늘 통증 NRS: 4/10', { exact: false })).toBeVisible();
   await expect(page.locator('#today-nrs')).toHaveValue('3');
-  await page.locator('.hs-nrs-panel').getByRole('button', { name: '저장', exact: true }).click();
+  await page.locator('.hs-nrs-panel').first().getByRole('button', { name: '저장', exact: true }).click();
   const currentValue = async () => (await readState(page.request)).state.observations.filter((item) => item.visit_id === visitId && item.instrument === 'NRS' && item.body_region === 'ankle' && item.laterality === 'right').sort((a, b) => b.measured_at.localeCompare(a.measured_at))[0]?.value;
   await expect.poll(currentValue).toBe(3);
   await followup.getByRole('button', { name: '오늘 답변 저장', exact: true }).click();
-  await expect(followup.getByRole('status')).toContainText('오늘 확인한 답변을 저장했습니다.');
+  await expect(followup.getByText('오늘 확인한 답변을 저장했습니다.', {exact:true})).toBeVisible();
   expect(await currentValue()).toBe(3);
 
   // When the score is untouched, a newly stored value is reflected in its input.

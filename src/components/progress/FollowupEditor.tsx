@@ -14,7 +14,7 @@ type AnswerDraft = Pick<FollowupAnswer, "item_key" | "subitem_key" | "answer_tex
 const answerKey = (item: string, subitem: string) => `${item}:${subitem}`;
 const questionGroupKey = (itemKey: string): FollowupKey => QUESTION_GROUPS.find((group) => group.key === itemKey)?.key ?? "questions_concerns";
 
-export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitId: string; compact?: boolean; nrsTarget?: NrsPanelTarget }) {
+export function FollowupEditor({ visitId, compact = false, nrsTarget, stairTarget }: { visitId: string; compact?: boolean; nrsTarget?: NrsPanelTarget; stairTarget?: NrsPanelTarget }) {
   const { data, act, refresh } = useAppState();
   const state = data?.state;
   const visit = state?.visits.find((item) => item.id === visitId);
@@ -90,7 +90,9 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
   // The clinic's NRS panel owns its score input. Saving answers must not replay
   // a hidden, stale copy of that score over a newer measurement.
   const isLinkedNrs = (metric: Observation) => Boolean(nrsTarget && metric.instrument === "NRS" && metric.metric_key === nrsTarget.metric_key && metric.body_region === nrsTarget.body_region && metric.laterality === nrsTarget.laterality && metric.activity_key === nrsTarget.activity_key && metric.measurement_context === nrsTarget.measurement_context);
-  const editableMetrics = metricTemplates.filter((metric) => !isLinkedNrs(metric));
+  const isLinkedStair = (metric: Observation) => Boolean(stairTarget && metric.instrument === "APP_FUNCTION_DISCOMFORT" && metric.metric_key === stairTarget.metric_key && metric.body_region === stairTarget.body_region && metric.laterality === stairTarget.laterality && metric.activity_key === stairTarget.activity_key && metric.measurement_context === stairTarget.measurement_context);
+  const editableMetrics = metricTemplates.filter((metric) => !isLinkedNrs(metric) && !isLinkedStair(metric));
+  const currentStair = state.observations.filter((item) => item.visit_id === visitId && isLinkedStair(item) && item.review_status === "reviewed").sort((a,b) => b.measured_at.localeCompare(a.measured_at))[0];
   const currentNrs = state.observations.filter((item) => item.visit_id === visitId && isLinkedNrs(item)).sort((a, b) => b.measured_at.localeCompare(a.measured_at))[0];
   const group = QUESTION_GROUPS.find((item) => item.key === selectedGroup)!;
   const groupDrafts = Object.entries(drafts).filter(([, item]) => item.item_key === selectedGroup);
@@ -162,14 +164,14 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
     const title = metric.instrument === "NRS" ? "오늘 통증 NRS (0~10)" : metric.instrument === "FREQUENCY" ? "오늘 야간 실수 횟수 (회/밤)" : "오늘 불편 점수 (0~10)";
     return <div className={styles.metricEntry} key={metric.series_key}>
       <label htmlFor={`score-${metric.id}`}>{title}</label>
-      <input id={`score-${metric.id}`} type="number" inputMode="decimal" min={metric.scale_min ?? 0} max={metric.scale_max ?? undefined} step={metric.instrument === "FREQUENCY" ? "any" : 1} value={metricValues[metric.series_key] ?? ""} placeholder="미확인" onChange={(event) => { setMetricValues((values) => ({ ...values, [metric.series_key]: event.target.value })); setDirty(true); }} />
+      <input id={`score-${metric.id}`} type="number" disabled={busy} inputMode="decimal" min={metric.scale_min ?? 0} max={metric.scale_max ?? undefined} step={metric.instrument === "FREQUENCY" ? "any" : 1} value={metricValues[metric.series_key] ?? ""} placeholder="미확인" onChange={(event) => { setMetricValues((values) => ({ ...values, [metric.series_key]: event.target.value })); setDirty(true); }} />
       <small>{previous ? `참고: ${formatClinicDate(previous.measured_at)} ${previous.value}${metric.instrument === "FREQUENCY" ? "회/밤" : "점"}` : "비교할 이전 점수가 없습니다."}{current ? " · 오늘 저장 기록 있음" : " · 오늘 값은 새로 확인해 주세요."}</small>
       {metric.instrument === "NRS" && <small>0 통증 없음 · 10 상상할 수 있는 가장 심한 통증</small>}
     </div>;
   }
 
-  function openNrs() {
-    const input = nrsTarget ? document.getElementById(nrsTarget.inputId) : null;
+  function openMetric(target?: NrsPanelTarget) {
+    const input = target ? document.getElementById(target.inputId) : null;
     if (!(input instanceof HTMLInputElement)) return;
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     input.scrollIntoView({ block: "center", behavior: reduceMotion ? "auto" : "smooth" });
@@ -178,7 +180,7 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
 
   return <section className={`${styles.followup} ${compact ? styles.compact : ""}`} aria-label="재진 확인 질문">
     <header className={styles.editorHeader}><div><h2>재진 질문</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !!checkBusy || !dirty && !hasUnsavedAiDrafts} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
-    <ClinicalAnalysisReview visitId={visitId} disabled={dirty || busy || !!checkBusy} nrsTarget={nrsTarget} />
+    <ClinicalAnalysisReview visitId={visitId} disabled={dirty || busy || !!checkBusy} nrsTarget={nrsTarget} stairTarget={stairTarget} />
     {pendingItems.length > 0 && <div className={styles.requiredNotice} role="status"><div><strong>필수 질문 {pendingItems.length}개 남음</strong><p>노란색 항목은 오늘 꼭 질문하고 확인 완료를 남겨 주세요.</p></div><button type="button" onClick={() => setSelectedGroup(QUESTION_GROUPS.find((group) => pendingItems.some((item) => questionGroupKey(item.item_key) === group.key))!.key)}>필수 질문 보기</button></div>}
     {visitChecks.length > 0 && pendingItems.length === 0 && <p className={styles.feedback} role="status">오늘 필수 질문을 모두 확인했습니다.</p>}
     {feedback && <p className={failed ? styles.error : styles.feedback} role={failed ? "alert" : "status"}>{feedback}</p>}
@@ -193,7 +195,7 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
       <div className={styles.questionBody}><h3>{group.title}</h3><p className={styles.question}>{group.question}</p>
         {group.key === "pain" && nrsTarget && <div className={styles.nrsShortcut}>
           <span>오늘 통증 점수</span>
-          <button type="button" className={styles.primary} onClick={openNrs} aria-controls={nrsTarget.inputId}>통증 NRS 입력으로 이동</button>
+          <button type="button" className={styles.primary} onClick={() => openMetric(nrsTarget)} aria-controls={nrsTarget.inputId}>통증 NRS 입력으로 이동</button>
           <small>오늘 통증 NRS: {currentNrs ? `${currentNrs.value}/10` : "미확인"} · 점수는 통증 NRS 패널에서 입력합니다.</small>
         </div>}
         {groupChecks.length > 0 && <ul className={styles.requiredList} aria-label={`${group.title} 필수 질문`}>{groupChecks.map((item) => {
@@ -203,10 +205,15 @@ export function FollowupEditor({ visitId, compact = false, nrsTarget }: { visitI
             {resolved ? <span className={styles.completedMark} aria-label="오늘 확인 완료">✓</span> : <button type="button" aria-label={`${item.title} 확인 완료`} disabled={busy || !!checkBusy} onClick={() => resolveCheck(item)}>{checkBusy === item.id ? "저장 중…" : "확인 완료"}</button>}
           </li>;
         })}</ul>}
+        {group.key === "function_daily" && stairTarget && <div className={styles.nrsShortcut}>
+          <span>계단 오를 때 불편함</span>
+          <button type="button" className={styles.primary} onClick={() => openMetric(stairTarget)} aria-controls={stairTarget.inputId}>계단 불편 점수 입력으로 이동</button>
+          <small>오늘 계단 오르기 점수: {currentStair ? `${currentStair.value}/10` : "미확인"} · 점수는 계단 오를 때 불편함 패널에서 입력합니다.</small>
+        </div>}
         {groupDrafts.map(([key, answer]) => {
           const subitem = group.subitems.find((item) => item.key === answer.subitem_key);
           const previous = previousAnswers.find((item) => item.item_key === answer.item_key && item.subitem_key === answer.subitem_key) ?? (groupDrafts.length === 1 ? previousAnswers.find((item) => item.item_key === answer.item_key) : undefined);
-          return <fieldset className={styles.answerField} key={key}><legend>{subitem?.label ?? (answer.subitem_key === "nocturnal_wetting" ? "야간 실수·이후 각성" : answer.subitem_key)}</legend>
+          return <fieldset className={styles.answerField} key={key} disabled={busy}><legend>{subitem?.label ?? (answer.subitem_key === "nocturnal_wetting" ? "야간 실수·이후 각성" : answer.subitem_key)}</legend>
             <div className={styles.previous}><span>지난 기록 {previous ? `· ${formatClinicDate(visitDates.get(previous.visit_id)!)}` : "· 첫 기록·비교 기준 없음"}</span><p>{previous?.answer_text ?? "이전 답변이 없습니다. 오늘 답변을 새로 확인해 주세요."}</p></div>
             <div className={styles.changeButtons} aria-label={`${subitem?.label ?? group.title} 변화`}>{Object.entries(CHANGE_LABELS).map(([value, label]) => <button key={value} type="button" aria-pressed={answer.change === value} onClick={() => update(key, { change: answer.change === value ? null : value as AnswerDraft["change"] })}>{label}</button>)}</div>
             <label className={styles.inputLabel}>오늘 상세 답변<textarea rows={3} placeholder="환자의 표현과 확인한 내용을 기록해 주세요." value={answer.answer_text ?? ""} onChange={(event) => update(key, { answer_text: event.target.value })} /></label>

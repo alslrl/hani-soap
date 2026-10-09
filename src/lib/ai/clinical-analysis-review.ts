@@ -14,7 +14,7 @@ export function analysisTarget(state: AppState, visitId: string, candidate: Anal
   return { answer, metrics, occupied, targetHash: analysisHash(candidate.kind === 'answer' ? answer ?? null : metrics), current: candidate.kind === 'answer' ? answer?.answer_text ?? '' : metrics.map(item => `${item.value}${({ score: '점', episodes_per_night: '회/밤', count_per_night: '회/밤', count_per_day: '회/일' } as Record<string,string>)[item.unit] ?? item.unit}`).join(', ') };
 }
 function validateEditedMeasurement(candidate: MeasurementCandidate, value: number) {
-  if (!Number.isFinite(value) || value < 0 || candidate.instrument === 'NRS' && (!Number.isInteger(value) || value > 10) || candidate.instrument === 'FREQUENCY' && !Number.isInteger(value) || !['NRS','FREQUENCY'].includes(candidate.instrument) && value > 10) throw new AppError(400, 'INVALID_MEASUREMENT', '점수·횟수 범위를 확인해 주세요. NRS는 0~10 정수입니다.');
+  if (!Number.isFinite(value) || value < 0 || candidate.instrument === 'NRS' && (!Number.isInteger(value) || value > 10) || ['FREQUENCY','APP_FUNCTION_DISCOMFORT'].includes(candidate.instrument) && !Number.isInteger(value) || !['NRS','FREQUENCY'].includes(candidate.instrument) && value > 10) throw new AppError(400, 'INVALID_MEASUREMENT', '점수·횟수 범위를 확인해 주세요. NRS는 0~10 정수입니다.');
 }
 export function reviewClinicalCandidate(state: AppState, input: AnalysisReviewInput, sessionId: string) {
   const job = state.jobs.find(item => item.id === input.jobId && item.kind === 'analysis' && item.result?.task === 'clinical_analysis' && item.clinic_id === state.clinic.id);
