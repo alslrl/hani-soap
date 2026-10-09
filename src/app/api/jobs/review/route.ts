@@ -4,13 +4,14 @@ import { AppError } from '@/lib/server/errors';
 import { readBody, errorResponse, jsonResponse } from '@/lib/server/http';
 import { updateState } from '@/lib/server/store';
 import { applyAcceptedCorrections, validateCorrections, type CorrectionSpan, type ValidatedCorrection } from '@/lib/ai/correction';
-import type { Segment } from '@/lib/types';
+import { isSpeakerRole, reviewSpeakerRoles, withRawSpeakerGroups } from '@/lib/audio/speaker-roles';
+import type { Segment, SpeakerRole } from '@/lib/types';
 
 export async function POST(request: Request) {
   try {
     const session = await requireSession(request);
     assertSameOrigin(request);
-    const { jobId, decisions, manualText, speakers, expectedTranscriptRevision } = await readBody(request, 300_000);
+    const { jobId, decisions, manualText, speakers, speakerGroups, expectedTranscriptRevision } = await readBody(request, 300_000);
     if (typeof jobId !== 'string') throw new AppError(400, 'JOB_REQUIRED', '검토할 전사 작업을 선택해 주세요.');
     let transcriptId = '';
     await updateState((state) => {
@@ -39,24 +40,38 @@ export async function POST(request: Request) {
       const corrected = applyAcceptedCorrections(raw.text, corrections);
       if (manualText !== undefined && (typeof manualText !== 'string' || !manualText.trim() || manualText.length > 150_000)) throw new AppError(400, 'INVALID_TRANSCRIPT_TEXT', '검토 전사 내용을 확인해 주세요.');
       const text = typeof manualText === 'string' ? manualText : corrected;
-      const speakerMap = speakers && typeof speakers === 'object' && !Array.isArray(speakers) ? speakers as Record<string, string> : {};
-      const allowed = ['clinician', 'patient', 'guardian', 'unknown'];
-      if (Object.values(speakerMap).some((item) => !allowed.includes(item))) throw new AppError(400, 'INVALID_SPEAKER', '화자 역할을 확인해 주세요.');
+      const rawWithGroups = withRawSpeakerGroups(raw, (job.result?.rawSpeakers ?? {}) as Record<string, string>);
+      const latestWithGroups = withRawSpeakerGroups(latest, (job.result?.rawSpeakers ?? {}) as Record<string, string>, rawWithGroups);
+      const objectMap = (value: unknown) => {
+        if (value === undefined) return {};
+        if (!value || typeof value !== 'object' || Array.isArray(value)) throw new AppError(400, 'INVALID_SPEAKER', '화자 역할을 확인해 주세요.');
+        return value as Record<string, unknown>;
+      };
+      const speakerMap = objectMap(speakers);
+      const groupMap = objectMap(speakerGroups);
+      const groups = new Set([...rawWithGroups.segments, ...latestWithGroups.segments].flatMap(segment => segment.raw_speaker ? [segment.raw_speaker] : []));
+      const segmentIds = new Set([...rawWithGroups.segments, ...latestWithGroups.segments].flatMap(segment => [segment.id, segment.source_segment_id ?? segment.id]));
+      if (Object.entries(speakerMap).some(([id, role]) => !segmentIds.has(id) || role !== null && !isSpeakerRole(role)) || Object.entries(groupMap).some(([group, role]) => !groups.has(group) || !isSpeakerRole(role))) throw new AppError(400, 'INVALID_SPEAKER', '저장된 화자 그룹과 구간의 역할을 확인해 주세요.');
       transcriptId = randomUUID();
       let segments: Segment[];
-      if (typeof manualText === 'string' && manualText !== corrected) {
+      let roleState = reviewSpeakerRoles(rawWithGroups, latestWithGroups, groupMap as Record<string, SpeakerRole>, speakerMap as Record<string, SpeakerRole | null>);
+      if (typeof manualText === 'string' && manualText !== corrected && manualText !== latest.text) {
         // A freely rewritten transcript cannot retain inaccurate word offsets or inferred roles.
         segments = [{ id: randomUUID(), ordinal: 1, speaker: 'unknown', text, start_ms: null, end_ms: null }];
+        roleState = { segments, speaker_roles: {} };
+      } else if (typeof manualText === 'string' && manualText === latest.text && latest.text !== corrected) {
+        roleState = reviewSpeakerRoles(latestWithGroups, latestWithGroups, groupMap as Record<string, SpeakerRole>, speakerMap as Record<string, SpeakerRole | null>);
+        segments = roleState.segments.map(segment => ({ ...segment, id: randomUUID() }));
       } else {
         let globalOffset = 0;
-        segments = raw.segments.map((segment) => {
+        segments = roleState.segments.map((segment) => {
           const start = raw.text.indexOf(segment.text, globalOffset);
           if (start >= 0) globalOffset = start + segment.text.length;
           const scoped = corrections.filter((item) => start >= 0 && item.start >= start && item.end <= start + segment.text.length).map((item) => ({ ...item, start: item.start - start, end: item.end - start }));
-          return { ...segment, id: randomUUID(), speaker: (speakerMap[segment.id] || segment.speaker) as Segment['speaker'], text: applyAcceptedCorrections(segment.text, scoped) };
+          return { ...segment, id: randomUUID(), text: applyAcceptedCorrections(segment.text, scoped) };
         });
       }
-      state.transcripts.push({ ...raw, id: transcriptId, revision: latest.revision + 1, status: 'reviewed', text, segments });
+      state.transcripts.push({ ...raw, id: transcriptId, revision: latest.revision + 1, status: 'reviewed', text, segments, speaker_roles: roleState.speaker_roles });
       job.result = { ...job.result, model_corrections: job.result?.model_corrections ?? stored, corrections, reviewedTranscriptId: transcriptId, reviewed_by: session.id, reviewed_at: new Date().toISOString() };
       job.updated_at = new Date().toISOString();
     }, { sessionId: session.id });

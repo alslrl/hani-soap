@@ -5,8 +5,9 @@ import { readAudio } from '@/lib/audio/storage';
 import { transcribeAudio } from './transcribe';
 import { DICTIONARY_RETRIEVAL_VERSION, loadDictionary, retrieveCorrectionSpans } from './dictionary';
 import { validateCorrections } from './correction';
-import { generateSoap, proposeCorrections } from './provider';
+import { generateSoap, proposeCorrections, inferSpeakerRoles } from './provider';
 import { AI_MODELS } from './config';
+import { effectiveSpeaker } from '@/lib/audio/speaker-roles';
 import type { RuntimeJob, Transcript } from '@/lib/types';
 
 export async function patchJob(jobId: string, patch: Partial<RuntimeJob>) {
@@ -27,13 +28,19 @@ export async function transcribeStep(jobId: string) {
   if (!recording) throw new AppError(404, 'RECORDING_NOT_FOUND', '전사할 음성을 찾을 수 없습니다.');
   await patchJob(jobId, { status: 'running', stage: 'transcribing' });
   const result = await transcribeAudio(await readAudio(recording), recording.filename);
+  await patchJob(jobId, { stage: 'speaker_roles' });
+  let speakerRoles: NonNullable<Transcript['speaker_roles']> = {};
+  let speakerNote: string | null = null;
+  try { speakerRoles = await inferSpeakerRoles(result.text, result.segments); }
+  catch { speakerNote = '화자 역할 자동 추론에 실패해 미확인으로 남겼습니다. 전사 검토에서 그룹 또는 구간 역할을 수정할 수 있습니다.'; }
+  const segments = result.segments.map(segment => ({ ...segment, speaker: effectiveSpeaker(segment, speakerRoles) }));
   const id = randomUUID();
   await updateState((next) => {
     const currentJob = next.jobs.find((item) => item.id === jobId)!;
     if (currentJob.result?.transcriptId) return;
-    const transcript: Transcript = { id, clinic_id: next.clinic.id, visit_id: job.visit_id, revision: Math.max(0, ...next.transcripts.filter((item) => item.visit_id === job.visit_id).map((item) => item.revision)) + 1, status: 'raw', source_asset_key: 'manual_seed', text: result.text, segments: result.segments, origin: 'manual_demo' };
+    const transcript: Transcript = { id, clinic_id: next.clinic.id, visit_id: job.visit_id, revision: Math.max(0, ...next.transcripts.filter((item) => item.visit_id === job.visit_id).map((item) => item.revision)) + 1, status: 'raw', source_asset_key: 'manual_seed', text: result.text, segments, speaker_roles: speakerRoles, origin: 'manual_demo' };
     next.transcripts.push(transcript);
-    currentJob.result = { ...currentJob.result, mode: 'actual_ai', transcriptId: id, rawSpeakers: result.rawSpeakers, model: result.model };
+    currentJob.result = { ...currentJob.result, mode: 'actual_ai', transcriptId: id, rawSpeakers: result.rawSpeakers, model: result.model, speaker_role_model: AI_MODELS.correction, speaker_role_note: speakerNote };
     currentJob.updated_at = new Date().toISOString();
   });
   const latest = await readState();
