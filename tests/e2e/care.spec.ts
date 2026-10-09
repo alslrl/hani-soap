@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { localDemo, readState, scenario } from "./helpers";
+import { localDemo, readState, scenario , chooseSelect } from "./helpers";
 
 test("reviewed mock instructions lead to responses and contact work that needs explicit resolution", async ({ page }) => {
   const initial = await localDemo(page);
@@ -14,7 +14,7 @@ test("reviewed mock instructions lead to responses and contact work that needs e
   await page.getByRole("button", { name: "＋ 새 안내", exact: true }).click();
   const body = `진료 후 상태를 살펴보고 불편한 점을 알려주세요. 모의 안내 ${Date.now()}`;
   await page.getByLabel("안내문 초안").fill(body);
-  await expect(page.getByLabel("기준 진료")).not.toHaveValue("");
+  await expect(page.getByRole("combobox", { name: "기준 진료" })).not.toHaveAttribute("data-value", "");
   await page.getByRole("button", { name: "초안 저장", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_messages.some((item) => item.patient_id === patientId && item.draft_body === body && item.status === "draft")).toBe(true);
   const saved = await readState(page.request);
@@ -27,8 +27,8 @@ test("reviewed mock instructions lead to responses and contact work that needs e
   const sent = (await readState(page.request)).state.care_messages.find((item) => item.id === message.id)!;
   expect(sent.approved_body).toBe(body);
   expect(sent.delivery_mode).toBe("mock");
-  await page.getByLabel("모의 환자 응답").selectOption("discomfort");
-  await expect(page.getByLabel("불편 상세 선택")).toHaveValue("");
+  await chooseSelect(page, page.getByRole("combobox", { name: "모의 환자 응답" }), "discomfort");
+  await expect(page.getByRole("combobox", { name: "불편 상세 선택" })).toHaveAttribute("data-value", "");
   await page.getByRole("button", { name: "모의 응답 기록", exact: true }).click();
 
   await expect.poll(async () => {
@@ -44,7 +44,7 @@ test("reviewed mock instructions lead to responses and contact work that needs e
   await expect(taskRow.getByText("연락 필요", { exact: true })).toBeVisible();
 
   // A reassuring later response must not silently dispose of the earlier work.
-  await page.getByLabel("모의 환자 응답").selectOption("taking_well");
+  await chooseSelect(page, page.getByRole("combobox", { name: "모의 환자 응답" }), "taking_well");
   await page.getByRole("button", { name: "모의 응답 기록", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_responses.length).toBe(discomfort.state.care_responses.length + 1);
   expect((await readState(page.request)).state.contact_tasks.find((item) => item.id === task.id)?.status).toBe("open");

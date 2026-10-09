@@ -1,4 +1,7 @@
 'use client';
+import { AppSelect } from '@/components/ui/AppSelect';
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
@@ -71,9 +74,9 @@ export function AudioControls({ visitId, onChanged }: Props) {
 
   return <section className={styles.root} aria-label="녹음과 음성 처리">
     <div className={styles.controls}>
-      <select className={styles.select} aria-label="입력 마이크" value={deviceId} onChange={(event) => setDeviceId(event.target.value)} disabled={active}>
+      <AppSelect className={styles.select} aria-label="입력 마이크" value={deviceId} onChange={(event) => setDeviceId(event.target.value)} disabled={active}>
         <option value="">기본 마이크</option>{devices.map((device, index) => <option key={device.deviceId || index} value={device.deviceId}>{device.label || `마이크 ${index + 1}`}</option>)}
-      </select>
+      </AppSelect>
       {audio.status === 'recording' ? <button className={`${styles.button} ${styles.stop}`} disabled={busy} onClick={() => void execute(async () => {
         const result = await stopRecording();
         const filename = `consultation-${result.recoveryId}.${result.blob.type.includes('mp4') ? 'm4a' : 'webm'}`;
@@ -100,11 +103,11 @@ export function AudioControls({ visitId, onChanged }: Props) {
     {pending.map((job) => <div key={job.id} className={styles.job}><span className={styles.jobName}>{stageLabels[job.stage] || job.stage}</span><span>{job.status === 'failed' ? job.error : '실제 AI 작업'}</span></div>)}
     {data.jobs.filter((job) => job.stage === 'stale_input').map((job) => <p className={styles.notice} key={job.id}>생성 중 전사가 변경되어 이전 입력의 SOAP는 별도로 보관했습니다. 최신 전사를 검토한 뒤 다시 생성해 주세요.</p>)}
     {retryableFiles.map((recording) => <div key={recording.id} className={styles.job}><span className={`${styles.jobName} ${styles.filename}`}>{recording.filename}</span><button className={styles.button} disabled={busy} onClick={() => void execute(async () => { await startTranscriptionJob(visitId, recording.id); })}><RotateCcw size={12} /> 전사 실행</button></div>)}
-    {recoveries.filter((item) => item.visitId === visitId && item.id !== (active ? audio.audioSessionId : null)).length > 0 && <details className={styles.details}><summary>브라우저에 남은 녹음 복구본</summary>{recoveries.filter((item) => item.visitId === visitId).map((item) => <div className={styles.job} key={item.id}><span className={styles.jobName}>{new Date(item.createdAt).toLocaleString('ko-KR')}</span><button className={styles.button} disabled={busy || active} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); if (recovery.audioSessionId) await closeRecoveredSession(recovery.visitId, recovery.audioSessionId); await saveAndProcess(recovery.blob, recovery.filename, recovery.visitId, recovery.audioSessionId, undefined, recovery.id); })}><Upload size={12} /> 복구 후 처리</button><button className={styles.button} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); const url = URL.createObjectURL(recovery.blob); const a = document.createElement('a'); a.href = url; a.download = recovery.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); })}><Download size={12} /> 다운로드</button></div>)}</details>}
+    {recoveries.filter((item) => item.visitId === visitId && item.id !== (active ? audio.audioSessionId : null)).length > 0 && <Disclosure className={styles.details}><summary>브라우저에 남은 녹음 복구본</summary>{recoveries.filter((item) => item.visitId === visitId).map((item) => <div className={styles.job} key={item.id}><span className={styles.jobName}>{new Date(item.createdAt).toLocaleString('ko-KR')}</span><button className={styles.button} disabled={busy || active} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); if (recovery.audioSessionId) await closeRecoveredSession(recovery.visitId, recovery.audioSessionId); await saveAndProcess(recovery.blob, recovery.filename, recovery.visitId, recovery.audioSessionId, undefined, recovery.id); })}><Upload size={12} /> 복구 후 처리</button><button className={styles.button} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); const url = URL.createObjectURL(recovery.blob); const a = document.createElement('a'); a.href = url; a.download = recovery.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); })}><Download size={12} /> 다운로드</button></div>)}</Disclosure>}
     {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} recheckEnabled={configured === true && !active && !data.jobs.some(item => ['queued', 'running'].includes(item.status))} onSaved={() => { void refresh(); callback.current?.(); }} />}
-    <details className={styles.details} onToggle={(event) => {
+    <Disclosure className={styles.details} onToggle={(event) => {
       if (event.currentTarget.open && !reference) void api<typeof reference>(`/api/jobs/reference?visitId=${encodeURIComponent(visitId)}`).then(setReference).catch((failure: Error) => setError(failure.message));
-    }}><summary>초진 사례 검수 자료 미리보기 · 읽기 전용</summary>{reference && <><p className={styles.notice}>{reference.notice}</p><div className={styles.preview}>{Object.entries(reference.sections || {}).map(([key, value]) => <span key={key} style={{ display: 'contents' }}><strong>{key.toUpperCase()}</strong><span>{value}</span></span>)}</div></>}</details>
+    }}><summary>초진 사례 검수 자료 미리보기 · 읽기 전용</summary>{reference && <><p className={styles.notice}>{reference.notice}</p><div className={styles.preview}>{Object.entries(reference.sections || {}).map(([key, value]) => <span key={key} style={{ display: 'contents' }}><strong>{key.toUpperCase()}</strong><span>{value}</span></span>)}</div></>}</Disclosure>
   </section>;
 }
 
@@ -149,7 +152,7 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
   };
   const acceptedCount = effectiveCorrections.filter(item => item.review_status === 'accepted').length;
   const pendingCount = effectiveCorrections.filter(item => item.review_status === 'pending').length;
-  return <details className={`${styles.details} ${styles.reviewDisclosure}`}>
+  return <Disclosure className={`${styles.details} ${styles.reviewDisclosure}`}>
     <summary><FileText size={15} /> <span>전사 원문과 용어 제안 검토</span><span className={styles.summaryCount}>{candidates.length ? `용어 ${candidates.length}건` : '전사 확인'}</span></summary>
     <div className={styles.review}>
       <header className={styles.reviewHeader}>
@@ -177,27 +180,27 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
             <header className={styles.correctionHeader}><div><span className={styles.originalTerm}>{candidate.original}</span>{form && <><ArrowRight size={15} /><strong>{form}</strong>{chosen?.hanja && <small>{chosen.hanja}</small>}</>}</div><span className={styles.decisionState}>{status === 'accepted' ? '수락' : status === 'rejected' ? '원문 유지' : '검토 필요'}</span></header>
             <p className={styles.correctionReason}>{candidate.reason}</p>
             <div className={styles.correctionActions}>
-              {options.length > 0 && <label>사전 후보<select className={styles.select} aria-label={`사전 후보 ${candidate.original}`} value={selections[candidate.span_id] ?? candidate.candidate_id ?? ''} disabled={manuallyEdited} onChange={event => { const value = event.target.value; setSelections(current => ({ ...current, [candidate.span_id]: value })); setDecisions(current => { const next = { ...current }; delete next[candidate.span_id]; return next; }); setManualText(null); }}><option value="">선택하지 않음</option>{options.map(term => <option key={term.id} value={term.id}>{term.matched_form ?? term.term}{term.hanja ? ` · ${term.hanja}` : ''}</option>)}</select></label>}
+              {options.length > 0 && <label>사전 후보<AppSelect className={styles.select} aria-label={`사전 후보 ${candidate.original}`} value={selections[candidate.span_id] ?? candidate.candidate_id ?? ''} disabled={manuallyEdited} onChange={event => { const value = event.target.value; setSelections(current => ({ ...current, [candidate.span_id]: value })); setDecisions(current => { const next = { ...current }; delete next[candidate.span_id]; return next; }); setManualText(null); }}><option value="">선택하지 않음</option>{options.map(term => <option key={term.id} value={term.id}>{term.matched_form ?? term.term}{term.hanja ? ` · ${term.hanja}` : ''}</option>)}</AppSelect></label>}
               <div className={styles.controls}>{chosen && <button className={`${styles.button} ${status === 'accepted' ? styles.selected : ''}`} aria-pressed={status === 'accepted'} disabled={manuallyEdited} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'accepted' })); setManualText(null); }}>선택 후보 수락</button>}<button className={`${styles.button} ${status === 'rejected' ? styles.selected : ''}`} aria-pressed={status === 'rejected'} disabled={manuallyEdited} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'rejected' })); setManualText(null); }}>원문 유지</button></div>
             </div>
-            {chosen && <details className={styles.source}><summary>사전 명칭·출처 확인</summary><strong>{chosen.term}</strong>{chosen.sources.map((source, sourceIndex) => <p key={sourceIndex}>{source.title} · {source.original}</p>)}</details>}
+            {chosen && <Disclosure className={styles.source}><summary>사전 명칭·출처 확인</summary><strong>{chosen.term}</strong>{chosen.sources.map((source, sourceIndex) => <p key={sourceIndex}>{source.title} · {source.original}</p>)}</Disclosure>}
           </article>;
         })}</div> : <p className={styles.empty}>검토할 용어 제안이 없습니다. 화자와 전사 내용을 확인해 주세요.</p>}
       </section>}
       {reviewTab === 'speakers' && <section className={styles.reviewPanel} aria-label="화자 확인">
         <div className={styles.panelIntro}><p>전체 대화로 역할을 추론했습니다. 그룹 역할을 바꾸면 해당 발화 전체에 반영됩니다. 개별 수정은 그룹을 다시 바꿔도 유지되며, 그룹 역할로 되돌릴 수 있습니다.</p></div>
-        <div className={styles.speakerGroups}>{groupNames.map(group => <label key={group}>화자 {group}<select className={styles.select} aria-label={`화자 ${group} 그룹 역할`} value={currentRoles[group]?.role ?? 'unknown'} onChange={event => { if (isSpeakerRole(event.target.value)) setSpeakerGroups(current => ({ ...current, [group]: event.target.value as SpeakerRole })); }}>{Object.entries(speakerRoleLabels).map(([role, label]) => <option key={role} value={role}>{label} · {group}</option>)}</select></label>)}</div>
+        <div className={styles.speakerGroups}>{groupNames.map(group => <label key={group}>화자 {group}<AppSelect className={styles.select} aria-label={`화자 ${group} 그룹 역할`} value={currentRoles[group]?.role ?? 'unknown'} onChange={event => { if (isSpeakerRole(event.target.value)) setSpeakerGroups(current => ({ ...current, [group]: event.target.value as SpeakerRole })); }}>{Object.entries(speakerRoleLabels).map(([role, label]) => <option key={role} value={role}>{label} · {group}</option>)}</AppSelect></label>)}</div>
         <div className={styles.speakerList}>{roleTranscript.segments.length ? roleTranscript.segments.map((segment, index) => <article className={styles.speaker} key={segment.id}>
-          <header><div><strong>{speakerRoleLabels[currentRole(segment)]}{segment.raw_speaker ? ` · ${segment.raw_speaker}` : ''}</strong><span>구간 {String(index + 1).padStart(2, '0')}</span>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={currentRole(segment)} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value as SpeakerRole }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select>{(speakers[segment.id] !== null && (speakers[segment.id] !== undefined || segment.speaker_override !== undefined)) && <button type="button" className={styles.button} onClick={() => setSpeakers(current => ({ ...current, [segment.id]: null }))}>그룹 역할로 되돌리기</button>}</header>
+          <header><div><strong>{speakerRoleLabels[currentRole(segment)]}{segment.raw_speaker ? ` · ${segment.raw_speaker}` : ''}</strong><span>구간 {String(index + 1).padStart(2, '0')}</span>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><AppSelect className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={currentRole(segment)} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value as SpeakerRole }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></AppSelect>{(speakers[segment.id] !== null && (speakers[segment.id] !== undefined || segment.speaker_override !== undefined)) && <button type="button" className={styles.button} onClick={() => setSpeakers(current => ({ ...current, [segment.id]: null }))}>그룹 역할로 되돌리기</button>}</header>
           <p>{segment.text}</p>
         </article>) : <p className={styles.empty}>화자별 구간이 없는 전사입니다. 전사 편집에서 전체 내용을 확인해 주세요.</p>}</div>
       </section>}
       {reviewTab === 'text' && <section className={styles.reviewPanel} aria-label="전사 편집"><div className={styles.panelIntro}><p>수락한 용어가 반영된 내용입니다. 필요한 부분을 직접 수정할 수 있습니다.</p></div><label className={styles.editorLabel}>검토 전사<textarea className={styles.text} aria-label="검토 전사" value={manualText ?? corrected} onChange={(event) => setManualText(event.target.value)} /></label></section>}
-      <details className={styles.original}><summary>보존된 전사 원문</summary><div>{transcript.text.split(/\n+/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></details>
+      <Disclosure className={styles.original}><summary>보존된 전사 원문</summary><div>{transcript.text.split(/\n+/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></Disclosure>
       {error && <div role="alert" className={styles.error}>{error}</div>}
       <footer className={styles.reviewFooter}><p>{job.result?.reviewedTranscriptId ? '저장하면 새 검토 버전을 추가합니다.' : '전사 원문은 보존되며, 검토 결과를 새 버전으로 저장합니다.'}</p><button className={`${styles.button} ${styles.primary}`} disabled={busy} onClick={() => void save()}><Check size={14} /> {busy ? '저장과 생성 중' : '전사 검토 저장 · SOAP 다시 생성'}</button></footer>
     </div>
-  </details>;
+  </Disclosure>;
 }
 
 export default AudioControls;

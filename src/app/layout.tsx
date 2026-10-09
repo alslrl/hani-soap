@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import "@/components/ui/controls.css";
 export const metadata: Metadata = { title: "HaniSOAP · 진료 기록", description: "HaniSOAP 가상 진료 데모", robots: { index:false, follow:false } };
 export const viewport: Viewport = { width:"device-width", initialScale:1 };
 export default function RootLayout({children}:{children:React.ReactNode}) { return <html lang="ko"><body>{children}</body></html>; }

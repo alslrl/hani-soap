@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { localDemo, readState, origin, scenario } from './helpers';
+import { localDemo, readState, origin, scenario , chooseSelect } from './helpers';
 
 test('Kakao connection, approved self-send, public response and PC contact form one complete local flow', async ({ page }) => {
   const initial = await localDemo(page);
@@ -42,7 +42,7 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   expect((await readState(page.request)).version).toBe(beforeResponse.version);
   await responder.getByRole('button', { name: '응답 전달' }).click();
   await expect(responder.getByRole('status')).toContainText('응답을 전달했습니다.');
-  await responder.getByLabel('불편한 점', { exact: true }).selectOption('stomach_discomfort');
+  await chooseSelect(responder, responder.getByRole("combobox", { name: '불편한 점' }), 'stomach_discomfort');
   await responder.getByRole('button', { name: '응답 전달' }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_responses.find((v) => v.message_id === saved.id && v.source === 'kakao_self_link')?.detail).toBe('stomach_discomfort');
   const final = await readState(page.request);

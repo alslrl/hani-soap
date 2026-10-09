@@ -1,4 +1,6 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
@@ -42,7 +44,7 @@ export function KakaoConnectionPanel() {
     <p style={{ color: 'var(--muted)', fontSize: 13 }}>승인한 가상 환자 안내를 연결한 본인의 ‘나와의 채팅’에 보냅니다.</p>
     <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
       <button type="button" disabled={busy || !connection?.configured} onClick={() => change()} style={{ background: '#FEE500', color: '#191919', border: 0, borderRadius: 8, padding: '12px 20px', cursor: 'pointer' }}>{connection?.connected ? '카카오 계정 다시 연결' : '카카오로 연결'}</button>
-      {connection?.connected && <><button type="button" disabled={busy} onClick={() => change(true)}>연결 해제</button><Link href="/clinic/care">승인 안내 보내기 →</Link></>}
+      {connection?.connected && <><button type="button" disabled={busy} onClick={() => change(true)}>연결 해제</button><Link href="/clinic/care">승인 안내 보내기 <ActionArrow /></Link></>}
     </div>
     {(feedback || error) && <p role="status">{feedback || error}</p>}
   </section>;

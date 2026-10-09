@@ -1,4 +1,7 @@
 "use client";
+import { ActionArrow } from '@/components/ui/ActionArrow';
+import { Disclosure } from '@/components/ui/Disclosure';
+
 
 import Link from "next/link";
 import { useState } from "react";
@@ -93,7 +96,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
             className="hs-button"
             href={`/clinic/patients/${patientId}/progress`}
           >
-            경과 보기 ↗
+            경과 보기 <ActionArrow direction="up-right" />
           </Link>
           {current && (
             <Link
@@ -200,7 +203,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                 ))}
               </div>
               {!!document.source_refs.length && (
-                <details className="hs-history-source">
+                <Disclosure className="hs-history-source">
                   <summary>기록 근거 {document.source_refs.length}개</summary>
                   {document.source_refs.map((source, index) => (
                     <blockquote key={index}>
@@ -208,7 +211,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                       <cite>{source.source_id}</cite>
                     </blockquote>
                   ))}
-                </details>
+                </Disclosure>
               )}
               <div className="hs-history-record-footer">
                 <span>
@@ -221,7 +224,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                   href={`/clinic/visits/${selected.id}`}
                   className="hs-text-link"
                 >
-                  진료 화면 열기 ↗
+                  진료 화면 열기 <ActionArrow direction="up-right" />
                 </Link>
               </div>
             </>
@@ -250,7 +253,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                   href={`/clinic/patients/${patientId}/progress`}
                   className="hs-text-link"
                 >
-                  크게 보기 ↗
+                  크게 보기 <ActionArrow direction="up-right" />
                 </Link>,
               )}
               <div className="hs-history-last-score">
@@ -272,7 +275,7 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
             {panelTitle(
               "안내·응답 이력",
               <Link href="/clinic/care" className="hs-text-link">
-                후속 관리 ↗
+                후속 관리 <ActionArrow direction="up-right" />
               </Link>,
             )}
             {messages.length ? (

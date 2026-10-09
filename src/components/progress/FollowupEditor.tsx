@@ -1,4 +1,7 @@
 "use client";
+import { Disclosure } from '@/components/ui/Disclosure';
+import { AppSelect } from '@/components/ui/AppSelect';
+
 
 import { useEffect, useRef, useState } from "react";
 import { useAppState } from "@/lib/client";
@@ -120,7 +123,7 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
 
   return <section className={`${styles.followup} ${compact ? styles.compact : ""}`} aria-label="재진 확인 질문">
     <header className={styles.editorHeader}><div><h2>오늘 확인할 것</h2><p>12개 항목 중 {completedCount}개 확인{dirty ? " · 저장하지 않은 변경" : ""}</p></div><button type="button" className={styles.primary} disabled={busy || !dirty} onClick={save}>{busy ? "저장 중…" : "오늘 답변 저장"}</button></header>
-    {pendingItems.length > 0 && <details className={styles.pending}><summary>이어 확인할 질문 {pendingItems.length}개</summary><ul>{pendingItems.map((item) => <li key={item.id}>{item.title}</li>)}</ul></details>}
+    {pendingItems.length > 0 && <Disclosure className={styles.pending}><summary>이어 확인할 질문 {pendingItems.length}개</summary><ul>{pendingItems.map((item) => <li key={item.id}>{item.title}</li>)}</ul></Disclosure>}
     {feedback && <p className={failed ? styles.error : styles.feedback} role={failed ? "alert" : "status"}>{feedback}</p>}
     <div className={styles.questionsLayout}>
       <nav className={styles.questionNav} aria-label="재진 질문 항목">{QUESTION_GROUPS.map((item, index) => {
@@ -136,7 +139,7 @@ export function FollowupEditor({ visitId, compact = false }: { visitId: string; 
             <div className={styles.previous}><span>지난 기록 {previous ? `· ${formatClinicDate(visitDates.get(previous.visit_id)!)}` : "· 첫 기록·비교 기준 없음"}</span><p>{previous?.answer_text ?? "이전 답변이 없습니다. 오늘 답변을 새로 확인해 주세요."}</p></div>
             <div className={styles.changeButtons} aria-label={`${subitem?.label ?? group.title} 변화`}>{Object.entries(CHANGE_LABELS).map(([value, label]) => <button key={value} type="button" aria-pressed={answer.change === value} onClick={() => update(key, { change: answer.change === value ? null : value as AnswerDraft["change"] })}>{label}</button>)}</div>
             <label className={styles.inputLabel}>오늘 상세 답변<textarea rows={3} placeholder="환자의 표현과 확인한 내용을 기록해 주세요." value={answer.answer_text ?? ""} onChange={(event) => update(key, { answer_text: event.target.value })} /></label>
-            <div className={styles.selectRow}><label>확인 상태<select value={answer.confirmation_status} onChange={(event) => update(key, { confirmation_status: event.target.value as AnswerDraft["confirmation_status"] })}>{Object.entries(CONFIRMATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>해당 여부<select value={answer.applicability} onChange={(event) => update(key, { applicability: event.target.value as AnswerDraft["applicability"] })}><option value="unknown">아직 확인 안 됨</option><option value="applicable">해당함</option><option value="not_applicable">해당 없음</option></select></label></div>
+            <div className={styles.selectRow}><label>확인 상태<AppSelect value={answer.confirmation_status} onChange={(event) => update(key, { confirmation_status: event.target.value as AnswerDraft["confirmation_status"] })}>{Object.entries(CONFIRMATION_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AppSelect></label><label>해당 여부<AppSelect value={answer.applicability} onChange={(event) => update(key, { applicability: event.target.value as AnswerDraft["applicability"] })}><option value="unknown">아직 확인 안 됨</option><option value="applicable">해당함</option><option value="not_applicable">해당 없음</option></AppSelect></label></div>
           </fieldset>;
         })}
         {metricTemplates.filter((metric) => (group.key === "pain" && metric.instrument === "NRS") || (group.key === "function_daily" && metric.instrument === "APP_FUNCTION_DISCOMFORT") || (group.key === "bowel_urine" && metric.instrument === "FREQUENCY")).map(renderMetric)}
