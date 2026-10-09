@@ -157,8 +157,8 @@
       "path": "reference/발목_데모_혈자리.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 2246,
-      "sha256": "ec1b4d1fddf420fbd1a69483bdec90b6076d806084c0cd2cfae8601c19ba6f90"
+      "characters": 2607,
+      "sha256": "75dc183d8e25f8f509986171d64858facef3de2d2c5b2812d29eb4803099991c"
     },
     {
       "path": "verification/데모_정답차팅_초안.md",
@@ -206,6 +206,22 @@
       "characters": 1651,
       "sha256": "01b6abcfe71f1a7a55a528f56ef837b2f238e36d322d9006b6a1710453df0a12",
       "summary": "Implemented features and local, browser, API and deployment evidence; remaining hardware and Kakao checks"
+    },
+    {
+      "path": "verification/atlas-review/README.md",
+      "updated_on_kst": "2026-10-09",
+      "characters": 1577,
+      "sha256": "1ce94b7dfbf0c9367a58a326b625c58dbb1db904d6e8ba06fe22cd2c7f73e718",
+      "status": "review_interface_approved_clinical_positions_pending",
+      "summary": "User-approved 361-point Atlas review interface; clinical positions and laterality remain pending"
+    },
+    {
+      "path": "reference/혈자리_밀집구간_선택_제안.md",
+      "status": "user_proposal_not_implemented",
+      "updated_on_kst": "2026-10-09",
+      "characters": 961,
+      "sha256": "15d83f2a1c7fa39c714177555dfaae0552c8aa9e00ed2fda05c734ea9b8b1fc0",
+      "summary": "Nearby acupoint picker for crowded touch targets; requested by Yeonhwa for Seho"
     }
   ],
   "reference_collections": [
@@ -267,5 +283,16 @@
     "actual_briefing_workflow_on_vercel": true,
     "physical_ipad_tested": false,
     "kakao_real_send_tested": false
+  },
+  "atlas_review": {
+    "path": "verification/atlas-review/index.html",
+    "pdf_path": "../output/pdf/atlas_전신_혈자리_검수.pdf",
+    "point_count": 361,
+    "region_count": 25,
+    "pdf_pages": 72,
+    "display_and_sharing_approved": true,
+    "clinical_positions_approved": false,
+    "app_integration_status": "not_integrated",
+    "source_coordinates_preserved": true
   }
 }

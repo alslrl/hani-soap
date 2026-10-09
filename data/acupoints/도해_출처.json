@@ -1,0 +1,48 @@
+{
+  "figures": [
+    {
+      "view": "anterior",
+      "file": "figures/anterior.png",
+      "source_url": "https://acupointatlas.com/figures/anterior.png",
+      "map_url": "https://acupointatlas.com/map/",
+      "width": 900,
+      "height": 1600,
+      "license": "CC BY 4.0",
+      "attribution": "Original anatomical plate by AcuAtlas; https://acupointatlas.com/atlas/; unchanged",
+      "sha256": "399d721573ede53373f9f220e223d538c4389fd87c50d229180171cb4fa96804"
+    },
+    {
+      "view": "posterior",
+      "file": "figures/posterior.png",
+      "source_url": "https://acupointatlas.com/figures/posterior.png",
+      "map_url": "https://acupointatlas.com/map/posterior/",
+      "width": 900,
+      "height": 1600,
+      "license": "CC BY 4.0",
+      "attribution": "Original anatomical plate by AcuAtlas; https://acupointatlas.com/atlas/; unchanged",
+      "sha256": "86a0a7779d7c591a2ecf336f1c31a55f3707cffa66cc612f24acea3c01ab787c"
+    },
+    {
+      "view": "lateral",
+      "file": "figures/lateral.png",
+      "source_url": "https://acupointatlas.com/figures/lateral.png",
+      "map_url": "https://acupointatlas.com/map/lateral/",
+      "width": 900,
+      "height": 1600,
+      "license": "CC BY 4.0",
+      "attribution": "Original anatomical plate by AcuAtlas; https://acupointatlas.com/atlas/; unchanged",
+      "sha256": "5a6b39857412cf21085f9ec30f8fc207e23ced286349879fe24b752e079fe98b"
+    },
+    {
+      "view": "head",
+      "file": "figures/head.png",
+      "source_url": "https://acupointatlas.com/figures/head.png",
+      "map_url": "https://acupointatlas.com/map/head/",
+      "width": 900,
+      "height": 1600,
+      "license": "CC BY 4.0",
+      "attribution": "Original anatomical plate by AcuAtlas; https://acupointatlas.com/atlas/; unchanged",
+      "sha256": "219f692058e7d2bef11da0c28015122d6cd6f3cd858651b68b1f5f7e912fff7f"
+    }
+  ]
+}
