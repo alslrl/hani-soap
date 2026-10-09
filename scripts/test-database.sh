@@ -69,6 +69,19 @@ try:
  for _ in range(5):check(sql(f"set role service_role; select public.hani_check_ai_rate('{session}');").stdout.strip()=='t','AI rate counted')
  check(sql(f"set role service_role; select public.hani_check_ai_rate('{session}');").stdout.strip()=='f','AI rate shared limit')
  check(sql('select count(*) from public.visit_documents;').stdout.strip()=='4','normalized SOAP rows preserved')
+ # Different drawing frames are separate documents, even for the same treatment/view.
+ framed=copy.deepcopy(changed)
+ visit_id=framed['scenario_inputs'][0]['current_visit_id']
+ stamp='2026-10-09T03:00:00Z'
+ common={'clinic_id':CLINIC,'visit_id':visit_id,'scope':'treatment','modality':'acupuncture','technique':'standard_acupuncture','view':'front','coordinate_space':'normalized','canvas_size':{'width':1000,'height':1000},'revision':1,'updated_at':stamp}
+ framed['annotations']=[
+  dict(common,id='4a188d40-f99e-4d8d-917d-d3d6320fffa9',coordinate_version='body-map-v1',strokes=[{'id':'old-ink','kind':'check','created_at':stamp,'points':[{'x':0.446,'y':0.894,'t':1}]}]),
+  dict(common,id='06af8ab7-41c2-4344-98aa-22dd8055032b',coordinate_version='body-map-v3-female',strokes=[{'id':'new-ink','kind':'check','created_at':stamp,'points':[{'x':0.419,'y':0.894,'t':2}]}]),
+ ]
+ current=int(sql(f"select version from public.demo_state where clinic_id='{CLINIC}';").stdout.strip())
+ check(sql(commit(framed,current)).stdout.strip()==str(current+1),'old and current frame documents commit atomically')
+ check(sql("select count(distinct payload->>'coordinate_version') from public.treatment_annotations;").stdout.strip()=='2','normalized projection preserves both drawing frames')
+ check(sql("select payload->'strokes'->0->'points'->0->>'x' from public.treatment_annotations where id='4a188d40-f99e-4d8d-917d-d3d6320fffa9';").stdout.strip()=='0.446','legacy coordinates remain unchanged in PostgreSQL')
  print(f'{checks} isolated PostgreSQL checks passed (migration, seed, CAS, immutable records, FKs, RLS/grants, private storage, shared rate limits).')
 finally:
  if started:

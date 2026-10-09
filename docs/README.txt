@@ -112,3 +112,9 @@ HaniSOAP 문서 및 데모 자료
 - ../public/demo/anatomy/manifest.json: 원본·PNG 체크섬과 렌더 등록 좌표
 - ../scripts/render-anatomy.mjs: 고정 이미지와 입력 윤곽 데이터 재현
   기존 v1 필기가 있는 방문은 원래 도해를 유지하고 새 방문은 v2를 사용합니다.
+
+[세로 iPad와 여성형 도해]
+- reference/anatomy-render.md: 남녀 원본·라이선스·세로 작업면·원본 필기 보존
+- ../public/demo/anatomy/female-manifest.json: NIH/Human Reference Atlas 여성형 CC BY4.0 자료와 체크섬
+- 세로에서는 상단 환자 정보·큰 인체·하단 기록과 저장을 사용합니다.
+- 김서연은 여성형을 기본 표시하고 이전 v1/v2 필기는 별도 읽기 전용 기록에서 확인합니다.

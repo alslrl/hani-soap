@@ -118,8 +118,8 @@
       "path": "implementation-plan.md",
       "status": "implementation_baseline",
       "updated_on_kst": "2026-10-09",
-      "characters": 48771,
-      "sha256": "5ad2efe0bd2468a132d4519c4fadc77f02331eea537523634305ae5b59cc12e5",
+      "characters": 48918,
+      "sha256": "804d9bb7f744ccfeca8f732f6325d6d3149fbd4fdc59c8248e45564c0d79d640",
       "summary": "Implementation baseline; current code and verification tracked separately"
     },
     {
@@ -180,8 +180,8 @@
       "status": "confirmed_contract",
       "updated_on_kst": "2026-10-09",
       "summary": "Storage contract v1 and validated two-patient demo schema",
-      "characters": 4205,
-      "sha256": "331d34aefcae735fe20be5d9533d942df96d77d3ac50d74c9b2dc4e54da6b3d4"
+      "characters": 4546,
+      "sha256": "2f93939fbf228432bd2edc436716851deb27c1b88047e3e5f4778b5f04bcf6d8"
     },
     {
       "path": "deployment-access.md",
@@ -203,8 +203,8 @@
       "path": "implementation-status.md",
       "status": "verified_implementation",
       "updated_on_kst": "2026-10-09",
-      "characters": 1946,
-      "sha256": "b632b9454e2b1f5f7da4d70bb1a4c2427362b46b5f3a700578bd5140b402138e",
+      "characters": 2189,
+      "sha256": "388e8c45ca3e8697843a830621a0bf8482c4d272e06a3fd310549538e8cad05b",
       "summary": "Implemented features and local, browser, API and deployment evidence; remaining hardware and Kakao checks"
     },
     {
@@ -227,8 +227,8 @@
       "path": "reference/anatomy-render.md",
       "status": "implemented_and_tested",
       "updated_on_kst": "2026-10-09",
-      "characters": 1346,
-      "sha256": "7e9d6bd135c3d1b61bd98e4032270fbaa4d7b70132397257e4ed821863c8e739",
+      "characters": 2568,
+      "sha256": "b0224f259d72aceefeb5358fdcbfaaa3df0922a0c04d69956bacbe24dd320bcc",
       "summary": "Licensed fixed anatomy renders, exact silhouette registration and legacy annotation frame preservation"
     }
   ],
@@ -254,6 +254,14 @@
       "image_count": 2,
       "coordinate_version": "body-map-v2",
       "license": "CC-BY-SA-4.0",
+      "ai_generated": false
+    },
+    {
+      "path": "../public/demo/anatomy/female-manifest.json",
+      "kind": "licensed_female_anatomy_fixed_renders",
+      "image_count": 2,
+      "coordinate_version": "body-map-v3-female",
+      "license": "CC-BY-4.0",
       "ai_generated": false
     }
   ],
@@ -289,9 +297,9 @@
   ],
   "implementation_verification": {
     "verified_on_kst": "2026-10-09",
-    "unit_tests": 53,
-    "server_tests": 20,
-    "isolated_postgres_checks": 26,
+    "unit_tests": 59,
+    "server_tests": 21,
+    "isolated_postgres_checks": 29,
     "browser_e2e_tests": 6,
     "actual_transcription": true,
     "actual_webrtc_fake_capture": true,
@@ -301,7 +309,10 @@
     "kakao_real_send_tested": false,
     "anatomy_v2_update_e2e_tests": 2,
     "webgl_free_anatomy_verified": true,
-    "legacy_annotation_preservation_verified": true
+    "legacy_annotation_preservation_verified": true,
+    "tablet_portrait_female_e2e_tests": 3,
+    "female_anatomy_source": "NIH/Human Reference Atlas Skin Female v1.3",
+    "original_ink_frames_preserved": true
   },
   "atlas_review": {
     "path": "verification/atlas-review/index.html",

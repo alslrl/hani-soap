@@ -258,3 +258,10 @@
 @media(max-width:560px) and (orientation:portrait) { .tablet-app.is-portrait .tablet-patient strong>.tablet-patient-demographics { display:block; margin:0; font-size:9px; line-height:1.4; } .tablet-app.is-portrait .tablet-patient p { margin:0; font-size:9px; } }
 @keyframes tablet-sheet-in { from { opacity:0; transform:translate(-50%,8px); } to { opacity:1; transform:translate(-50%,0); } }
 .tablet-app.is-portrait .tablet-inspector.is-sheet-open { animation:tablet-sheet-in .18s ease-out; }
+/* Let the landscape workspace fill the actual space between its fixed chrome. */
+.tablet-app.is-landscape { display:flex; flex-direction:column; height:100dvh; min-height:0; }
+.tablet-app.is-landscape>.tablet-header,
+.tablet-app.is-landscape>.tablet-statusbar,
+.tablet-app.is-landscape>.tablet-tabs,
+.tablet-app.is-landscape>.tablet-footer { flex:none; }
+.tablet-app.is-landscape>.tablet-main { flex:1; height:auto; min-height:0; }
