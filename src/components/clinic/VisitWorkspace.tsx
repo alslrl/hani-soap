@@ -10,6 +10,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAppState } from "@/lib/client";
 import type { SourceRef, Treatment } from "@/lib/types";
+import { recordingForTranscript, sourceLabel } from "@/lib/audio/progress";
 import AudioControls from "@/components/audio/AudioControls";
 import { FollowupEditor } from "@/components/progress/FollowupEditor";
 import { getTranscriptNrsProposal } from "@/lib/ai/clinical-analysis-drafts";
@@ -323,6 +324,10 @@ function SoapEditor({
   }
   return (
     <div className="hs-soap-editor">
+      {document?.input_transcript_id && <p className="hs-soap-source" aria-label="SOAP 생성 출처">SOAP 생성 출처: {(() => {
+        const source=recordingForTranscript(state.recordings,state.jobs,document.input_transcript_id);
+        return source ? sourceLabel(source) : `저장된 전사 · 버전 ${state.transcripts.find(item=>item.id===document.input_transcript_id)?.revision ?? '미확인'}`;
+      })()}</p>}
       <div className="hs-soap-toolbar">
         <div>
           <h2>오늘 진료 기록</h2>
@@ -488,10 +493,11 @@ function SoapEditor({
       {state.jobs.some(
         (job) =>
           job.visit_id === visit.id &&
+          ["transcription", "soap"].includes(job.kind) &&
           ["queued", "running"].includes(job.status),
       ) && (
         <p className="hs-muted hs-job-notice">
-          음성 작업이 진행 중입니다. 현재 기록은 그대로 보존됩니다.
+          음성·SOAP 작업이 진행 중이에요. 상단에서 해당 녹음의 진행 상태를 확인하세요.
         </p>
       )}
     </div>
