@@ -289,36 +289,55 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     if (isHistorical || input.current.drawing) return;
     setBusy(true); setMessage("");
     try {
+      let savedState=state;
+      const effectiveConfirmed=confirmed||draft.confirmed;
       for (const bodyView of ["front", "back"] as const) {
         const k = layerKey(tabId, bodyView, preferredVersion), current = layers[k];
         // Persist linked layers even when a location was chosen using touch.
         if (!current.dirty && (current.revision > 0 || !draft.locations.some(p => p.annotation_id === current.id))) continue;
         const result = await act("annotation.save", { visitId, annotation: { id: current.id, scope: "treatment", modality: tab.modality, technique: tab.technique, view: bodyView, coordinate_space: "normalized", coordinate_version: current.coordinateVersion, canvas_size: { width: 1000, height: 1000 }, strokes: normalizeStrokes(current.strokes), revision: current.revision } });
+        savedState=result.state;
         const saved = result.state.annotations.find(a => a.id === current.id)!;
         setLayers(l => ({ ...l, [k]: { ...l[k], revision: saved.revision, dirty: false } }));
       }
       if (draft.locations.length || draft.notes || state.treatments.some(t => t.id === draft.id)) {
         const regions = [...new Set(draft.locations.map(p => p.body_region))];
         const sides = [...new Set(draft.locations.map(p => p.laterality))];
-        await act("treatment.save", { visitId, treatment: { id: draft.id, modality: tab.modality, technique: tab.technique, body_region: regions.join(", "), laterality: sides.length === 1 ? sides[0] : sides.length ? "bilateral" : "not_applicable", acupoints: draft.locations.filter(p => p.location_type === "acupoint").map(p => ({ code: p.acupoint_code!, label_ko: p.label_ko! })), locations: draft.locations, notes: draft.notes || null, status: confirmed ? "confirmed" : "suggested", source: "manual" } });
+        const treatmentResult = await act("treatment.save", { visitId, treatment: { id: draft.id, modality: tab.modality, technique: tab.technique, body_region: regions.join(", "), laterality: sides.length === 1 ? sides[0] : sides.length ? "bilateral" : "not_applicable", acupoints: draft.locations.filter(p => p.location_type === "acupoint").map(p => ({ code: p.acupoint_code!, label_ko: p.label_ko! })), locations: draft.locations, notes: draft.notes || null, status: effectiveConfirmed ? "confirmed" : "suggested", source: "manual" } });
+        savedState=treatmentResult.state;
       }
-      setDrafts(d => ({ ...d, [tabId]: { ...d[tabId], dirty: false, confirmed } }));
-      setMessage(confirmed ? `${tab.detail} · 오늘 시행을 확인했습니다` : `${tab.detail} · 초안을 저장했습니다`);
+      setDrafts(d => ({ ...d, [tabId]: { ...d[tabId], dirty: false, confirmed: effectiveConfirmed } }));
+      let extracted=0,failed=0,pending=0;
+      for(const bodyView of ["front","back"] as const){
+        const current=layers[layerKey(tabId,bodyView,preferredVersion)];
+        const saved=savedState.annotations.find(row=>row.id===current.id);
+        if(!saved||saved.extracted_text!=null||!current.strokes.some(stroke=>stroke.kind==="memo"))continue;
+        setMessage(`${tab.detail} · 필기 저장 완료 · 텍스트를 추출하는 중…`);
+        try{const result=await requestMemoExtraction(saved.id,saved.revision,current.strokes);if(result.pending)pending++;else extracted++;}catch{failed++;}
+      }
+      if(extracted)setReviewText(null);
+      await refresh();
+      const savedMessage=confirmed ? `${tab.detail} · 오늘 시행을 확인했습니다` : `${tab.detail} · 저장했습니다`;
+      setMessage(failed ? `${savedMessage}. 필기 원본은 저장되어 있어요. 텍스트 추출을 완료하지 못한 필기는 저장을 다시 눌러 재시도해 주세요.` : pending ? `${savedMessage} · 텍스트 추출 중` : extracted ? `${savedMessage} · 텍스트 추출 완료 · SOAP 초안 입력에 반영했어요.` : savedMessage);
     } catch (err) { setMessage(err instanceof Error ? err.message : "저장하지 못했습니다. 다시 시도해 주세요."); }
     finally { setBusy(false); }
   }
+  async function requestMemoExtraction(annotationId:string,revision:number,strokes:AnnotationStroke[]) {
+    const image=memoImage(strokes);
+    if(!image)throw new Error("추출할 필기가 없습니다.");
+    const response=await fetch("/api/jobs/handwriting",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({annotationId,revision,image})});
+    const result=await response.json();
+    if(!response.ok)throw new Error(typeof result.error==="string"?result.error:"필기 인식 요청에 실패했습니다.");
+    if(result.stale)throw new Error("추출 중 필기가 바뀌었습니다. 최신 필기를 저장해 주세요.");
+    return result as {pending?:boolean};
+  }
   async function extractMemo() {
-    if (isHistorical) return;
-    if (dirty) { setMessage("필기 초안을 먼저 저장해 주세요."); return; }
-    const image = memoImage(layer.strokes); if (!image) return;
-    setBusy(true); setMessage("필기 텍스트 후보를 추출하는 중…");
-    try {
-      const response = await fetch("/api/jobs/handwriting", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ annotationId: layer.id, revision: layer.revision, image }) });
-      const result = await response.json();
-      if (!response.ok) throw new Error(typeof result.error === "string" ? result.error : "필기 인식 요청에 실패했습니다.");
-      await refresh(); setMessage("필기 인식을 요청했습니다. 원본은 저장되어 있습니다.");
-    } catch (err) { setMessage(err instanceof Error ? err.message : "필기 인식에 실패했습니다."); }
-    finally { setBusy(false); }
+    if(isHistorical)return;
+    if(dirty){setMessage("필기를 먼저 저장해 주세요.");return;}
+    setBusy(true);setMessage("필기 텍스트를 추출하는 중…");
+    try{const result=await requestMemoExtraction(layer.id,layer.revision,layer.strokes);setReviewText(null);await refresh();setMessage(result.pending?"필기 텍스트 추출 중…":"텍스트 추출 완료 · SOAP 초안 입력에 반영했어요.");}
+    catch(err){setMessage(err instanceof Error?err.message:"필기 인식에 실패했습니다. 원본은 저장되어 있습니다.");}
+    finally{setBusy(false);}
   }
   async function reviewMemo() {
     if (!annotation || isHistorical) return;
@@ -410,7 +429,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         <div className="tablet-drawing-tools">
           {!isHistorical && <><button type="button" className="tablet-manual-list" onClick={() => setPicker({ match: { region: "head", laterality: "not_applicable", anchor: { x: 500, y: 500 }, view, selectionSource: "catalog" } })} disabled={busy || strokeActive}>목록에서 선택</button><button type="button" className="tablet-undo" aria-label="필기 작업 되돌리기" disabled={(!layer.strokes.length && !layer.undoStack.length) || busy || strokeActive} onClick={undo}><Undo2 size={18}/><span>되돌리기</span></button></>}
           <button type="button" className="tablet-records-toggle" aria-expanded={recordsOpen} disabled={busy || strokeActive} onClick={() => setRecordsOpen(value => !value)}><NotebookPen size={18}/><span>기록</span>{draft.locations.length > 0 && <small>{draft.locations.length}</small>}</button>
-          {!isHistorical && <button type="button" className="tablet-toolbar-save" onClick={() => void save(false)} disabled={busy || strokeActive}>초안 저장</button>}
+          {!isHistorical && <button type="button" className="tablet-toolbar-save" onClick={() => void save(false)} disabled={busy || strokeActive}>{busy ? "저장 중…" : "저장"}</button>}
           {isHistorical && <button type="button" className="tablet-toolbar-return" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기</button>}
         </div>
       </section>
@@ -423,8 +442,8 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
             const sourceFrame = state.annotations.find(a => a.id === location.annotation_id)?.coordinate_version;
             return <div className="tablet-location-row" key={`${location.acupoint_code}-${index}`}><span className="tablet-location-check">{isHistorical ? <Check size={15}/> : index + 1}</span><div><strong>{location.label_ko} <small>{location.acupoint_code}</small></strong><p>{SIDE_LABELS[location.laterality]} {REGION_LABELS[location.body_region as BodyRegion] || location.body_region}{!isHistorical && sourceFrame && sourceFrame !== preferredVersion ? " · 이전 도해 위치" : ""}</p>{location.location_note && <p>{location.location_note}</p>}</div>{!isHistorical && <button type="button" className="tablet-remove" aria-label={`${location.label_ko} 삭제`} onClick={() => { changeDraft({ locations: draft.locations.filter((_, i) => i !== index) }); setFocusedLocationIndex(null); }} disabled={busy}>×</button>}</div>;
           }) : <div className="tablet-empty-locations"><span>✓</span><strong>{isHistorical ? "이 도해에 연결된 위치가 없습니다" : "아직 선택한 위치가 없어요"}</strong><p>{isHistorical ? "원본 필기는 인체 화면에서 확인하세요." : "부위 선택 모드로 인체를 눌러 주세요."}</p></div>}</div>
-          {!isHistorical && <><label className="tablet-note-field tablet-treatment-note">시술 메모<textarea value={draft.notes} onChange={e => changeDraft({ notes: e.target.value })} placeholder="확인한 내용을 간단히 남겨주세요" rows={3} disabled={busy}/></label><div className="tablet-save-actions"><button type="button" className="tablet-secondary" onClick={() => void save(false)} disabled={busy}>초안 저장</button><button type="button" className="tablet-primary" onClick={() => void save(true)} disabled={busy || !draft.locations.length}><CheckCheck size={17}/>오늘 시행 확인</button></div><p className="tablet-field-help">위치 선택은 초안입니다. 실제 시행한 시술만 확인하세요.</p></>}
-          <Disclosure className="tablet-memo-details"><summary><PenLine size={16}/>필기 원본 · {layer.strokes.filter(s => s.kind === "memo").length}획<ChevronDown size={15}/></summary><p className="tablet-field-help">{tab.detail} · {view === "front" ? "앞면" : "뒷면"} 필기 원본을 보존합니다.</p>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" onClick={() => void extractMemo()} disabled={busy || dirty || !layer.revision || !layer.strokes.some(s => s.kind === "memo")}>필기 텍스트 추출</button>}{annotation?.extracted_text != null && <><label className="tablet-note-field">{annotation.extraction_reviewed ? "검토한 텍스트" : "AI 텍스트 후보 · 검토 필요"}<textarea value={reviewText ?? annotation.extracted_text} readOnly={isHistorical} rows={4} onChange={e => setReviewText(e.target.value)} /></label>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" disabled={busy || dirty} onClick={() => void reviewMemo()}>필기 내용 검토 확인</button>}</>}</Disclosure>
+          {!isHistorical && <><label className="tablet-note-field tablet-treatment-note">시술 메모<textarea value={draft.notes} onChange={e => changeDraft({ notes: e.target.value })} placeholder="확인한 내용을 간단히 남겨주세요" rows={3} disabled={busy}/></label><div className="tablet-save-actions"><button type="button" className="tablet-secondary" onClick={() => void save(false)} disabled={busy}>{busy ? "저장 중…" : "저장"}</button><button type="button" className="tablet-primary" onClick={() => void save(true)} disabled={busy || !draft.locations.length}><CheckCheck size={17}/>오늘 시행 확인</button></div><p className="tablet-field-help">위치 선택은 초안입니다. 실제 시행한 시술만 확인하세요.</p></>}
+          <Disclosure className="tablet-memo-details"><summary><PenLine size={16}/>필기 원본 · {layer.strokes.filter(s => s.kind === "memo").length}획<ChevronDown size={15}/></summary><p className="tablet-field-help">{tab.detail} · {view === "front" ? "앞면" : "뒷면"} 필기 원본을 보존합니다.</p>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" onClick={() => void extractMemo()} disabled={busy || dirty || !layer.revision || !layer.strokes.some(s => s.kind === "memo")}>필기 텍스트 추출</button>}{annotation?.extracted_text != null && <><label className="tablet-note-field">{annotation.extraction_reviewed ? "검토한 텍스트" : "자동 추출 텍스트 · SOAP 초안 입력"}<textarea value={reviewText ?? annotation.extracted_text} readOnly={isHistorical} disabled={busy || dirty} rows={4} onChange={e => setReviewText(e.target.value)} /></label>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" disabled={busy || dirty} onClick={() => void reviewMemo()}>필기 내용 검토 확인</button>}</>}</Disclosure>
         </>}
         {!isHistorical && events.length > 0 && <section className="tablet-live-candidates"><span className="tablet-eyebrow">PC 음성에서 온 후보</span>{events.slice(-3).map(event => <div key={event.id}><small>{{ current: "현재 발화", planned: "계획", past: "과거", negated: "부정", unclear: "확인 필요" }[event.context]}</small><p>“{event.text}”</p><div>{event.context !== "past" && event.context !== "negated" && <button type="button" disabled={busy} onClick={() => { void act("live.accept", { eventId: event.id }).then(() => setMessage("음성 후보를 추가했습니다. 부위와 시행 여부를 따로 확인해 주세요.")).catch(() => {}); }}>후보 보관</button>}<button type="button" disabled={busy} onClick={() => { void act("live.dismiss", { eventId: event.id }).catch(() => {}); }}>제외</button></div></div>)}<p className="tablet-field-help">시술과 방문은 자동으로 전환되지 않습니다.</p></section>}
         <div className="tablet-sheet-footer"><Link href={`/clinic/visits/${visitId}`}>PC 진료 화면</Link>{frameVersion !== "body-map-v1" && <a href="/demo/anatomy/ATTRIBUTION.html" target="_blank" rel="noreferrer">{frameVersion === "body-map-v3-female" ? "여성 도해 · HRA / CC BY" : "인체 도해 · Z-Anatomy / CC BY-SA"}</a>}</div>

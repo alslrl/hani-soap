@@ -33,7 +33,7 @@ test("whole-body selection searches beyond the ankle and preserves per-point sid
   await expect(page.locator('[data-selected-code="LI4"][data-selected-side="left"]')).toHaveCount(1);
   await expect(page.getByTestId("selected-location-legend")).toContainText("합곡");
   await expect(page.getByTestId("selected-location-legend")).toContainText("백회");
-  await page.getByRole("button", { name: "초안 저장", exact: true }).click();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.treatments.some(item => item.visit_id === visitId && item.modality === "acupuncture" && item.locations?.some(point => point.acupoint_code === "LI4" && point.body_region === "hand" && point.laterality === "left") && item.locations.some(point => point.acupoint_code === "GV20" && point.laterality === "midline"))).toBe(true);
 
   await page.getByRole("tab", { name: /^약침/ }).click();
@@ -45,7 +45,7 @@ test("whole-body selection searches beyond the ankle and preserves per-point sid
   await chooseSelect(page, picker.getByRole("combobox", { name: "환자 기준 좌우" }), "right");
   await picker.getByRole("button", { name: /^이 부위 추가/ }).click();
   await expect(page.locator('[data-selected-code="BL23"][data-selected-side="right"]')).toHaveCount(1);
-  await page.getByRole("button", { name: "초안 저장", exact: true }).click();
+  await page.getByRole("button", { name: "저장", exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.treatments.some(item => item.visit_id === visitId && item.modality === "pharmacopuncture" && item.status === "suggested" && item.locations?.some(point => point.acupoint_code === "BL23" && point.body_region === "lower_back" && point.laterality === "right"))).toBe(true);
   await page.reload();
   await expect(page.locator('[data-selected-code="LI4"][data-selected-side="left"]')).toHaveCount(1);
