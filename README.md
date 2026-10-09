@@ -56,3 +56,5 @@ AI가 생성한 전사 보정, 진료 기록, 환자 안내와 필기 추출 결
 - [개발 환경·실행 안내](docs/development.md)
 - [데이터 저장 구조](docs/data-contract.md)
 - [접근·배포 구성](docs/deployment-access.md)
+
+개인정보 처리 범위: 후속 텍스트 AI 요청에는 등록 이름과 정형 식별정보를 가린 사본을 사용합니다. 원음·실시간 음성·손글씨 이미지는 가림 대상이 아닙니다. [1차 가림 기능과 한계](docs/text-privacy.md)를 확인하세요.

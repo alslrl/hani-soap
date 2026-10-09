@@ -8,7 +8,7 @@ vi.mock('./provider', () => ({ inferSpeakerRoles: mocks.infer, generateSoap: moc
 import { transcribeStep, soapStep } from './pipeline';
 beforeEach(() => {
   mocks.infer.mockReset(); mocks.soap.mockReset(); mocks.transcribe.mockReset();
-  mocks.state = { clinic: { id: 'clinic' }, transcripts: [], jobs: [{ id: 'job', visit_id: 'visit', recording_id: 'file', result: {} }], recordings: [{ id: 'file', visit_id: 'visit', filename: 'fake.wav' }], visits: [{ id: 'visit' }], soap_documents: [{ id: 'approved', status: 'approved', sections: { s: 'original' } }] };
+  mocks.state = { clinic: { id: 'clinic' }, transcripts: [], jobs: [{ id: 'job', visit_id: 'visit', recording_id: 'file', result: {} }], recordings: [{ id: 'file', visit_id: 'visit', filename: 'fake.wav' }], visits: [{ id: 'visit', patient_id: 'patient' }], patients: [{ id: 'patient', display_name: '김서연', guardian: null }], soap_documents: [{ id: 'approved', status: 'approved', sections: { s: 'original' } }] };
   mocks.transcribe.mockResolvedValue(normalizeDiarizedTranscript({ segments: [{ speaker: 'B', text: '어디가 아프세요?' }, { speaker: 'A', text: '발목이 아파요.' }] }));
 });
 describe('role inference pipeline and SOAP revision input', () => {

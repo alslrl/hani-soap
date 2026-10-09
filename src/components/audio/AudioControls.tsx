@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
+import { TextPrivacyNotice } from '@/components/privacy/TextPrivacyNotice';
 import { Mic, Square, Upload, RotateCcw, Check, FileText, Download, ArrowRight } from 'lucide-react';
 import { effectiveSpeaker, isSpeakerRole, speakerRoleLabels, withRawSpeakerGroups } from '@/lib/audio/speaker-roles';
 import type { RuntimeJob, RuntimeRecording, Transcript, SpeakerRole } from '@/lib/types';
@@ -89,6 +90,8 @@ export function AudioControls({ visitId, onChanged }: Props) {
       {audio.status === 'recording' && audio.liveStatus === 'connected' && <button className={styles.button} onClick={commitLiveTurn}>발화 확정</button>}
       {!active && !pending.length && <span className={styles.status}>PC 마이크 한 번으로 전체 녹음과 실시간 전사</span>}
     </div>
+    <p className={styles.notice}>텍스트 AI에는 등록된 이름·정형 식별정보를 가린 사본을 보냅니다. 음성 원본·실시간 음성은 가림 없이 OpenAI로 전송됩니다.</p>
+    {latestJob && <TextPrivacyNotice audit={latestJob.result?.text_privacy}/>}
     {active && !ownerHere && <div className={styles.error}>다른 방문의 녹음이 진행 중입니다. 종료한 음성은 원래 방문에 저장됩니다.</div>}
     {active && <p className={styles.notice}>로컬 복구본: {({ ready: '준비 중', saved: '브라우저에 저장됨', failed: '저장 실패' })[audio.recoveryStatus]} · 아이패드는 별도로 녹음하지 않습니다.</p>}
     {configured === false && <p className={styles.notice}>AI가 아직 연결되지 않았습니다. 파일은 저장할 수 있고, 연결 후 전사할 수 있습니다. <Link href="/settings">연결 설정</Link></p>}

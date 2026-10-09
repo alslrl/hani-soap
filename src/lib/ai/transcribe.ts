@@ -1,3 +1,4 @@
+import { privateAudioFilename } from '@/lib/audio/filename';
 import { randomUUID } from 'node:crypto';
 import { AI_MODELS, getApiKey } from './config';
 import type { Segment } from '@/lib/types';
@@ -20,7 +21,7 @@ export function normalizeDiarizedTranscript(data: DiarizedResponse) {
 
 export async function transcribeAudio(blob: Blob, filename: string) {
   const form = new FormData();
-  form.set('file', blob, filename);
+  form.set('file', blob, privateAudioFilename(filename));
   form.set('model', AI_MODELS.transcription);
   form.set('response_format', 'diarized_json');
   form.set('chunking_strategy', 'auto');
