@@ -118,8 +118,8 @@
       "path": "implementation-plan.md",
       "status": "draft",
       "updated_on_kst": "2026-10-09",
-      "characters": 36941,
-      "sha256": "60ef12064d69cda07f556254753e91dcd5a2d59e6bbd8e085251fcbb0c1d824c",
+      "characters": 37509,
+      "sha256": "7f14aba001aa9a09573ba8cff3e1f73431b49e42fc6d3f1be61528b66b2d76c5",
       "summary": "Detailed implementation draft and decisions from the current development discussion"
     },
     {
@@ -129,6 +129,14 @@
       "characters": 3672,
       "sha256": "35617a4ce5c69b56575eaaf327b3a3cd6dca0ec5f90afe9d8cab7b2e14d82636",
       "summary": "Observed official SigmaChart screens and proposed HaniSOAP UI layout"
+    },
+    {
+      "path": "reference/재진_질문_및_경과_기록.md",
+      "status": "draft",
+      "updated_on_kst": "2026-10-09",
+      "characters": 5099,
+      "sha256": "500533c3e67c46f842eb85e7ed76e366d4bea13e6c6cb0ddec1dc8b96459152a",
+      "summary": "Twelve follow-up questions, change options and detailed answers, separate symptom and activity progress charts"
     }
   ],
   "reference_collections": [
