@@ -190,10 +190,14 @@ export function LoadState({
 }
 export function NrsSparkline({
   points,
+  label = "통증 NRS",
+  emptyTitle = "아직 기록된 통증 점수가 없어요",
 }: {
   points: { value: number; label: string }[];
+  label?: string;
+  emptyTitle?: string;
 }) {
-  if (!points.length) return <Empty title="아직 기록된 통증 점수가 없어요" />;
+  if (!points.length) return <Empty title={emptyTitle} />;
   const width = 220,
     height = 78,
     left = 12,
@@ -211,7 +215,7 @@ export function NrsSparkline({
       className="hs-sparkline"
       viewBox={`0 0 ${width} ${height}`}
       role="img"
-      aria-label={`통증 NRS 경과: ${points.map((point) => `${point.label} ${point.value}점`).join(", ")}`}
+      aria-label={`${label} 경과: ${points.map((point) => `${point.label} ${point.value}점`).join(", ")}`}
     >
       <path d="M 9 59 H 211" className="hs-chart-baseline" />
       <path d={path} className="hs-chart-line" />

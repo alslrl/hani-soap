@@ -1,4 +1,5 @@
 "use client";
+import { StairDiscomfortPanel } from "./StairDiscomfortPanel";
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
@@ -1374,7 +1375,7 @@ function TodayFollowupPanels({
   return (
     <div className="hs-today-followup" aria-label="오늘 경과와 확인 사항">
       {patient.demo_key === "A" ? (
-        <NrsPanel state={state} patient={patient} visit={visit} act={act} />
+        <div className="hs-pain-functional-metrics"><NrsPanel state={state} patient={patient} visit={visit} act={act} /><StairDiscomfortPanel state={state} patient={patient} visit={visit} act={act}/></div>
       ) : (
         <section className="hs-panel hs-child-metric">
           {panelTitle(
