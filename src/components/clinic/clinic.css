@@ -767,6 +767,22 @@
   padding: 0 4px;
   border-radius: 3px;
 }
+.hs-past-tabs {
+  height: 44px;
+  padding: 0 14px;
+  gap: 14px;
+}
+.hs-past-tabs button {
+  flex: 1;
+  justify-content: center;
+  white-space: nowrap;
+}
+.hs-past-contact {
+  padding: 0 14px 14px;
+}
+.hs-past-contact .hs-contact-alert {
+  margin-top: 0;
+}
 .hs-soap-toolbar {
   padding: 17px 20px 15px;
   display: flex;
