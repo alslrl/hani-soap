@@ -3,6 +3,8 @@ import type { ActionRequest, AppState, CareMessage, FollowupAnswer, Observation,
 import { AppError, invariant } from './errors';
 import { validateEntity } from './validation';
 import { BODY_MAP_VERSIONS } from '../tablet/body-map-version';
+import { assertSoapInputsCurrent } from '../ai/soap-inputs';
+import { assertCurrentCareMessage } from '../ai/care-context';
 
 const text = (value: unknown, label: string, allowEmpty = false): string => {
   invariant(typeof value === 'string' && (allowEmpty || value.trim().length > 0) && value.length <= 100_000, `${label}을 확인해 주세요.`);
@@ -144,6 +146,7 @@ export function applyAction(state: AppState, action: ActionRequest, sessionId = 
         input_transcript_id: previous?.input_transcript_id || null, status: 'draft',
         sections: { s: text(sections.s ?? sections.S ?? '', 'S', true), o: text(sections.o ?? sections.O ?? '', 'O', true), a: text(sections.a ?? sections.A ?? '', 'A', true), p: text(sections.p ?? sections.P ?? '', 'P', true) },
         source_refs: previous?.source_refs || manualRefs(), approved_at: null, approved_by: null, origin: 'manual_demo',
+        ...(previous?.input_snapshot ? { input_snapshot: previous.input_snapshot } : {}),
       };
       validateEntity('soap_document', doc); state.soap_documents.push(doc); visit.record_status = 'draft';
       break;
@@ -152,6 +155,7 @@ export function applyAction(state: AppState, action: ActionRequest, sessionId = 
       const visit = targetVisit(state, p.documentId && !p.visitId && !p.visit_id ? { visitId: lookup(state.soap_documents, p.documentId, '기록').visit_id } : p);
       const doc = assureCurrentSoap(state, visit, p);
       invariant(doc && Object.values(doc.sections).some((v) => v.trim()), '검토할 기록을 먼저 작성해 주세요.');
+      if (doc.status !== 'approved') assertSoapInputsCurrent(state, doc);
       const latestTranscript = state.transcripts.filter((v) => v.visit_id === visit.id).sort((a, b) => b.revision - a.revision)[0];
       if (doc.input_transcript_id && latestTranscript?.id !== doc.input_transcript_id || state.jobs.some((v) => v.result?.soapId === doc.id && v.result?.stale_input === true)) {
         throw new AppError(409, 'STALE_SOAP_INPUT', '전사가 변경되었습니다. 최신 전사로 기록을 다시 생성하고 검토해 주세요.');
@@ -247,6 +251,7 @@ export function applyAction(state: AppState, action: ActionRequest, sessionId = 
     }
     case 'care.approve': {
       const message = lookup(state.care_messages, p.messageId ?? p.id, '안내');
+      assertCurrentCareMessage(state, message.id);
       invariant(message.status === 'draft' && message.draft_body.trim(), '승인할 초안을 확인해 주세요.');
       message.approved_body = message.draft_body; message.approved_at = now; message.status = 'approved'; break;
     }
