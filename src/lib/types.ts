@@ -41,10 +41,17 @@ export type Visit = {
   is_demo: true;
 };
 
+export type SpeakerRole = 'clinician' | 'patient' | 'guardian' | 'unknown';
+export type SpeakerRoleAssignment = { role: SpeakerRole; source: 'inferred' | 'human'; evidence?: string[] };
+
 export type Segment = {
   id: string;
   ordinal: number;
   speaker: "clinician" | "patient" | "guardian" | "unknown";
+  // Provider group and immutable source ID survive review revision IDs.
+  raw_speaker?: string;
+  source_segment_id?: string;
+  speaker_override?: SpeakerRole;
   text: string;
   start_ms: number | null;
   end_ms: number | null;
@@ -59,6 +66,7 @@ export type Transcript = {
   source_asset_key: "video1" | "video2" | "revisit_script" | "manual_seed";
   text: string;
   segments: (Segment)[];
+  speaker_roles?: Record<string, SpeakerRoleAssignment>;
   origin: "provided_case" | "synthetic_history" | "synthetic_response" | "manual_demo";
 };
 

@@ -465,6 +465,23 @@
               "type": "null"
             }
           ]
+        },
+        "raw_speaker": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 100
+        },
+        "source_segment_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "speaker_override": {
+          "enum": [
+            "clinician",
+            "patient",
+            "guardian",
+            "unknown"
+          ]
         }
       }
     },
@@ -530,6 +547,39 @@
             "synthetic_response",
             "manual_demo"
           ]
+        },
+        "speaker_roles": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "role",
+              "source"
+            ],
+            "properties": {
+              "role": {
+                "enum": [
+                  "clinician",
+                  "patient",
+                  "guardian",
+                  "unknown"
+                ]
+              },
+              "source": {
+                "enum": [
+                  "inferred",
+                  "human"
+                ]
+              },
+              "evidence": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
         }
       }
     },

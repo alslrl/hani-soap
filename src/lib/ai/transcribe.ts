@@ -10,7 +10,7 @@ export function normalizeDiarizedTranscript(data: DiarizedResponse) {
   const segments: Segment[] = (data.segments || []).filter((item) => typeof item.text === 'string' && item.text.trim()).map((item, index) => {
     const id = randomUUID();
     if (item.speaker) rawSpeakers[id] = item.speaker;
-    return { id, ordinal: index + 1, speaker: 'unknown', text: item.text!, start_ms: typeof item.start === 'number' ? Math.round(item.start * 1000) : null, end_ms: typeof item.end === 'number' ? Math.round(item.end * 1000) : null };
+    return { id, source_segment_id: id, ...(item.speaker ? { raw_speaker: item.speaker } : {}), ordinal: index + 1, speaker: 'unknown', text: item.text!, start_ms: typeof item.start === 'number' ? Math.round(item.start * 1000) : null, end_ms: typeof item.end === 'number' ? Math.round(item.end * 1000) : null };
   });
   const text = typeof data.text === 'string' && data.text.trim() ? data.text : segments.map((item) => item.text).join('\n');
   if (!text.trim()) throw new AppError(422, 'TRANSCRIPTION_EMPTY', '음성에서 전사할 문장을 찾지 못했습니다. 원음과 마이크 입력을 확인해 주세요.');
