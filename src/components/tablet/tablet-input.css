@@ -1,0 +1,54 @@
+html.hani-tablet-drawing-active,
+html.hani-tablet-drawing-active body {
+  height: 100%;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+html.hani-tablet-drawing-active body {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+}
+.tablet-app.tablet-fixed-workspace {
+  position: fixed;
+  inset: 0;
+  height: 100dvh;
+  min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+.tablet-app.tablet-fixed-workspace .tablet-header,
+.tablet-app.tablet-fixed-workspace .tablet-statusbar,
+.tablet-app.tablet-fixed-workspace .tablet-tabs,
+.tablet-app.tablet-fixed-workspace .tablet-footer {
+  flex: none;
+}
+.tablet-app.tablet-fixed-workspace .tablet-main {
+  flex: 1;
+  min-height: 0;
+  height: auto;
+  overflow: hidden;
+}
+.tablet-app.tablet-fixed-workspace .tablet-drawing { height: 100%; min-height: 0; }
+.tablet-app.tablet-fixed-workspace .tablet-canvas-wrap {
+  min-height: 0;
+  height: auto;
+  touch-action: none;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+.tablet-app.tablet-fixed-workspace .tablet-canvas {
+  min-height: 0;
+  max-height: none;
+  touch-action: none;
+  -webkit-touch-callout: none;
+}
+.tablet-app.tablet-fixed-workspace .tablet-inspector {
+  min-height: 0;
+  touch-action: pan-y;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}

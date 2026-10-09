@@ -30,5 +30,4 @@ button { color:var(--ink); }
 .app-rail { background:#ffffff; }
 .app-logo { border-radius:9px; background:var(--accent-fill); }
 .app-rail a.rail-link { border-radius:7px; }
-.app-rail a.rail-link.active { box-shadow:inset 2px 0 var(--accent); }
 ::selection { background:#dedede; color:var(--ink); }

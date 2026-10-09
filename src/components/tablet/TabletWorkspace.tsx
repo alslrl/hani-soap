@@ -14,6 +14,8 @@ import { memoImage } from "@/lib/tablet/ink-image";
 import { normalizeStrokes, restoreCanvasStrokes } from "@/lib/tablet/coordinates";
 import { BODY_MAP_VERSIONS, BODY_MAP_LABELS, preferredBodyMapVersionForSex, historicalBodyMapVersions, type BodyMapVersion } from "@/lib/tablet/body-map-version";
 import { bodyCanvasViewBox, svgViewBox } from "@/lib/tablet/viewport";
+import { DrawingInput, type CanvasPointer } from "@/lib/tablet/drawing-input";
+import "./tablet-input.css";
 
 const TABS = [
   { id: "needle", label: "침", detail: "일반 침", modality: "acupuncture", technique: "standard_acupuncture" },
@@ -100,7 +102,8 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   const [message, setMessage] = useState("");
   const [reviewText, setReviewText] = useState<string | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
-  const pointer = useRef<{ id: number; points: AnnotationStroke["points"] } | null>(null);
+  const input = useRef(new DrawingInput());
+  const strokeMatrix = useRef<DOMMatrix | null>(null);
   const tab = TABS.find(t => t.id === tabId)!;
   const key = layerKey(tabId, view, frameVersion);
   const layer = layers[key];
@@ -115,46 +118,114 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   const inspectorRef = useRef<HTMLElement>(null);
   const visibleLocations = draft.locations.map((location, index) => ({ location, index })).filter(({ location }) => !isHistorical || state.annotations.some(a => a.id === location.annotation_id && a.coordinate_version === frameVersion));
   useEffect(() => {
+    const root = document.documentElement;
+    const wasLocked = root.classList.contains("hani-tablet-drawing-active");
+    const scroll = { x: window.scrollX, y: window.scrollY };
+    root.classList.add("hani-tablet-drawing-active");
+    const wrap = svgRef.current?.parentElement;
+    const stopNativePan = (event: TouchEvent) => {
+      if (event.target instanceof Element && event.target.closest("button, a, input, textarea, select")) return;
+      if (event.cancelable) event.preventDefault();
+    };
+    wrap?.addEventListener("touchstart", stopNativePan, { passive: false });
+    wrap?.addEventListener("touchmove", stopNativePan, { passive: false });
+    return () => {
+      wrap?.removeEventListener("touchstart", stopNativePan);
+      wrap?.removeEventListener("touchmove", stopNativePan);
+      if (!wasLocked) { root.classList.remove("hani-tablet-drawing-active"); window.scrollTo(scroll.x, scroll.y); }
+    };
+  }, []);
+  useEffect(() => {
     const warn = (e: BeforeUnloadEvent) => { if (Object.values(layers).some(l => l.dirty) || Object.values(drafts).some(d => d.dirty)) { e.preventDefault(); } };
     window.addEventListener("beforeunload", warn);
     return () => window.removeEventListener("beforeunload", warn);
   }, [layers, drafts]);
   function changeDraft(update: Partial<Draft>) { if (isHistorical) return; setDrafts(d => ({ ...d, [tabId]: { ...d[tabId], ...update, dirty: true, confirmed: false } })); setMessage(""); }
   function changeInk(strokes: AnnotationStroke[]) { if (isHistorical) return; setLayers(l => ({ ...l, [key]: { ...l[key], strokes, dirty: true } })); setMessage(""); }
-  function point(e: PointerEvent<SVGSVGElement>): AnnotationStroke["points"][number] {
-    const matrix = svgRef.current?.getScreenCTM();
-    const p = new DOMPoint(e.clientX, e.clientY).matrixTransform(matrix?.inverse());
-    return { x: Math.max(0, Math.min(1000, p.x)), y: Math.max(0, Math.min(1000, p.y)), t: Date.now(), pressure: e.pressure || 0.5 };
+  function appendInk(stroke: AnnotationStroke) {
+    if (isHistorical) return;
+    setLayers(l => ({ ...l, [key]: { ...l[key], strokes: [...l[key].strokes, stroke], dirty: true } }));
+    setMessage("");
+  }
+  function point(e: Pick<globalThis.PointerEvent, "clientX" | "clientY" | "pressure">): AnnotationStroke["points"][number] | null {
+    const matrix = strokeMatrix.current;
+    if (!matrix) return null;
+    const x = matrix.a * e.clientX + matrix.c * e.clientY + matrix.e;
+    const y = matrix.b * e.clientX + matrix.d * e.clientY + matrix.f;
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    return { x: Math.max(0, Math.min(1000, x)), y: Math.max(0, Math.min(1000, y)), t: Date.now(), pressure: e.pressure || 0.5 };
   }
   function start(e: PointerEvent<SVGSVGElement>) {
-    if (busy || isHistorical || sheetOpen || e.button !== 0 || pointer.current || !e.isPrimary) return;
+    if (busy || isHistorical || sheetOpen) return;
     e.preventDefault();
+    if (input.current.drawing) return;
+    // Freeze the mapping for this contact so browser chrome cannot move the ink.
+    if (!input.current.owns(e.pointerId)) {
+      const matrix = svgRef.current?.getScreenCTM();
+      if (!matrix) return;
+      if (e.pointerType !== "touch") strokeMatrix.current = matrix.inverse();
+      else strokeMatrix.current = matrix.inverse();
+    }
     const p = point(e);
-    if (selectMode || e.pointerType === "touch") {
+    if (!p) return;
+    const kind = input.current.down(e, p, selectMode);
+    if (!kind) return;
+    if (kind === "select") {
       const match = mapBodyRegion(p, view, layer.coordinateVersion);
       if (match) { setPicker({ match }); setSelectMode(false); }
       return;
     }
-    e.currentTarget.setPointerCapture(e.pointerId);
-    pointer.current = { id: e.pointerId, points: [p] };
-    setActiveInk([p]);
+    try { e.currentTarget.setPointerCapture(e.pointerId); } catch { /* Window handlers finish a contact if capture is unavailable. */ }
+    if (kind === "ink") { setSelectMode(false); setActiveInk([p]); }
   }
-  function move(e: PointerEvent<SVGSVGElement>) {
-    if (!pointer.current || pointer.current.id !== e.pointerId) return;
+  type PointerSample = CanvasPointer & Pick<globalThis.PointerEvent, "pressure" | "preventDefault"> & { nativeEvent?: globalThis.PointerEvent };
+  function move(e: PointerSample) {
+    if (!input.current.owns(e.pointerId)) return;
     e.preventDefault();
-    pointer.current.points.push(point(e));
-    setActiveInk([...pointer.current.points]);
+    const samples = e.nativeEvent?.getCoalescedEvents?.() || [];
+    let points: InkPoint[] | null = null;
+    for (const sample of samples.length ? samples : [e]) {
+      const p = point(sample);
+      if (p) points = input.current.move(sample, p);
+    }
+    if (points) setActiveInk([...points]);
   }
-  function end(e: PointerEvent<SVGSVGElement>) {
-    const current = pointer.current;
-    if (!current || current.id !== e.pointerId) return;
-    current.points.push(point(e)); pointer.current = null; setActiveInk([]);
-    const check = recognizeCheck(current.points, layer.strokes);
+  function end(e: PointerSample) {
+    if (!input.current.owns(e.pointerId)) return;
+    e.preventDefault();
+    const p = point(e);
+    if (!p) { cancel(e); return; }
+    const result = input.current.up(e, p);
+    if (!result) return;
+    if (result.kind === "select") {
+      const match = mapBodyRegion(result.point, view, layer.coordinateVersion);
+      if (match) { setPicker({ match }); setSelectMode(false); }
+      return;
+    }
+    setActiveInk([]);
+    const check = recognizeCheck(result.points, layer.strokes);
     const match = check ? mapBodyRegion(check.anchor, view, layer.coordinateVersion) : null;
-    const stroke: AnnotationStroke = { id: uid(), points: current.points, kind: match ? "check" : "memo", created_at: new Date().toISOString() };
-    changeInk([...layer.strokes, stroke]);
+    const stroke: AnnotationStroke = { id: uid(), points: result.points, kind: match ? "check" : "memo", created_at: new Date().toISOString() };
+    appendInk(stroke);
     if (match) setPicker({ match, strokeId: stroke.id });
   }
+  function cancel(e: Pick<CanvasPointer, "pointerId">) {
+    if (!input.current.owns(e.pointerId)) return;
+    const points = input.current.cancel(e.pointerId);
+    setActiveInk([]);
+    if (points) appendInk({ id: uid(), points, kind: "memo", created_at: new Date().toISOString() });
+  }
+  const inputHandlers = useRef({ move, end, cancel });
+  inputHandlers.current = { move, end, cancel };
+  useEffect(() => {
+    const outsideMove = (event: globalThis.PointerEvent) => { if (!(event.target instanceof Node) || !svgRef.current?.contains(event.target)) inputHandlers.current.move(event); };
+    const finish = (event: globalThis.PointerEvent) => inputHandlers.current.end(event);
+    const interrupted = (event: globalThis.PointerEvent) => inputHandlers.current.cancel(event);
+    window.addEventListener("pointermove", outsideMove);
+    window.addEventListener("pointerup", finish);
+    window.addEventListener("pointercancel", interrupted);
+    return () => { window.removeEventListener("pointermove", outsideMove); window.removeEventListener("pointerup", finish); window.removeEventListener("pointercancel", interrupted); };
+  }, []);
   function undo() { changeInk(layer.strokes.slice(0, -1)); setPicker(null); }
   function toMemo() {
     if (picker?.strokeId) changeInk(layer.strokes.map(s => s.id === picker.strokeId ? { ...s, kind: "memo" } : s));
@@ -208,10 +279,10 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     catch (err) { setMessage(err instanceof Error ? err.message : "검토 저장에 실패했습니다."); }
     finally { setBusy(false); }
   }
-  function switchTab(id: TabId) { if (busy) return; setTabId(id); setPicker(null); setZoom(null); setActiveInk([]); pointer.current = null; setReviewText(null); setMessage(""); }
+  function switchTab(id: TabId) { if (busy) return; input.current.reset(); setTabId(id); setPicker(null); setZoom(null); setActiveInk([]); setReviewText(null); setMessage(""); }
   function changeFrame(version: BodyMapVersion) {
     if (busy) return;
-    setFrameVersion(version); setShowFullCanvas(false); setPicker(null); setZoom(null); setRecordsOpen(false); setHistoryOpen(false); setSelectMode(false); setReviewText(null); setActiveInk([]); pointer.current = null;
+    input.current.reset(); setFrameVersion(version); setShowFullCanvas(false); setPicker(null); setZoom(null); setRecordsOpen(false); setHistoryOpen(false); setSelectMode(false); setReviewText(null); setActiveInk([]);
   }
   function dismissPanel() {
     if (picker) toMemo();
@@ -240,7 +311,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     document.addEventListener("keydown", trap);
     return () => { document.removeEventListener("keydown", trap); if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true }); };
   }, [sheetOpen]);
-  return <main className={`tablet-app ${portrait ? "is-portrait" : "is-landscape"} ${isHistorical ? "is-historical" : ""}`}>
+  return <main className={`tablet-app tablet-fixed-workspace ${portrait ? "is-portrait" : "is-landscape"} ${isHistorical ? "is-historical" : ""}`}>
     <header className="tablet-header" inert={sheetOpen || undefined}>
       <Link href="/tablet" className="tablet-brand">Hani<span>SOAP</span><small>시술 기록</small></Link>
       <div className="tablet-patient"><img src={`/demo/portraits/${patient.portrait_asset_key}.png`} alt="" /><div><strong>{patient.display_name} <span className="tablet-patient-demographics">{ageAtVisit(patient.birth_date, visit.scheduled_at)}세 · {{ female: "여", male: "남", unspecified: "성별 미기재" }[patient.sex]} · {visit.visit_no}회차</span></strong><p>{visit.reason || patient.chief_complaint}</p></div></div>
@@ -269,7 +340,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
         </div>
         {isHistorical && <div className="tablet-history-notice" data-testid="legacy-body-map-notice"><span>{BODY_MAP_LABELS[frameVersion]}에 저장된 원본입니다. 읽기 전용으로 표시합니다.</span>{!portrait && <button type="button" onClick={() => changeFrame(preferredVersion)}>현재 도해로 돌아가기 <ArrowRight size={15}/></button>}</div>}
         <div className="tablet-canvas-wrap">
-          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={() => { pointer.current = null; setActiveInk([]); }}>
+          <svg ref={svgRef} className={`tablet-canvas ${selectMode ? "is-selecting" : ""}`} data-testid="treatment-canvas" data-coordinate-version={layer.coordinateVersion} data-readonly={isHistorical} viewBox={zoomBox} role="img" aria-label={`${view === "front" ? "앞면" : "뒷면"} 인체, ${isHistorical ? "이전 필기 읽기 전용" : "펜으로 체크하거나 메모하세요"}`} onPointerDown={start} onPointerMove={move} onPointerUp={end} onPointerCancel={cancel} onLostPointerCapture={cancel} onContextMenu={e => e.preventDefault()}>
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
             <BodyDiagram view={view} version={layer.coordinateVersion} />
             {!isHistorical && <AcupointReferenceDots view={view} version={layer.coordinateVersion} />}
