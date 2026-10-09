@@ -3,7 +3,9 @@ import { randomUUID } from 'node:crypto';
 import { readState, updateState } from '@/lib/server/store';
 import { AppError } from '@/lib/server/errors';
 import { readAudio } from '@/lib/audio/storage';
+import { normalizeAudio } from '@/lib/audio/crop';
 import { transcribeAudio, transcribeContentAudio } from './transcribe';
+import { refineTranscription, type AudioRecheck } from './transcription-refinement';
 import { alignTranscriptContent, DUAL_TRANSCRIPTION_VERSION } from './transcription-alignment';
 import { DICTIONARY_RETRIEVAL_VERSION, loadDictionary, retrieveCorrectionSpans } from './dictionary';
 import { validateCorrections } from './correction';
@@ -23,7 +25,7 @@ export async function patchJob(jobId: string, patch: Partial<RuntimeJob>) {
   });
 }
 
-export async function transcribeStep(jobId: string) {
+export async function transcribeSourcesStep(jobId: string) {
   const { state } = await readState();
   const job = state.jobs.find((item) => item.id === jobId);
   if (!job) throw new AppError(404, 'JOB_NOT_FOUND', 'AI 작업을 찾을 수 없습니다.');
@@ -34,15 +36,15 @@ export async function transcribeStep(jobId: string) {
   const priorDiarized = state.transcripts.find((item) => item.id === job.result?.diarizedTranscriptId && item.visit_id === visitId);
   const priorContent = state.transcripts.find((item) => item.id === job.result?.contentTranscriptId && item.visit_id === visitId);
   await patchJob(jobId, { status: 'running', stage: 'transcribing', result: { transcription_pipeline: DUAL_TRANSCRIPTION_VERSION } });
-  const audio = !priorDiarized || !priorContent ? await readAudio(recording) : null;
+  const audio = !priorDiarized || !priorContent ? await normalizeAudio(await readAudio(recording)) : null;
   const [diarized, content] = await Promise.allSettled([
-    priorDiarized ? Promise.resolve(priorDiarized) : transcribeAudio(audio!, recording.filename),
-    priorContent ? Promise.resolve(priorContent) : transcribeContentAudio(audio!, recording.filename),
+    priorDiarized ? Promise.resolve(priorDiarized) : transcribeAudio(audio!, 'normalized.flac'),
+    priorContent ? Promise.resolve(priorContent) : transcribeContentAudio(audio!, 'normalized.flac'),
   ]);
   // Persist each successful channel before throwing, so retry only calls the missing channel.
   await updateState((next) => {
     const currentJob = next.jobs.find((item) => item.id === jobId)!;
-    currentJob.result = { ...currentJob.result, transcription_pipeline: DUAL_TRANSCRIPTION_VERSION, model: AI_MODELS.transcription, diarization_model: AI_MODELS.diarization };
+    currentJob.result = { ...currentJob.result, transcription_pipeline: DUAL_TRANSCRIPTION_VERSION, model: AI_MODELS.transcription, diarization_model: AI_MODELS.diarization, audio_preprocessing: 'normalized-flac-metadata-stripped-v1' };
     function saveSource(key: 'diarizedTranscriptId' | 'contentTranscriptId', text: string, segments: Transcript['segments']) {
       if (typeof currentJob.result?.[key] === 'string') return;
       const id = randomUUID();
@@ -56,26 +58,39 @@ export async function transcribeStep(jobId: string) {
   });
   if (content.status === 'rejected') throw content.reason;
   if (diarized.status === 'rejected') throw diarized.reason;
+}
+
+export async function transcribeStep(jobId: string) {
+  await transcribeSourcesStep(jobId);
   const saved = (await readState()).state;
+  const job = saved.jobs.find(item => item.id === jobId)!;
+  if (typeof job.result?.transcriptId === 'string') return job.result.transcriptId;
+  const visitId = job.visit_id;
+  const recording = saved.recordings.find(item => item.id === job.recording_id)!;
   const savedJob = saved.jobs.find((item) => item.id === jobId)!;
   const original = saved.transcripts.find((item) => item.id === savedJob.result?.diarizedTranscriptId)!;
   const primary = saved.transcripts.find((item) => item.id === savedJob.result?.contentTranscriptId)!;
   const alignment = alignTranscriptContent(primary.text, original.segments);
-  await patchJob(jobId, { stage: 'speaker_roles' });
+  await patchJob(jobId, { stage: 'alignment_review' });
+  const alignmentPrivacy = new AiTextPrivacy(identitiesForVisit(saved, visitId));
+  const refined = await refineTranscription(alignment, original.segments, alignmentPrivacy, () => readAudio(recording), (savedJob.result?.audio_rechecks ?? []) as AudioRecheck[], async result => {
+    await updateState(next => { const current = next.jobs.find(item => item.id === jobId)!; const existing = (current.result?.audio_rechecks ?? []) as AudioRecheck[]; if (!existing.some(item => item.source_id === result.source_id)) current.result = { ...current.result, audio_rechecks: [...existing, result] }; });
+  });
+  await patchJob(jobId, { stage: 'speaker_roles', result: { text_privacy: privacyAudit(savedJob.result?.text_privacy, 'alignment_review', alignmentPrivacy) } });
   const privacy = new AiTextPrivacy(identitiesForVisit(saved, visitId));
   let speakerRoles: NonNullable<Transcript['speaker_roles']> = {};
   let speakerNote: string | null = null;
-  try { speakerRoles = await inferSpeakerRoles(primary.text, alignment.segments, privacy); }
+  try { speakerRoles = await inferSpeakerRoles(refined.segments.map(s => s.text).join(''), refined.segments, privacy); }
   catch { speakerNote = '화자 역할 자동 추론에 실패해 미확인으로 남겼습니다. 전사 검토에서 그룹 또는 구간 역할을 수정할 수 있습니다.'; }
-  const segments = alignment.segments.map(segment => ({ ...segment, speaker: effectiveSpeaker(segment, speakerRoles) }));
+  const segments = refined.segments.map(segment => ({ ...segment, speaker: effectiveSpeaker(segment, speakerRoles) }));
   await updateState((next) => {
     const currentJob = next.jobs.find((item) => item.id === jobId)!;
     if (currentJob.result?.transcriptId) return;
     const id = randomUUID();
-    const transcript: Transcript = { id, clinic_id: next.clinic.id, visit_id: visitId, revision: Math.max(0, ...next.transcripts.filter((item) => item.visit_id === visitId).map((item) => item.revision)) + 1, status: 'raw', source_asset_key: 'manual_seed', text: primary.text, segments, speaker_roles: speakerRoles, origin: 'manual_demo' };
+    const transcript: Transcript = { id, clinic_id: next.clinic.id, visit_id: visitId, revision: Math.max(0, ...next.transcripts.filter((item) => item.visit_id === visitId).map((item) => item.revision)) + 1, status: 'raw', source_asset_key: 'manual_seed', text: segments.map(s => s.text).join(''), segments, speaker_roles: speakerRoles, origin: 'manual_demo' };
     next.transcripts.push(transcript);
     const rawSpeakers = Object.fromEntries(segments.flatMap((segment) => segment.raw_speaker ? [[segment.id, segment.raw_speaker]] : []));
-    currentJob.result = { ...currentJob.result, mode: 'actual_ai', transcriptId: id, rawSpeakers, model: AI_MODELS.transcription, diarization_model: AI_MODELS.diarization, speaker_role_model: AI_MODELS.correction, speaker_role_note: speakerNote, alignment: { algorithm: alignment.algorithm, changed_groups: alignment.changed_groups, unassigned_groups: alignment.unassigned_groups, warnings: alignment.warnings }, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'speaker_roles', privacy) };
+    currentJob.result = { ...currentJob.result, mode: 'actual_ai', transcriptId: id, rawSpeakers, model: AI_MODELS.transcription, diarization_model: AI_MODELS.diarization, speaker_role_model: AI_MODELS.correction, speaker_role_note: speakerNote, alignment: { algorithm: alignment.algorithm, changed_groups: segments.filter(s => s.transcription_changed).length, unassigned_groups: segments.filter(s => s.alignment_status === 'review_needed').length, warnings: refined.warnings, missing_source_count: refined.omissions.length, missing_source_ids: refined.omissions.map(s => s.id), audio_rechecked_count: refined.rechecks.length, recovered_reply_count: refined.inserted }, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'speaker_roles', privacy) };
     currentJob.updated_at = new Date().toISOString();
   });
   return (await readState()).state.jobs.find((item) => item.id === jobId)!.result!.transcriptId as string;
@@ -122,7 +137,7 @@ export async function soapStep(jobId: string) {
     }
     const revision = Math.max(0, ...next.soap_documents.filter((item) => item.visit_id === job.visit_id).map((item) => item.revision)) + 1;
     next.soap_documents.push({ id, clinic_id: next.clinic.id, visit_id: job.visit_id, revision, input_transcript_id: transcript.id, input_snapshot: inputSnapshot, status: 'draft', sections: result.sections, source_refs: result.evidence.map(item => soapEvidenceRef(item.segment_id, item.quote, transcript.segments, clinicalSources)), approved_at: null, approved_by: null, origin: 'manual_demo' });
-    currentJob.result = { ...currentJob.result, soapId: id, evidence: result.evidence, warnings: result.warnings, followup_questions: result.followup_questions, soap_model: AI_MODELS.soap, input_snapshot: inputSnapshot, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'soap', privacy), input_transcript_id: transcript.id, input_transcript_revision: transcript.revision, stale_input: false };
+    currentJob.result = { ...currentJob.result, soapId: id, fact_coverage: result.coverage ?? [], evidence: result.evidence, warnings: result.warnings, followup_questions: result.followup_questions, soap_model: AI_MODELS.soap, input_snapshot: inputSnapshot, text_privacy: privacyAudit(currentJob.result?.text_privacy, 'soap', privacy), input_transcript_id: transcript.id, input_transcript_revision: transcript.revision, stale_input: false };
     currentJob.status = 'waiting_review'; currentJob.stage = 'review_needed'; currentJob.updated_at = new Date().toISOString();
     const recording = next.recordings.find((item) => item.id === job.recording_id);
     if (recording) recording.status = 'completed';

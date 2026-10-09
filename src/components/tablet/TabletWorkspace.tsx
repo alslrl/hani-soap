@@ -397,7 +397,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
       <section className="tablet-drawing" aria-label="인체 시술 기록" inert={sheetOpen || undefined}>
         <div className="tablet-canvas-header">
           <div><span className="tablet-eyebrow">{tab.detail} · {isHistorical ? "이전 도해 원본" : "혈자리 참고점 (검수 전)"}</span><h1>{isHistorical ? "이전 도해 기록" : tool === "select" ? "부위를 눌러 위치를 선택하세요" : tool === "pen" ? "진료 메모를 자유롭게 적으세요" : "지울 필기를 문질러 주세요"}</h1></div>
-          <div className="tablet-canvas-navigation">
+          <div className="tablet-canvas-navigation" data-stroke-active={strokeActive && !busy && !isHistorical || undefined}>
             <div className="tablet-frame-controls">
             {historicalVersions.length > 0 && !isHistorical && <div className="tablet-history-control">
               <button type="button" className="tablet-history-toggle" aria-label="이전 도해 기록" onClick={() => historicalVersions.length === 1 ? changeFrame(historicalVersions[0]) : setHistoryOpen(value => !value)} disabled={busy || strokeActive}><History size={16}/><span>이전 도해 기록</span></button>
