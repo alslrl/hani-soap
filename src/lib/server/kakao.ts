@@ -42,7 +42,7 @@ export async function finishKakaoConnection(request: Request) {
     const headers = { Authorization: `Bearer ${tokens.access_token}` };
     const info = await kakaoRequest('https://kapi.kakao.com/v1/user/access_token_info', { headers });
     const scopes = await kakaoRequest('https://kapi.kakao.com/v2/user/scopes', { headers });
-    if (!Array.isArray(scopes.scopes) || !scopes.scopes.some((v) => v.id === 'talk_message' && v.consented === true)) throw new AppError(403, 'KAKAO_SCOPE_REQUIRED', '카카오톡 메시지 전송 동의가 필요합니다.');
+    if (!Array.isArray(scopes.scopes) || !scopes.scopes.some((v) => v.id === 'talk_message' && v.agreed === true)) throw new AppError(403, 'KAKAO_SCOPE_REQUIRED', '카카오톡 메시지 전송 동의가 필요합니다.');
     if (typeof info.id !== 'number' || process.env.KAKAO_APP_ID && String(info.app_id) !== process.env.KAKAO_APP_ID) throw new AppError(403, 'KAKAO_APP_MISMATCH', '카카오 앱 연결 정보를 확인해 주세요.');
     await changeKakaoPrivate((state) => {
       state.connection = { id: randomUUID(), account_id: String(info.id), tokens: encryptKakaoTokens({ access_token: tokens.access_token, refresh_token: tokens.refresh_token! }), expires_at: Date.now() + tokens.expires_in * 1000, refresh_expires_at: Date.now() + tokens.refresh_token_expires_in! * 1000, connected_at: new Date().toISOString(), refresh_lock_until: 0 };
