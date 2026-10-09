@@ -1,0 +1,8 @@
+.tablet-acupoint-reference { pointer-events: none; }
+.tablet-acupoint-reference circle {
+  fill: #316b63;
+  fill-opacity: .68;
+  stroke: #f6faf7;
+  stroke-width: .35;
+  pointer-events: none;
+}
