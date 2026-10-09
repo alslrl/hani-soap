@@ -1913,3 +1913,1099 @@
     animation-iteration-count: 1 !important;
   }
 }
+
+/* Clinical workspace: explicit hierarchy, readable chart text and compact controls. */
+.clinic-surface {
+  --hs-ink: var(--ink);
+  --hs-muted: var(--muted);
+  --hs-line: var(--line);
+  --hs-blue: var(--accent);
+  --hs-blue-dark: var(--accent-strong);
+  --hs-canvas: var(--canvas);
+  font-size: 14px;
+  line-height: 1.65;
+}
+.hs-dashboard,
+.hs-patient-history-page {
+  padding: 25px 24px 24px;
+}
+.hs-page-header {
+  margin-bottom: 22px;
+  gap: 16px;
+}
+.hs-overline {
+  color: #5d7183;
+  font-size: 12px;
+  letter-spacing: 0;
+  font-weight: 500;
+}
+.hs-page-header h1 {
+  font-size: 25px;
+  margin-top: 4px;
+  letter-spacing: -0.8px;
+  font-weight: 700;
+}
+.hs-title-count {
+  font-size: 22px;
+  font-weight: 600;
+}
+.hs-button {
+  min-height: 36px;
+  border: 1px solid #c7d3de;
+  border-radius: 4px;
+  padding: 7px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  box-shadow: 0 1px 1px #142a3e06;
+}
+.hs-button-primary {
+  box-shadow: none;
+}
+.hs-button-small {
+  font-size: 12px;
+  min-height: 31px;
+}
+.hs-icon-button {
+  height: 36px;
+  width: 36px;
+  border-radius: 4px;
+  color: #496174;
+}
+.hs-muted,
+.hs-text-link,
+.clinic-surface a.hs-text-link,
+.hs-text-button {
+  font-size: 12px;
+}
+.hs-muted {
+  color: #617487;
+}
+.hs-badge {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 3px 7px;
+  border-radius: 3px;
+  color: #516579;
+  background: #eef2f6;
+}
+.hs-badge-blue {
+  background: #e7f1f9;
+  color: #0f6096;
+}
+.hs-badge-green {
+  background: #e7f3eb;
+  color: #25663c;
+}
+.hs-badge-amber {
+  background: #fff2d8;
+  color: #895400;
+}
+.hs-panel {
+  border: 1px solid #cdd9e3;
+  border-radius: 5px;
+}
+.hs-panel-title {
+  padding: 11px 14px;
+  background: #f3f6f9;
+  border-bottom: 1px solid #d9e2ea;
+  min-height: 43px;
+}
+.hs-panel-title h2 {
+  color: #263f55;
+  font-size: 14px;
+  font-weight: 650;
+}
+.hs-patient-details > div {
+  font-size: 12px;
+  padding: 7px 0;
+  border-color: #e3e9ef;
+}
+.hs-patient-details dt {
+  color: #61768a;
+}
+.hs-patient-details dd {
+  color: #243e55;
+}
+.hs-identity {
+  padding: 16px 14px;
+}
+.hs-identity strong {
+  color: #172e43;
+  font-size: 20px;
+}
+.hs-identity span {
+  font-size: 12px;
+  color: #506a7e;
+}
+.hs-portrait-large {
+  width: 61px;
+  height: 74px;
+}
+.hs-patient-note {
+  font-size: 12px;
+  color: #465e71;
+  line-height: 1.8;
+  max-height: 132px;
+  padding: 13px 14px;
+}
+.hs-note-input {
+  font-size: 13px !important;
+}
+.hs-history-dates {
+  padding: 12px 12px 0;
+  gap: 6px;
+}
+.hs-history-dates button {
+  font-size: 12px;
+  color: #49657a;
+  border-color: #cfdae4;
+  min-width: 56px;
+  min-height: 48px;
+}
+.hs-history-dates button span:last-child {
+  font-size: 11px;
+}
+.hs-history-dates button.is-selected {
+  background: #eaf3fa;
+  border-color: #5591bd;
+  color: #145e92;
+}
+.hs-history-subtitle {
+  padding: 12px 14px 2px;
+}
+.hs-history-subtitle strong {
+  font-size: 12px;
+  color: #2b465c;
+}
+.hs-readonly-soap {
+  padding: 0 14px 13px;
+}
+.hs-readonly-soap > div > span {
+  color: #1d5f8c;
+  font-size: 12px;
+}
+.hs-readonly-soap p {
+  font-size: 12px;
+  color: #4f6577;
+  line-height: 1.8;
+}
+.hs-visit-header {
+  min-height: 78px;
+  padding: 12px 20px;
+  border-bottom: 2px solid #c4d6e5;
+  box-shadow: 0 2px 5px #1a354208;
+}
+.hs-visit-patient h1 {
+  font-size: 22px;
+  color: #172f45;
+}
+.hs-visit-patient h1 > span {
+  font-size: 13px;
+  color: #516c80;
+}
+.hs-visit-patient p {
+  font-size: 12px;
+  color: #62788c;
+}
+.hs-record-state {
+  font-size: 12px;
+  color: #4f6f84;
+}
+.hs-back {
+  color: #4c6c83 !important;
+}
+.hs-workspace-grid {
+  grid-template-columns: 220px minmax(400px, 1fr) 280px;
+  gap: 12px;
+  padding: 16px;
+}
+.hs-patient-rail,
+.hs-context-rail,
+.hs-chart-main {
+  gap: 12px;
+}
+.hs-chart-tabs {
+  height: 44px;
+  gap: 6px;
+  padding: 0 10px;
+  background: #f4f7fa;
+  border-bottom: 1px solid #cfdce6;
+}
+.hs-chart-tabs button {
+  font-size: 13px;
+  font-weight: 500;
+  color: #536d81;
+  background: transparent;
+  min-width: 103px;
+  justify-content: center;
+  padding: 0 12px;
+}
+.hs-chart-tabs button.is-selected {
+  color: #135e91;
+  background: #fff;
+  border-bottom: 3px solid #126fa8;
+  font-weight: 700;
+}
+.hs-chart-tabs button > span {
+  font-size: 11px;
+  background: #e0eaf2;
+  color: #466279;
+}
+.hs-soap-toolbar {
+  padding: 13px 16px;
+  min-height: 67px;
+}
+.hs-soap-toolbar h2 {
+  font-size: 16px;
+  color: #1b3448;
+}
+.hs-soap-toolbar > div > span {
+  font-size: 11px;
+  color: #5f7486;
+}
+.hs-soap-fields {
+  margin: 0 16px;
+  border-color: #bacddc;
+  border-radius: 3px;
+}
+.hs-soap-field {
+  gap: 12px;
+  padding: 12px 14px;
+  border-color: #dbe5ed;
+}
+.hs-soap-field:focus-within {
+  background: #fafdff;
+  box-shadow: inset 3px 0 #3c8abf;
+}
+.hs-soap-letter {
+  width: 28px;
+  height: 28px;
+  border-radius: 3px;
+  color: #145f8f;
+  background: #e3eff8;
+  font-size: 15px;
+  font-weight: 700;
+}
+.hs-soap-field-title {
+  font-size: 13px;
+  color: #324f66;
+}
+.hs-soap-field-title small {
+  font-size: 11px;
+  color: #667f91;
+}
+.hs-soap-content textarea {
+  font-size: 15px;
+  color: #1c3549;
+  line-height: 1.75;
+  min-height: 77px;
+  padding-top: 6px;
+}
+.hs-soap-content textarea::placeholder {
+  color: #758798;
+  font-size: 13px;
+}
+.hs-soap-s textarea,
+.hs-soap-p textarea {
+  min-height: 97px;
+}
+.hs-soap-footer {
+  padding: 13px 16px;
+  border-top: 1px solid #e1e8ee;
+  margin-top: 14px;
+  background: #f7f9fb;
+  align-items: center;
+}
+.hs-soap-footer > span {
+  font-size: 11px;
+  color: #607487;
+  max-width: 220px;
+}
+.hs-soap-footer .hs-button {
+  font-size: 12px;
+  min-height: 35px;
+}
+.hs-evidence-links {
+  padding: 12px 16px 0;
+}
+.hs-evidence-links > span {
+  font-size: 12px;
+  color: #526f82;
+}
+.hs-evidence-links button {
+  width: 25px;
+  height: 25px;
+  color: #1d628e;
+  border-color: #c1d5e3;
+  font-size: 11px;
+}
+.hs-evidence-preview {
+  background: #edf5fb;
+  border-left: 3px solid #5c97bf;
+}
+.hs-evidence-preview blockquote {
+  font-size: 13px;
+  color: #304e64;
+}
+.hs-evidence-preview p {
+  color: #5f7689;
+  font-size: 11px;
+}
+.hs-warning {
+  font-size: 12px;
+  color: #805315;
+  background: #fff5df;
+}
+.hs-save-notice,
+.hs-inline-error {
+  font-size: 12px;
+}
+.hs-transcript-segment p {
+  font-size: 14px;
+  color: #243f56;
+}
+.hs-select-label select {
+  font-size: 12px;
+  color: #39566e;
+}
+.hs-transcript-segment > div > span:last-child:not(.hs-badge) {
+  font-size: 11px;
+  color: #607b8e;
+}
+.hs-treatment-main strong {
+  font-size: 14px;
+  color: #213e55;
+}
+.hs-treatment-main strong > span,
+.hs-treatment-main p {
+  font-size: 12px;
+  color: #526f82;
+}
+.hs-treatment-main small {
+  font-size: 11px;
+  color: #647e90;
+}
+.hs-treatment-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 4px;
+  color: #22658f;
+  background: #e8f1f8;
+  font-size: 12px;
+}
+.hs-treatment-row {
+  padding: 13px 15px;
+}
+.hs-live-candidates p {
+  font-size: 12px;
+  color: #48647b;
+}
+.hs-briefing-content {
+  padding: 13px 14px;
+}
+.hs-briefing-content h3 {
+  font-size: 15px;
+  color: #213f55;
+}
+.hs-briefing-content > p,
+.hs-ai-briefing-summary,
+.hs-ai-briefing li button {
+  font-size: 12px;
+  color: #4e687d;
+  line-height: 1.85;
+}
+.hs-ai-briefing-toolbar > span,
+.hs-ai-briefing > .hs-muted,
+.hs-ai-briefing details,
+.hs-briefing-quote > span {
+  font-size: 11px;
+  color: #5f798c;
+}
+.hs-ai-briefing-toolbar .hs-text-button {
+  font-size: 11px;
+}
+.hs-briefing-quote blockquote {
+  font-size: 12px;
+  color: #3d5b70;
+}
+.hs-check-list li {
+  padding: 11px 0;
+}
+.hs-check-list li p {
+  font-size: 12px;
+  color: #34546c;
+  line-height: 1.65;
+}
+.hs-check-list li div > span {
+  font-size: 11px;
+  color: #637f92;
+}
+.hs-check-control {
+  width: 18px;
+  min-height: 28px;
+}
+.hs-check-control > span {
+  width: 16px;
+  height: 16px;
+  border-color: #a7bccb;
+}
+.hs-add-check-button {
+  min-height: 38px;
+  font-size: 12px !important;
+  color: #2e678d;
+}
+.hs-next-checks p,
+.hs-add-check input,
+.hs-add-check label {
+  font-size: 12px;
+  color: #49677b;
+}
+.hs-metric-context {
+  color: #557187;
+  font-size: 11px;
+}
+.hs-nrs-form {
+  flex-wrap: wrap;
+  padding: 12px 14px;
+}
+.hs-nrs-form > label {
+  font-size: 11px;
+  color: #4c697e;
+}
+.hs-nrs-form input {
+  font-size: 13px;
+  min-height: 32px;
+  border-color: #bdcfdd;
+}
+.hs-nrs-form input::placeholder {
+  font-size: 11px;
+  color: #698194;
+}
+.hs-small-count {
+  font-size: 11px;
+  color: #466a81;
+}
+.hs-response {
+  padding: 12px 14px;
+}
+.hs-response strong {
+  font-size: 13px;
+  color: #31556e;
+}
+.hs-response > p {
+  font-size: 12px;
+  color: #805c22;
+}
+.hs-response > div > span:first-child {
+  font-size: 11px;
+  color: #617c8f;
+}
+.hs-child-metric > p {
+  font-size: 13px;
+  color: #3e6077;
+}
+.hs-child-metric > .hs-muted {
+  font-size: 11px;
+  color: #647c8d;
+}
+.hs-empty {
+  color: #60798a;
+}
+.hs-empty p {
+  font-size: 13px;
+}
+.hs-empty > span:last-child:not(.hs-empty-mark) {
+  font-size: 12px;
+  color: #698396;
+}
+.hs-page-footnote {
+  font-size: 11px;
+  color: #60798a;
+}
+.hs-history-page-grid {
+  grid-template-columns: 220px minmax(380px, 1fr) 260px;
+  gap: 14px;
+}
+.hs-history-document-head {
+  background: #f3f6f9;
+  border-bottom: 1px solid #d2dde6;
+}
+.hs-history-document-sections p,
+.hs-history-care-response p,
+.hs-history-treatment p {
+  font-size: 13px;
+  color: #415f74;
+}
+.hs-visit-timeline button strong {
+  color: #34566f;
+  font-size: 13px;
+}
+.hs-visit-timeline button > div > span,
+.hs-visit-timeline small {
+  color: #667e90;
+  font-size: 11px;
+}
+.emr-day-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #526b7d;
+  font-size: 12px;
+}
+.emr-day-label i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #448764;
+}
+.emr-dashboard-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 272px;
+  gap: 18px;
+  align-items: start;
+}
+.emr-register {
+  background: white;
+  border: 1px solid #cbd8e3;
+  border-radius: 5px;
+  overflow: hidden;
+  min-width: 0;
+}
+.emr-register-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid #dce5ed;
+  flex-wrap: wrap;
+}
+.emr-status-tabs {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.emr-status-tabs button {
+  border: 1px solid transparent;
+  background: transparent;
+  padding: 7px 10px;
+  font-size: 12px;
+  min-height: 34px;
+  border-radius: 4px;
+  color: #587084;
+  display: flex;
+  gap: 7px;
+  align-items: center;
+}
+.emr-status-tabs button b {
+  font-size: 11px;
+  font-weight: 600;
+  color: #607c91;
+}
+.emr-status-tabs button[aria-pressed="true"] {
+  background: #eaf3fb;
+  border-color: #bdd5e7;
+  color: #0d608f;
+  font-weight: 700;
+}
+.emr-status-tabs button[aria-pressed="true"] b {
+  color: #0d608f;
+}
+.emr-register-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  border: 1px solid #ccd9e4;
+  border-radius: 4px;
+  color: #6a8193;
+  width: 225px;
+  min-height: 35px;
+}
+.emr-register-search input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  outline: none;
+  font-size: 12px !important;
+}
+.emr-register-search input::placeholder {
+  color: #708698;
+}
+.emr-table-scroll {
+  overflow: auto;
+}
+.emr-patient-table {
+  width: 100%;
+  border-collapse: collapse;
+  white-space: nowrap;
+  min-width: 810px;
+  table-layout: auto;
+}
+.emr-patient-table th {
+  background: #f0f4f8;
+  color: #455f75;
+  font-size: 11px;
+  font-weight: 600;
+  text-align: left;
+  padding: 11px 10px;
+  border-bottom: 1px solid #cddae5;
+}
+.emr-patient-table td {
+  padding: 11px 10px;
+  border-bottom: 1px solid #e3eaf1;
+  font-size: 12px;
+  color: #425e74;
+  vertical-align: middle;
+}
+.emr-patient-table tbody tr:hover {
+  background: #f5f9fc;
+}
+.emr-patient-table .emr-case-row {
+  background: #fafdff;
+}
+.emr-patient-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+.emr-patient-table .emr-row-number {
+  color: #627e94;
+  font-size: 11px;
+  text-align: center;
+}
+.emr-patient-table .emr-time {
+  font-variant-numeric: tabular-nums;
+  font-weight: 500;
+  color: #304e65;
+}
+.emr-person {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.emr-person img {
+  width: 34px;
+  height: 42px;
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: 3px;
+  background: #e9eef3;
+}
+.emr-person > div {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.emr-person > div > span {
+  font-size: 11px;
+  color: #617c8f;
+}
+.emr-patient-name {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #173c58 !important;
+  font-size: 14px !important;
+  font-weight: 650;
+  line-height: 1.5;
+  text-align: left;
+}
+.emr-patient-name:hover {
+  text-decoration: underline !important;
+}
+.emr-chart-number {
+  font-variant-numeric: tabular-nums;
+  color: #667f91 !important;
+}
+.emr-visit-type {
+  font-size: 12px;
+  color: #3e5e75;
+}
+.emr-visit-number {
+  display: block;
+  font-size: 11px;
+  color: #677f91;
+}
+.emr-complaint {
+  max-width: 180px;
+  white-space: normal !important;
+  min-width: 140px;
+  line-height: 1.7;
+}
+.emr-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  min-height: 24px;
+  padding: 2px 7px;
+  border-radius: 3px;
+  font-weight: 600;
+}
+.emr-state i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.emr-state-waiting {
+  background: #fff3d9;
+  color: #895d16;
+}
+.emr-state-in_progress {
+  background: #e4f1fb;
+  color: #0d679f;
+}
+.emr-state-completed {
+  background: #e7f2eb;
+  color: #36714a;
+}
+.emr-attention {
+  color: #965615;
+  background: #fff0dc;
+  padding: 3px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.emr-case-label {
+  font-size: 11px;
+  color: #206d9f;
+  background: #eaf3fa;
+  padding: 3px 6px;
+  border-radius: 3px;
+}
+.emr-profile-label {
+  font-size: 11px;
+  color: #667d8e;
+}
+.emr-open-record {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  border: 1px solid #cfdae4;
+  border-radius: 4px;
+  background: white;
+  padding: 5px 7px;
+  color: #3f647e !important;
+  font-size: 11px;
+  min-height: 30px;
+}
+.emr-open-record:hover {
+  border-color: #7dabc8;
+  color: #0f6398 !important;
+}
+.emr-table-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 15px;
+  padding: 12px 15px;
+  background: #f8fafc;
+  border-top: 1px solid #dbe4ec;
+  font-size: 11px;
+  color: #637d91;
+}
+.emr-empty-table {
+  text-align: center;
+  padding: 45px !important;
+}
+.emr-empty-table svg {
+  display: block;
+  margin: 0 auto 10px;
+  color: #7f9cb0;
+}
+.emr-empty-table strong,
+.emr-empty-table span {
+  display: block;
+  font-size: 13px;
+  margin: 5px;
+}
+.emr-worklist {
+  display: grid;
+  gap: 16px;
+}
+.emr-worklist > section {
+  background: #fff;
+  border: 1px solid #cbd8e3;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.emr-worklist header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 14px;
+  background: #f3f6f9;
+  border-bottom: 1px solid #d9e3eb;
+  color: #3b5d75;
+}
+.emr-worklist h2 {
+  font-size: 13px;
+  font-weight: 650;
+}
+.emr-worklist header > b {
+  margin-left: auto;
+  font-size: 11px;
+  color: #3f6780;
+  background: #e1ebf3;
+  border-radius: 3px;
+  padding: 1px 6px;
+}
+.emr-contact-item,
+.emr-review-item {
+  display: block;
+  padding: 15px !important;
+  border-bottom: 1px solid #e3eaf0;
+}
+.emr-contact-item:hover,
+.emr-review-item:hover {
+  background: #f7fafc;
+}
+.emr-contact-item > div,
+.emr-review-item > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+.emr-contact-item strong,
+.emr-review-item strong {
+  font-size: 14px;
+  color: #25445c;
+}
+.emr-contact-item > div > span {
+  font-size: 11px;
+  color: #96601b;
+  background: #fff3de;
+  padding: 2px 6px;
+  border-radius: 3px;
+}
+.emr-contact-item p {
+  font-size: 12px;
+  color: #465f72;
+  margin-top: 8px;
+}
+.emr-contact-item small {
+  display: block;
+  font-size: 11px;
+  line-height: 1.8;
+  color: #647e90;
+  margin-top: 3px;
+}
+.emr-contact-item em {
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-style: normal;
+  color: #146b9e;
+  margin-top: 14px;
+}
+.emr-review-item p {
+  font-size: 11px;
+  color: #5f778b;
+  line-height: 1.9;
+  margin-top: 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.emr-review-item > div > span {
+  font-size: 11px;
+  color: #26709c;
+}
+.emr-demo-note {
+  padding: 2px 5px;
+  font-size: 11px;
+  color: #657e91;
+}
+.emr-demo-note strong {
+  font-weight: 600;
+  color: #4a667e;
+}
+.emr-demo-note p {
+  margin-top: 6px;
+  line-height: 1.8;
+}
+.emr-worklist-empty {
+  padding: 20px !important;
+  font-size: 12px;
+  color: #637c8e;
+}
+@media (min-width: 1600px) {
+  .hs-workspace-grid {
+    grid-template-columns: 242px minmax(520px, 1fr) 300px;
+    padding: 18px;
+    gap: 14px;
+  }
+}
+@media (max-width: 1350px) {
+  .emr-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+  .emr-worklist {
+    grid-template-columns: 1fr 1fr;
+  }
+  .emr-demo-note {
+    grid-column: 1/-1;
+  }
+  .emr-complaint {
+    max-width: none;
+  }
+  .hs-history-page-grid {
+    grid-template-columns: 210px minmax(0, 1fr);
+  }
+  .hs-history-context {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+}
+@media (max-width: 1200px) {
+  .hs-workspace-grid {
+    grid-template-columns: 210px minmax(400px, 1fr);
+  }
+  .hs-context-rail {
+    grid-column: 1/-1;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+  }
+  .hs-dashboard,
+  .hs-patient-history-page {
+    padding: 22px 18px;
+  }
+}
+@media (max-width: 850px) {
+  .hs-workspace-grid {
+    grid-template-columns: 1fr;
+  }
+  .hs-patient-rail {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  .hs-history-panel {
+    grid-column: 1/-1;
+  }
+  .hs-context-rail {
+    grid-template-columns: 1fr 1fr;
+  }
+  .hs-patient-note {
+    max-height: 110px;
+  }
+  .hs-history-page-grid {
+    grid-template-columns: 1fr;
+  }
+  .hs-visit-header {
+    padding: 12px 16px;
+  }
+  .hs-soap-content textarea {
+    font-size: 14px;
+  }
+  .hs-soap-footer {
+    flex-wrap: wrap;
+  }
+  .emr-register-toolbar {
+    padding: 12px;
+  }
+  .emr-register-search {
+    width: 100%;
+  }
+}
+@media (max-width: 600px) {
+  .hs-dashboard,
+  .hs-patient-history-page {
+    padding: 18px 12px;
+  }
+  .hs-page-header h1 {
+    font-size: 23px;
+  }
+  .emr-day-label {
+    display: none;
+  }
+  .emr-worklist {
+    grid-template-columns: 1fr;
+  }
+  .emr-table-footer {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .hs-workspace-grid {
+    padding: 9px;
+  }
+  .hs-patient-rail,
+  .hs-context-rail {
+    display: flex;
+  }
+  .hs-soap-field {
+    padding: 12px 10px;
+  }
+  .hs-soap-fields {
+    margin: 0 10px;
+  }
+  .hs-soap-footer {
+    padding: 12px;
+  }
+  .hs-soap-footer > span {
+    max-width: none;
+  }
+  .hs-visit-patient h1 {
+    font-size: 20px;
+  }
+}
+
+.hs-nrs-summary > div > span,
+.hs-prior-score > span {
+  color: #557087;
+  font-size: 11px;
+}
+.hs-nrs-summary small,
+.hs-prior-score small {
+  color: #557087;
+  font-size: 10px !important;
+}
+.hs-nrs-summary .hs-prior-score {
+  color: #456880;
+}
+.hs-chart-line {
+  stroke: var(--accent);
+  stroke-width: 2;
+}
+.hs-sparkline circle {
+  stroke: var(--accent);
+}
+.hs-sparkline text {
+  fill: #356786;
+  font-size: 10px;
+}
+.hs-sparkline text.hs-chart-date {
+  fill: #59778d;
+  font-size: 9px;
+}
+.hs-contact-alert {
+  color: #86540f !important;
+  background: #fff3dc;
+}
+.hs-contact-alert strong {
+  font-size: 12px;
+}
+.hs-contact-alert p {
+  color: #816235;
+  font-size: 11px;
+}
+
+.hs-visit-timeline p { font-size: 11px; color: #5e7588; }
+.hs-history-document-sections h3 { font-size: 13px; color: #34576e; }
+.hs-history-source summary { font-size: 12px; color: #466981; }
+.hs-history-source p { font-size: 12px; color: #48677d; }
+.hs-history-source cite, .hs-history-record-footer > span { font-size: 11px; color: #5e788b; }
+.hs-history-last-score > span, .hs-history-last-score small { font-size: 11px; color: #5e788b; }
+.hs-history-care article > div:first-child > span:first-child { font-size: 11px; color: #5e788b; }
+.hs-history-care article > p { font-size: 12px; color: #49677d; line-height: 1.85; }
+.hs-history-care-response { font-size: 12px; color: #486980; background: #f0f5f9; }
+.hs-history-care-response > span { color: #57788f; }
+.hs-history-care-response strong { font-size: 12px; color: #3e5f77; }

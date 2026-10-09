@@ -1,0 +1,162 @@
+.emr-settings {
+  padding: 28px 28px 36px;
+  max-width: 1220px;
+}
+.emr-settings > header > span {
+  font-size: 12px;
+  color: #58738a;
+}
+.emr-settings h1 {
+  font-size: 26px;
+  letter-spacing: -0.8px;
+  margin: 5px 0 8px;
+}
+.emr-settings > header > p {
+  font-size: 13px;
+  color: #607a8e;
+  margin: 0 0 26px;
+}
+.emr-settings-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr;
+  gap: 20px;
+  align-items: start;
+}
+.emr-setting-section {
+  border: 1px solid #ccd9e4;
+  background: white;
+  border-radius: 5px;
+  overflow: hidden;
+}
+.emr-setting-section h2 {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 14px 18px;
+  font-size: 15px;
+  color: #2f5068;
+  background: #f3f6f9;
+  border-bottom: 1px solid #d5e1ea;
+}
+.emr-setting-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 22px 18px;
+  border-bottom: 1px solid #e0e8ef;
+}
+.emr-setting-row > svg {
+  color: #5a809c;
+  flex: none;
+  margin-top: 3px;
+}
+.emr-setting-row strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.emr-setting-row p {
+  font-size: 12px;
+  line-height: 1.8;
+  margin: 7px 0 0;
+  color: #607c90;
+}
+.emr-config-status {
+  margin-left: auto;
+  font-size: 11px;
+  white-space: nowrap;
+  border-radius: 3px;
+  color: #1c704d;
+  background: #e9f3ed;
+  padding: 3px 7px;
+}
+.emr-config-status.is-pending {
+  color: #886118;
+  background: #fff3da;
+}
+.emr-setting-foot {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 13px 18px;
+  background: #f9fbfc;
+  font-size: 11px;
+  color: #5c798f;
+  border-top: 1px solid #e0e8ef;
+}
+.emr-setting-foot > span {
+  margin-left: auto;
+}
+.emr-setting-intro {
+  padding: 17px 18px 4px;
+  font-size: 12px;
+  color: #607b90;
+  line-height: 1.8;
+  margin: 0;
+}
+.emr-device-visit {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 17px 18px;
+  border-bottom: 1px solid #e5ecf2;
+}
+.emr-device-visit:hover {
+  background: #f1f7fb;
+}
+.emr-device-visit img {
+  object-fit: cover;
+  object-position: center 25%;
+  border-radius: 3px;
+}
+.emr-device-visit strong,
+.emr-device-visit span {
+  display: block;
+}
+.emr-device-visit strong {
+  font-size: 14px;
+}
+.emr-device-visit span {
+  font-size: 12px;
+  color: #5d798e;
+  margin-top: 3px;
+}
+.emr-device-visit > svg {
+  margin-left: auto;
+  color: #3077a2;
+}
+.emr-setting-scope {
+  display: flex;
+  gap: 11px;
+  margin-top: 24px;
+  padding: 17px 18px;
+  border: 1px solid #d6e2eb;
+  background: #f5f9fc;
+  color: #4a6d86;
+  border-radius: 5px;
+}
+.emr-setting-scope > svg {
+  flex: none;
+  margin-top: 2px;
+}
+.emr-setting-scope strong {
+  font-size: 13px;
+  font-weight: 600;
+}
+.emr-setting-scope p {
+  font-size: 12px;
+  line-height: 1.9;
+  margin: 7px 0 0;
+  color: #58768b;
+}
+@media (max-width: 800px) {
+  .emr-settings {
+    padding: 23px 18px;
+  }
+  .emr-settings-grid {
+    grid-template-columns: 1fr;
+  }
+  .emr-setting-row {
+    padding: 18px 14px;
+  }
+}
