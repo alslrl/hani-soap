@@ -1,4 +1,6 @@
 import type { InkPoint } from "./geometry";
+import type { BodyMapVersion } from "./body-map-version";
+import bodySilhouettes from "../../../data/anatomy/body-map-v2-silhouette.json";
 
 export type BodyView = "front" | "back";
 export type Laterality = "left" | "right" | "bilateral" | "midline" | "not_applicable";
@@ -10,7 +12,7 @@ export const REGION_LABELS: Record<BodyRegion, string> = {
 export const SIDE_LABELS: Record<Laterality, string> = { left: "좌측", right: "우측", bilateral: "양측", midline: "정중선", not_applicable: "해당 없음" };
 
 /** Self-drawn diagram regions are input hit areas, not acupoint coordinates. */
-export function mapBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | null {
+function mapLegacyBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | null {
   const { x, y } = anchor;
   let region: BodyRegion | null = null;
   const inBox = (l: number, r: number, top: number, bottom: number) => x >= l && x <= r && y >= top && y <= bottom;
@@ -31,6 +33,42 @@ export function mapBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | n
   if (!region) return null;
   const laterality: Laterality = Math.abs(x - 500) < 19 ? "midline" : (view === "front" ? x < 500 : x > 500) ? "right" : "left";
   return { region, laterality, anchor, view };
+}
+
+/** Pixel registration is generated from the same PNGs displayed at 0,0,1000,1000. */
+export function isInsideAnatomyBody(anchor: InkPoint, view: BodyView): boolean {
+  if (!Number.isFinite(anchor.x) || !Number.isFinite(anchor.y) || anchor.x < 0 || anchor.x >= 1000 || anchor.y < 0 || anchor.y >= 1000) return false;
+  const row = bodySilhouettes[view][Math.floor(anchor.y)];
+  const x = Math.floor(anchor.x);
+  return row.some(([left, right]) => x >= left && x <= right);
+}
+
+/** Region bands identify user-confirmable areas, never precise acupoint positions. */
+function mapAnatomyBodyRegion(anchor: InkPoint, view: BodyView): RegionMatch | null {
+  if (!isInsideAnatomyBody(anchor, view)) return null;
+  const { x, y } = anchor;
+  const fromMidline = Math.abs(x - 500);
+  let region: BodyRegion;
+  if (y < 148) region = "head";
+  else if (y < 190 && fromMidline < 55) region = "neck";
+  else if (y < 240 && fromMidline > 82) region = "shoulder";
+  else if (y < 400 && fromMidline > 93) region = "upper_arm";
+  else if (y >= 400 && y < 520 && fromMidline > 98) region = "forearm";
+  else if (y >= 520 && y < 600 && fromMidline > 116) region = "hand";
+  else if (y < 375) region = view === "front" ? "chest" : "upper_back";
+  else if (y < 495) region = view === "front" ? "abdomen" : "lower_back";
+  else if (y < 595) region = "hip";
+  else if (y < 695) region = "thigh";
+  else if (y < 755) region = "knee";
+  else if (y < 865) region = "calf";
+  else if (y < 920) region = "ankle";
+  else region = "foot";
+  const laterality: Laterality = fromMidline < 19 ? "midline" : (view === "front" ? x < 500 : x > 500) ? "right" : "left";
+  return { region, laterality, anchor, view };
+}
+
+export function mapBodyRegion(anchor: InkPoint, view: BodyView, version: BodyMapVersion = "body-map-v1"): RegionMatch | null {
+  return version === "body-map-v2" ? mapAnatomyBodyRegion(anchor, view) : mapLegacyBodyRegion(anchor, view);
 }
 
 export type AcupointCandidate = { code: string; label_ko: string; regions: BodyRegion[]; views: BodyView[]; area: "outer" | "inner" | "front" | "back" };

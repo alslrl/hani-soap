@@ -147,3 +147,9 @@
   .tablet-canvas-header,.tablet-drawing-tools { flex:none; }
   .tablet-inspector:has(.tablet-region-picker) { position:fixed; z-index:40; bottom:0; left:0; right:0; max-height:72dvh; overflow:auto; overscroll-behavior:contain; border-radius:20px 20px 0 0; box-shadow:0 -12px 55px #23483f22; padding-bottom:max(24px,env(safe-area-inset-bottom)); }
 }
+.tablet-body-anatomy image { pointer-events:none; }
+.tablet-body-anatomy .tablet-side-label { fill:#77968e; font-size:11px; }
+.tablet-footer-source { display:flex; align-items:center; gap:14px; }
+.tablet-footer-source>a { text-decoration:underline; text-underline-offset:3px; }
+@media(max-width:800px) { .tablet-footer { flex-wrap:wrap; } .tablet-footer-source { flex-basis:100%; justify-content:space-between; } }
+@media(max-width:520px) { .tablet-footer>.tablet-footer-source { display:flex; } }

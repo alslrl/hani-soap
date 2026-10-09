@@ -174,13 +174,18 @@ export function applyAction(state: AppState, action: ActionRequest, sessionId = 
       const visit = targetVisit(state, { ...input, ...p });
       const existing = input.id ? state.annotations.find((v) => v.id === uuid(input.id)) : state.annotations.find((v) => v.visit_id === visit.id && v.modality === input.modality && v.technique === (input.technique ?? null) && v.view === input.view);
       invariant(!existing || existing.visit_id === visit.id && existing.modality === input.modality && existing.technique === (input.technique ?? null) && existing.view === input.view, '필기 레이어가 일치하지 않습니다.');
+      const coordinateVersion = input.coordinate_version ?? existing?.coordinate_version ?? 'body-map-v1';
+      invariant(coordinateVersion === 'body-map-v1' || coordinateVersion === 'body-map-v2', '지원하지 않는 인체 좌표 버전입니다.');
+      invariant(!existing || existing.coordinate_version === coordinateVersion, '저장된 필기의 인체 좌표 버전을 바꿀 수 없습니다.');
+      const visitAnnotations = state.annotations.filter(row => row.visit_id === visit.id);
+      invariant(visitAnnotations.every(row => row.coordinate_version === coordinateVersion), '같은 방문은 같은 인체 도해를 사용해야 합니다. 새로고침 후 다시 확인해 주세요.');
       if (existing && input.revision !== undefined && input.revision !== existing.revision) throw new AppError(409, 'ANNOTATION_CONFLICT', '다른 화면에서 필기가 변경되었습니다.');
       invariant(Array.isArray(input.strokes), '필기 획을 확인해 주세요.');
       const strokesChanged = !existing || JSON.stringify(existing.strokes) !== JSON.stringify(input.strokes);
       const next: RuntimeAnnotation = {
         id: existing?.id || (input.id ? uuid(input.id) : randomUUID()), clinic_id: state.clinic.id, visit_id: visit.id,
         scope: 'treatment', modality: input.modality as Treatment['modality'], technique: (input.technique ?? null) as Treatment['technique'],
-        view: input.view as 'front' | 'back', coordinate_space: 'normalized', coordinate_version: 'body-map-v1',
+        view: input.view as 'front' | 'back', coordinate_space: 'normalized', coordinate_version: coordinateVersion,
         canvas_size: (input.canvas_size || { width: 1000, height: 1000 }) as RuntimeAnnotation['canvas_size'],
         strokes: input.strokes as RuntimeAnnotation['strokes'], revision: (existing?.revision || 0) + 1, updated_at: now,
         extracted_text: strokesChanged ? null : existing?.extracted_text || null, extraction_reviewed: strokesChanged ? false : existing?.extraction_reviewed || false,

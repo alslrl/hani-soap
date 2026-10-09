@@ -8,6 +8,8 @@ node_modules
 .workflow-data
 test-results
 playwright-report
+output
+docs/verification
 docs/audio
 docs/transcripts
 docs/reference/sigmachart/images
