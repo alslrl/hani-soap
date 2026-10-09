@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useAppState } from "@/lib/client";
+import { SupplementalPatientProfile, SupplementalPatientRow, supplementalPatients, type SupplementalPatient } from "./SupplementalPatient";
 import {
   Badge,
   dayKey,
@@ -20,6 +21,7 @@ import "./clinic.css";
 export default function ClinicDashboard() {
   const { data, loading, error, refresh } = useAppState();
   const [query, setQuery] = useState("");
+  const [selectedProfile, setSelectedProfile] = useState<SupplementalPatient | null>(null);
   const visibleVisits = useMemo(() => {
     if (!data) return [];
     return data.state.visits
@@ -42,6 +44,7 @@ export default function ClinicDashboard() {
   if (!data)
     return <LoadState loading={loading} error={error} retry={refresh} />;
   const state = data.state;
+  const visibleProfiles = supplementalPatients.filter(patient => `${patient.display_name} ${patient.chief_complaint}`.includes(query.trim()));
   const tasks = state.contact_tasks.filter((task) => task.status === "open");
   return (
     <div className="clinic-surface hs-dashboard">
@@ -58,7 +61,7 @@ export default function ClinicDashboard() {
                 state.visits.filter(
                   (visit) =>
                     dayKey(visit.scheduled_at) === state.meta.demo_today,
-                ).length
+                ).length + supplementalPatients.length
               }
             </span>
           </h1>
@@ -104,6 +107,11 @@ export default function ClinicDashboard() {
           const visits = visibleVisits.filter(
             (visit) => visit.workflow_status === status,
           );
+          const profiles = visibleProfiles.filter(patient => patient.workflow_status === status);
+          const rows = [
+            ...visits.map(visit => ({ key: visit.id, time: visitTime(visit.scheduled_at), visit, profile: null })),
+            ...profiles.map(profile => ({ key: profile.id, time: profile.scheduled_time, visit: null, profile })),
+          ].sort((a, b) => a.time.localeCompare(b.time));
           return (
             <section
               className={`hs-board-column hs-board-${status}`}
@@ -114,11 +122,13 @@ export default function ClinicDashboard() {
                   <span className="hs-state-dot" />
                   {workflowLabels[status]}
                 </h2>
-                <span>{visits.length}</span>
+                <span>{rows.length}</span>
               </div>
               <div className="hs-board-list">
-                {visits.length ? (
-                  visits.map((visit) => {
+                {rows.length ? (
+                  rows.map(({ visit, profile, key }) => {
+                    if (profile) return <SupplementalPatientRow key={key} patient={profile} date={state.meta.demo_today} onSelect={() => setSelectedProfile(profile)}/>;
+                    if (!visit) return null;
                     const patient = state.patients.find(
                       (item) => item.id === visit.patient_id,
                     )!;
@@ -184,6 +194,7 @@ export default function ClinicDashboard() {
           );
         })}
       </div>
+      <SupplementalPatientProfile patient={selectedProfile} date={state.meta.demo_today} onClose={() => setSelectedProfile(null)}/>
       <section className="hs-work-note">
         <div className="hs-work-note-label">오늘 확인할 업무</div>
         {tasks.length ? (

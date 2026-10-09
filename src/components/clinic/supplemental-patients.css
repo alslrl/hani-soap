@@ -1,0 +1,15 @@
+.hs-supplemental-row{width:100%;text-align:left;font:inherit;color:inherit;cursor:pointer}
+.hs-roster-dialog{width:min(460px,calc(100vw - 36px));max-height:calc(100dvh - 48px);padding:0;border:1px solid var(--line,#dae4e7);border-radius:12px;color:var(--ink,#233941);background:white;box-shadow:0 20px 70px #23394126;overflow:auto}
+.hs-roster-dialog::backdrop{background:#20333d55;backdrop-filter:blur(2px)}
+.hs-roster-dialog-header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:1px solid var(--line,#dae4e7);font-size:12px;color:var(--muted,#71848b)}
+.hs-roster-dialog-header button{width:44px;height:44px;border:0;background:transparent;font-size:25px;color:var(--muted,#71848b);cursor:pointer}
+.hs-roster-profile-heading{display:flex;align-items:center;gap:20px;padding:24px}
+.hs-roster-profile-heading>img{object-fit:cover;object-position:center 23%;border-radius:7px;background:#f1f6f8}
+.hs-roster-profile-heading h2{font-size:24px;letter-spacing:-.8px;margin:10px 0 4px}
+.hs-roster-profile-heading p{font-size:12px;color:var(--muted,#71848b);margin:0}
+.hs-roster-profile-fields{margin:0 24px;display:grid;gap:14px;border-top:1px solid var(--line,#dae4e7);padding-top:20px;font-size:13px}
+.hs-roster-profile-fields>div{display:grid;grid-template-columns:90px 1fr;gap:16px}
+.hs-roster-profile-fields dt{color:var(--muted,#71848b)}
+.hs-roster-profile-fields dd{margin:0}
+.hs-roster-profile-note{margin:22px 24px;padding-top:20px;border-top:1px solid var(--line,#dae4e7);font-size:12px;line-height:1.8;color:var(--muted,#71848b)}
+.hs-roster-profile-footer{padding:16px 24px;background:#f6fafb;border-top:1px solid var(--line,#dae4e7);font-size:11px;line-height:1.8;color:var(--muted,#71848b)}
