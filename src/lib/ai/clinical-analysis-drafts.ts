@@ -1,3 +1,4 @@
+import { canonicalMeasurementRegion } from './clinical-measurement-conditions';
 import type { AppState, FollowupAnswer, Observation, RuntimeJob } from '@/lib/types';
 import type { AnalysisCandidate, AnswerCandidate, MeasurementCandidate } from './clinical-analysis';
 export type TranscriptAnswerDraftBinding = { jobId: string; candidateId: string; item_key: FollowupAnswer['item_key']; subitem_key: string; transcriptId: string; transcriptRevision: number; expectedTarget: string };
@@ -24,7 +25,7 @@ export function getTranscriptAnswerProposals(state: AppState, visitId: string) {
   if (!context) return [];
   return (context.job.result!.candidates as AnalysisCandidate[]).filter((candidate): candidate is AnswerCandidate => candidate.kind === 'answer' && candidate.status === 'pending' && quoteBound(candidate,context)).map(candidate => ({ candidate, jobId: context.job.id, transcriptId: context.transcript.id, transcriptRevision: context.transcript.revision, patientId: context.patientId }));
 }
-const normalizeRegion = (value: string | null) => value && ['ankle','발목','우측 발목','오른쪽 발목','우측발목','오른쪽발목','right_ankle'].includes(value.trim()) ? 'ankle' : value;
+const normalizeRegion = canonicalMeasurementRegion;
 export function matchesTranscriptNrsCandidate(candidate: AnalysisCandidate, match: NrsProposalMatch): candidate is MeasurementCandidate {
   return match.metric_key === 'pain_intensity' && match.instrument === 'NRS' && candidate.kind === 'measurement' && candidate.instrument === 'NRS' && candidate.temporal === 'current' && candidate.unit === 'score' && Number.isInteger(candidate.value) && candidate.value >= 0 && candidate.value <= 10 && candidate.body_region !== null && normalizeRegion(candidate.body_region) === normalizeRegion(match.body_region) && candidate.laterality === match.laterality && candidate.activity_key === match.activity_key && candidate.measurement_context === match.measurement_context;
 }
@@ -55,4 +56,15 @@ export function prefillTranscriptAnswerDrafts<T extends TranscriptAnswerDraft>(s
 export function transcriptDraftAnalysisSignature(state: AppState, visitId: string) {
   const context = latestTranscriptAnalysis(state,visitId);
   return context ? JSON.stringify([context.job.id,context.transcript.id,context.transcript.revision,(context.job.result!.candidates as AnalysisCandidate[]).filter(candidate => candidate.kind === 'answer').map(candidate => [candidate.id,candidate.status,candidate.text])]) : '';
+}
+
+export const STAIR_ASCENT_ANALYSIS_MATCH = { metric_key:'stair_ascent_discomfort',instrument:'APP_FUNCTION_DISCOMFORT',body_region:'ankle',laterality:'right',activity_key:'stairs_up',measurement_context:'stair_ascent_discomfort' } as const;
+export function matchesTranscriptStairCandidate(candidate: AnalysisCandidate): candidate is MeasurementCandidate {
+  return candidate.kind === 'measurement' && candidate.instrument === STAIR_ASCENT_ANALYSIS_MATCH.instrument && candidate.temporal === 'current' && candidate.unit === 'score' && Number.isFinite(candidate.value) && candidate.value >= 0 && candidate.value <= 10 && normalizeRegion(candidate.body_region) === 'ankle' && candidate.laterality === 'right' && candidate.activity_key === 'stairs_up' && candidate.measurement_context === 'stair_ascent_discomfort';
+}
+export function getTranscriptStairProposal(state: AppState,visitId: string): { jobId:string;candidate:MeasurementCandidate;transcriptRevision:number;patientId:string } | undefined {
+  const context=latestTranscriptAnalysis(state,visitId), match=STAIR_ASCENT_ANALYSIS_MATCH;
+  if (!context || state.observations.some(item=>item.visit_id===visitId && item.metric_key===match.metric_key && item.instrument===match.instrument && normalizeRegion(item.body_region)===match.body_region && item.laterality===match.laterality && item.activity_key===match.activity_key && item.measurement_context===match.measurement_context)) return undefined;
+  const candidate=(context.job.result!.candidates as AnalysisCandidate[]).find((candidate):candidate is MeasurementCandidate=>candidate.status==='pending' && matchesTranscriptStairCandidate(candidate) && quoteBound(candidate,context));
+  return candidate ? {jobId:context.job.id,candidate,transcriptRevision:context.transcript.revision,patientId:context.patientId} : undefined;
 }

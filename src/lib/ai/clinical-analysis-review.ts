@@ -1,3 +1,4 @@
+import { canonicalMeasurementRegion, clinicalMeasurementMetricKey } from './clinical-measurement-conditions';
 import { AppError } from '@/lib/server/errors';
 import { applyAction } from '@/lib/server/actions';
 import { analysisHash, questionFields, validField, type AnalysisCandidate, type MeasurementCandidate } from './clinical-analysis';
@@ -8,7 +9,7 @@ export type AnalysisReviewInput = { jobId: string; candidateId: string; visitId:
 const manualRef = (sessionId: string, quote: string): SourceRef => ({ kind: 'manual', source_id: sessionId, quote, origin: 'manual_demo' });
 export function analysisTarget(state: AppState, visitId: string, candidate: AnalysisCandidate) {
   const answer = candidate.kind !== 'signal' ? state.followup_answers.find(item => item.visit_id === visitId && item.item_key === candidate.item_key && item.subitem_key === candidate.subitem_key) : undefined;
-  const metrics = candidate.kind === 'measurement' ? state.observations.filter(item => item.visit_id === visitId && item.instrument === candidate.instrument && (Boolean(answer && item.followup_answer_id === answer.id) || item.body_region === candidate.body_region && item.laterality === candidate.laterality && item.activity_key === candidate.activity_key && item.measurement_context === candidate.measurement_context)) : [];
+  const metrics = candidate.kind === 'measurement' ? state.observations.filter(item => item.visit_id === visitId && item.metric_key === clinicalMeasurementMetricKey(candidate) && item.instrument === candidate.instrument && item.unit === candidate.unit && canonicalMeasurementRegion(item.body_region) === canonicalMeasurementRegion(candidate.body_region) && item.laterality === candidate.laterality && item.activity_key === candidate.activity_key && item.measurement_context === candidate.measurement_context) : [];
   const occupied = candidate.kind === 'answer' ? Boolean(answer && (answer.answer_text?.trim() || answer.confirmation_status === 'confirmed' || answer.applicability !== 'unknown')) : candidate.kind === 'measurement' ? metrics.length > 0 : false;
   return { answer, metrics, occupied, targetHash: analysisHash(candidate.kind === 'answer' ? answer ?? null : metrics), current: candidate.kind === 'answer' ? answer?.answer_text ?? '' : metrics.map(item => `${item.value}${({ score: '점', episodes_per_night: '회/밤', count_per_night: '회/밤', count_per_day: '회/일' } as Record<string,string>)[item.unit] ?? item.unit}`).join(', ') };
 }
@@ -46,7 +47,7 @@ export function reviewClinicalCandidate(state: AppState, input: AnalysisReviewIn
       answer.source_refs = refs; savedIds.push(answer.id);
     } else if (candidate.kind === 'measurement') {
       const value = input.edit?.value ?? candidate.value; validateEditedMeasurement(candidate, value);
-      const metricKey = candidate.instrument === 'NRS' ? 'pain_intensity' : candidate.instrument === 'FREQUENCY' ? candidate.unit === 'count_per_day' ? 'urinary_frequency' : 'nocturnal_wetting_frequency' : candidate.instrument === 'APP_FUNCTION_DISCOMFORT' ? 'function_discomfort' : 'symptom_bother';
+      const metricKey = clinicalMeasurementMetricKey(candidate);
       const patient = state.patients.find(item => item.id === visit.patient_id)!;
       const compatible = state.observations.find(item => item.patient_id === patient.id && item.metric_key === metricKey && item.instrument === candidate.instrument && item.unit === candidate.unit && item.body_region === candidate.body_region && item.laterality === candidate.laterality && item.activity_key === candidate.activity_key && item.measurement_context === candidate.measurement_context);
       applyAction(state, { type: 'observation.save', payload: { visitId: visit.id, followupAnswerId: target.answer?.id, metric_key: metricKey, series_key: compatible?.series_key ?? `${patient.demo_key}:${metricKey}:${candidate.instrument}:${candidate.body_region ?? 'none'}:${candidate.laterality ?? 'none'}:${candidate.activity_key ?? 'none'}:${candidate.measurement_context}:${candidate.unit}:analysis-v1`, instrument: candidate.instrument, value, unit: candidate.unit, scale_min: 0, scale_max: candidate.instrument === 'FREQUENCY' ? null : 10, body_region: candidate.body_region, laterality: candidate.laterality, activity_key: candidate.activity_key, measurement_context: candidate.measurement_context } }, sessionId);
