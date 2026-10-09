@@ -384,5 +384,22 @@
     "new_kakao_messages_sent": 0,
     "physical_device_verification": "user_in_progress",
     "rehearsal_tts": "separate_session"
+  },
+  "handwriting_auto_verification": {
+    "verified_on_kst": "2026-10-09",
+    "unit_tests": 184,
+    "server_tests": 51,
+    "targeted_browser_tests": 7,
+    "isolated_postgres_checks": 33,
+    "automatic_saved_revision_extraction": true,
+    "unreviewed_text_in_soap_draft_input": true,
+    "live_synthetic_image_and_soap_tested": true,
+    "fictional_stair_history": [
+      8,
+      6,
+      4
+    ],
+    "production_stair_rows_added": 3,
+    "new_kakao_messages_sent": 0
   }
 }
