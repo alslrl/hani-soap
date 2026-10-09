@@ -43,13 +43,13 @@ export class AiTextPrivacy {
     const strings: string[] = [];
     this.walk(data, value => { strings.push(value); return value; });
     for (const text of strings) {
-      for (const pattern of [/(?:제\s*이름은|성함은)\s*([가-힣]{2,5})(?=입니다|이에요|예요|이라고)/gu, /(?:학생\s*의사|담당\s*의사|한의사|담당의)\s+([가-힣]{2,5})(?=입니다|이에요|예요)/gu, /\d{4}년\s*\d{1,2}월\s*\d{1,2}일[, ]+([가-힣]{2,5})(?=입니다|이에요|예요)/gu]) {
+      for (const pattern of [/(?:제\s*이름은|성함은)\s*([가-힣]{2,5})(?=입니다|이에요|예요|이라고)/gu, /(?:학생\s*의사|담당\s*의사|한의사|담당의)\s+([가-힣]{2,5})(?=입니다|이에요|예요)/gu, /\d{4}년\s*\d{1,2}월\s*\d{1,2}일(?:생)?[, ]*([가-힣]{2,5})(?=입니다|이에요|예요)/gu]) {
         for (const match of text.matchAll(pattern)) this.spokenNames.add(match[1]);
       }
       for (const match of text.matchAll(/(?:19|20)\d{2}(?:년\s*\d{1,2}월\s*\d{1,2}일|[-.]\d{1,2}[-.]\d{1,2})/gu)) {
         const before = text.slice(Math.max(0, match.index! - 100), match.index);
         const after = text.slice(match.index! + match[0].length, match.index! + match[0].length + 25);
-        if (/생년월일|생일|태어|출생/.test(before) || /^[, ]+[가-힣]{2,5}(?:입니다|이에요|예요)/.test(after)) this.birthDates.add(match[0]);
+        if (/생년월일|생일|태어|출생/.test(before) || /^(?:생)?[, ]*[가-힣]{2,5}(?:입니다|이에요|예요)/.test(after)) this.birthDates.add(match[0]);
       }
     }
   }
@@ -78,7 +78,8 @@ export class AiTextPrivacy {
         ? `(?=${honorific})`
         : `(?=$|[^\\p{L}\\p{N}]|${honorific}|(?:입니다|이에요|예요|이라고|이란|이라는|은|는|이|가|을|를|의|에게|한테|께서|께|과|와|으로|로|이랑|랑)(?=$|[^\\p{L}\\p{N}]|[은는이가께]))`;
       const spelling = /^[가-힣]{3,}$/.test(name) ? [...name].map(escaped).join('[ \\t]*') : escaped(name);
-      add(new RegExp(`(?<![\\p{L}\\p{N}])${spelling}${suffix}`, 'gu'), identity.kind, 3);
+      const prefix = identity.kind === 'person_name' ? '(?:(?<![\\p{L}\\p{N}])|(?<=일생|이름은|성함은))' : '(?<![\\p{L}\\p{N}])';
+      add(new RegExp(`${prefix}${spelling}${suffix}`, 'gu'), identity.kind, 3);
     }
     // Prefer the complete email/ID rather than overlapping partial matches.
     const selected: Match[] = [];
