@@ -13,7 +13,7 @@ import styles from './AudioControls.module.css';
 
 type Props = { visitId: string; onChanged?: () => void };
 type JobsResponse = { jobs: RuntimeJob[]; recordings: RuntimeRecording[]; transcripts: Transcript[] };
-const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '화자 분리 전사 중', speaker_roles: '대화 문맥으로 화자 역할 추론 중', dictionary_correction: '사전 용어 검토 중', correction_review_needed: '용어 제안 검토 대기', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
+const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '본문 전사·화자 구간 분석 중', speaker_roles: '대화 문맥으로 화자 역할 추론 중', dictionary_correction: '사전 용어 검토 중', correction_review_needed: '용어 제안 검토 대기', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
 const time = (milliseconds: number) => `${Math.floor(milliseconds / 60_000).toString().padStart(2, '0')}:${Math.floor(milliseconds / 1000 % 60).toString().padStart(2, '0')}`;
 async function api<T>(url: string, body?: unknown): Promise<T> {
   const response = await fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
@@ -101,14 +101,17 @@ export function AudioControls({ visitId, onChanged }: Props) {
     {data.jobs.filter((job) => job.stage === 'stale_input').map((job) => <p className={styles.notice} key={job.id}>생성 중 전사가 변경되어 이전 입력의 SOAP는 별도로 보관했습니다. 최신 전사를 검토한 뒤 다시 생성해 주세요.</p>)}
     {retryableFiles.map((recording) => <div key={recording.id} className={styles.job}><span className={`${styles.jobName} ${styles.filename}`}>{recording.filename}</span><button className={styles.button} disabled={busy} onClick={() => void execute(async () => { await startTranscriptionJob(visitId, recording.id); })}><RotateCcw size={12} /> 전사 실행</button></div>)}
     {recoveries.filter((item) => item.visitId === visitId && item.id !== (active ? audio.audioSessionId : null)).length > 0 && <details className={styles.details}><summary>브라우저에 남은 녹음 복구본</summary>{recoveries.filter((item) => item.visitId === visitId).map((item) => <div className={styles.job} key={item.id}><span className={styles.jobName}>{new Date(item.createdAt).toLocaleString('ko-KR')}</span><button className={styles.button} disabled={busy || active} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); if (recovery.audioSessionId) await closeRecoveredSession(recovery.visitId, recovery.audioSessionId); await saveAndProcess(recovery.blob, recovery.filename, recovery.visitId, recovery.audioSessionId, undefined, recovery.id); })}><Upload size={12} /> 복구 후 처리</button><button className={styles.button} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); const url = URL.createObjectURL(recovery.blob); const a = document.createElement('a'); a.href = url; a.download = recovery.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); })}><Download size={12} /> 다운로드</button></div>)}</details>}
-    {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} recheckEnabled={configured === true && !active && !data.jobs.some(item => ['queued', 'running'].includes(item.status))} onSaved={() => { void refresh(); callback.current?.(); }} />}
+    {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} sourceTranscripts={data.transcripts.filter(item => item.id === latestJob.result?.diarizedTranscriptId || item.id === latestJob.result?.contentTranscriptId)} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} recheckEnabled={configured === true && !active && !data.jobs.some(item => ['queued', 'running'].includes(item.status))} onSaved={() => { void refresh(); callback.current?.(); }} />}
     <details className={styles.details} onToggle={(event) => {
       if (event.currentTarget.open && !reference) void api<typeof reference>(`/api/jobs/reference?visitId=${encodeURIComponent(visitId)}`).then(setReference).catch((failure: Error) => setError(failure.message));
     }}><summary>초진 사례 검수 자료 미리보기 · 읽기 전용</summary>{reference && <><p className={styles.notice}>{reference.notice}</p><div className={styles.preview}>{Object.entries(reference.sections || {}).map(([key, value]) => <span key={key} style={{ display: 'contents' }}><strong>{key.toUpperCase()}</strong><span>{value}</span></span>)}</div></>}</details>
   </section>;
 }
 
-export function TranscriptReview({ job, transcript, reviewedTranscript, latestRevision, recheckEnabled = false, onSaved }: { job: RuntimeJob; transcript: Transcript; reviewedTranscript?: Transcript; latestRevision: number; recheckEnabled?: boolean; onSaved: () => void }) {
+export function TranscriptReview({ job, transcript, sourceTranscripts = [], reviewedTranscript, latestRevision, recheckEnabled = false, onSaved }: { job: RuntimeJob; transcript: Transcript; sourceTranscripts?: Transcript[]; reviewedTranscript?: Transcript; latestRevision: number; recheckEnabled?: boolean; onSaved: () => void }) {
+  const alignment = job.result?.alignment as { warnings?: string[] } | undefined;
+  const diarizedSource = sourceTranscripts.find(item => item.id === job.result?.diarizedTranscriptId);
+  const contentSource = sourceTranscripts.find(item => item.id === job.result?.contentTranscriptId);
   const candidates = (job.result?.corrections || []) as ValidatedCorrection[];
   const retrieved = (job.result?.correction_spans || []) as CorrectionSpan[];
   const [decisions, setDecisions] = useState<Record<string, 'accepted' | 'rejected'>>({});
@@ -157,6 +160,7 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
         <button className={styles.button} disabled={busy || edited || !recheckEnabled} onClick={() => void recheck()}><RotateCcw size={14} /> 저장된 전사로 용어 다시 검사</button>
       </header>
       {edited && <p className={styles.notice}>편집·선택한 내용을 먼저 저장한 뒤 용어를 다시 검사해 주세요.</p>}
+      {alignment?.warnings?.map((warning, index) => <p key={`alignment-${index}`} className={styles.reviewWarning}>{warning}</p>)}
       {typeof job.result?.speaker_role_note === 'string' && <p className={styles.notice}>{job.result.speaker_role_note}</p>}
       {typeof job.result?.correction_note === 'string' && <p className={styles.notice}>{job.result.correction_note}</p>}
       {Array.isArray(job.result?.warnings) && job.result.warnings.map((warning, index) => <p key={index} className={styles.reviewWarning}>검토할 내용: {String(warning)}</p>)}
@@ -190,9 +194,12 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
         <div className={styles.speakerList}>{roleTranscript.segments.length ? roleTranscript.segments.map((segment, index) => <article className={styles.speaker} key={segment.id}>
           <header><div><strong>{speakerRoleLabels[currentRole(segment)]}{segment.raw_speaker ? ` · ${segment.raw_speaker}` : ''}</strong><span>구간 {String(index + 1).padStart(2, '0')}</span>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={currentRole(segment)} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value as SpeakerRole }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select>{(speakers[segment.id] !== null && (speakers[segment.id] !== undefined || segment.speaker_override !== undefined)) && <button type="button" className={styles.button} onClick={() => setSpeakers(current => ({ ...current, [segment.id]: null }))}>그룹 역할로 되돌리기</button>}</header>
           <p>{segment.text}</p>
+          {segment.alignment_status === 'review_needed' && <p className={styles.reviewWarning}>자동 화자 대응을 확인하지 못한 구간입니다. 원문을 확인하고 역할을 지정해 주세요.</p>}
+          {segment.transcription_changed && segment.source_segment_ids?.length && diarizedSource && <details className={styles.original}><summary>두 전사의 표현 비교</summary><p>화자 구분용: {diarizedSource.segments.filter(item => segment.source_segment_ids?.includes(item.id)).map(item => item.text).join(' ')}</p><p>현재 본문: {segment.text}</p></details>}
         </article>) : <p className={styles.empty}>화자별 구간이 없는 전사입니다. 전사 편집에서 전체 내용을 확인해 주세요.</p>}</div>
       </section>}
       {reviewTab === 'text' && <section className={styles.reviewPanel} aria-label="전사 편집"><div className={styles.panelIntro}><p>수락한 용어가 반영된 내용입니다. 필요한 부분을 직접 수정할 수 있습니다.</p></div><label className={styles.editorLabel}>검토 전사<textarea className={styles.text} aria-label="검토 전사" value={manualText ?? corrected} onChange={(event) => setManualText(event.target.value)} /></label></section>}
+      {diarizedSource && contentSource && <details className={styles.original}><summary>보존된 두 전사 결과</summary><h3>화자·시간 구분용 전사</h3><p>{diarizedSource.text}</p><h3>본문 전사</h3><p>{contentSource.text}</p></details>}
       <details className={styles.original}><summary>보존된 전사 원문</summary><div>{transcript.text.split(/\n+/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></details>
       {error && <div role="alert" className={styles.error}>{error}</div>}
       <footer className={styles.reviewFooter}><p>{job.result?.reviewedTranscriptId ? '저장하면 새 검토 버전을 추가합니다.' : '전사 원문은 보존되며, 검토 결과를 새 버전으로 저장합니다.'}</p><button className={`${styles.button} ${styles.primary}`} disabled={busy} onClick={() => void save()}><Check size={14} /> {busy ? '저장과 생성 중' : '전사 검토 저장 · SOAP 다시 생성'}</button></footer>

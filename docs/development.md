@@ -79,3 +79,7 @@ npm run build
 ## 텍스트 AI 식별정보 가림
 
 화자 역할 추정·용어 검토·SOAP·안내·브리핑은 등록된 이름과 정형 식별정보를 가린 사본을 사용합니다. 원문 근거 검증과 기존 승인 기록은 보존합니다. 새 음성 파일명도 임의 ID로 처리합니다. 원음·실시간 음성·손글씨 이미지에는 적용되지 않습니다. [처리 대상과 한계](text-privacy.md)를 참고하세요.
+
+## 두 경로 전사
+
+파일 본문은 `OPENAI_MODEL_TEXT_TRANSCRIPTION`(기본 gpt-transcribe), 화자·시간은 `OPENAI_MODEL_DIARIZATION`(기본 gpt-4o-transcribe-diarize)으로 처리합니다. 기존 `OPENAI_MODEL_TRANSCRIPTION`은 화자용 호환 설정입니다. 실시간 모델 설정은 유지합니다. [원본 보존·대응 검토·재시도](dual-transcription.md)를 참고하세요.
