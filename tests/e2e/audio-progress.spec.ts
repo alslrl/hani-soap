@@ -27,6 +27,7 @@ test('one recording owns the progress, old failures stay folded and each result 
  await expect(page.getByText(oldJob.error,{exact:true})).not.toBeVisible();
  await expect(page.getByText('briefing',{exact:true})).toHaveCount(0);
  await expect(page.getByText('선택한 음성의 전사 결과',{exact:true})).toHaveCount(0);
+ currentJob.stage='alignment_review';await expect(progress.getByRole('heading',{name:'전사 누락을 확인 중'})).toBeVisible();
  currentJob.stage='speaker_roles';await expect(progress.getByRole('heading',{name:'누가 말했는지 정리 중'})).toBeVisible();
  await expect(progress.getByRole('list',{name:'음성 처리 단계'}).locator('[aria-current="step"]')).toHaveText('화자·용어 정리');
  currentJob.stage='dictionary_correction';await expect(progress.getByRole('heading',{name:'진료 용어를 확인 중'})).toBeVisible();

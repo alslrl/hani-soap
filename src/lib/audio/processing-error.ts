@@ -15,7 +15,7 @@ const messages={
  AUDIO_PROCESSING_FAILED:'음성 처리를 완료하지 못했어요. 해당 단계에서 다시 시도해 주세요.',
 } as const;
 export type AudioFailure={code:keyof typeof messages;stage:string;retryable:boolean;message:string};
-const stages=['queued','transcribing','speaker_roles','dictionary_correction','soap_draft'];
+const stages=['queued','transcribing','alignment_review','speaker_roles','dictionary_correction','soap_draft'];
 const known=(code:unknown):code is keyof typeof messages=>typeof code==='string' && Object.hasOwn(messages,code);
 /** Only known error codes cross Workflow serialization; provider input/bodies stay private. */
 export function audioFailure(error:unknown,stage='transcribing'):AudioFailure {
