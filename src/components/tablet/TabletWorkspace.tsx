@@ -3,12 +3,14 @@ import { Disclosure } from '@/components/ui/Disclosure';
 
 
 import Link from "next/link";
-import { useEffect, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore, type PointerEvent } from "react";
 import { ArrowLeft, ArrowRight, Check, CheckCheck, ChevronDown, History, NotebookPen, X, PenLine, RotateCcw, Undo2, ZoomIn, ZoomOut } from "lucide-react";
 import { useAppState } from "@/lib/client";
 import type { AnnotationStroke, AppState, StateEnvelope, Treatment, TreatmentLocation } from "@/lib/types";
 import { BodyDiagram } from "./BodyDiagram";
 import { AcupointReferenceDots } from "./AcupointReferenceDots";
+import { SelectedLocationLegend, SelectedLocationOverlay } from "./SelectedLocationOverlay";
+import { selectedLocationDisplays, type SelectedLocationDisplay } from "@/lib/tablet/selected-locations";
 import { RegionPicker } from "./RegionPicker";
 import { TabletToolSelector } from "./TabletToolSelector";
 import { inkPath, type InkPoint } from "@/lib/tablet/geometry";
@@ -96,6 +98,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [tabId, setTabId] = useState<TabId>("needle");
   const [view, setView] = useState<BodyView>("front");
+  const [focusedLocationIndex, setFocusedLocationIndex] = useState<number | null>(null);
   const [layers, setLayers] = useState<Layers>(() => initialLayers(state, visitId));
   const [drafts, setDrafts] = useState<Drafts>(() => initialDrafts(state, visitId));
   const [picker, setPicker] = useState<{ match: RegionMatch } | null>(null);
@@ -120,11 +123,16 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
   const annotation = state.annotations.find(a => a.id === layer.id);
   const audioSession = state.audioSessions.filter(a => a.visit_id === visitId).at(-1);
   const events = state.live_events.filter(e => e.visit_id === visitId && e.status === "suggested");
-  const zoomBox = svgViewBox(bodyCanvasViewBox(portrait, zoom?.anchor || null, { originalPlane: isHistorical || showFullCanvas }));
+  const canvasViewport = bodyCanvasViewBox(portrait, zoom?.anchor || null, { originalPlane: isHistorical || showFullCanvas });
+  const zoomBox = svgViewBox(canvasViewport);
   const hasInkOutsidePortrait = layer.strokes.some(stroke => stroke.points.some(p => p.x < 230 || p.x > 770));
   const sheetOpen = portrait && (Boolean(picker) || recordsOpen);
   const inspectorRef = useRef<HTMLElement>(null);
   const visibleLocations = draft.locations.map((location, index) => ({ location, index })).filter(({ location }) => !isHistorical || state.annotations.some(a => a.id === location.annotation_id && a.coordinate_version === frameVersion));
+  const selectedDisplays = useMemo(() => isHistorical ? [] : selectedLocationDisplays(draft.locations, frameVersion, Object.fromEntries([
+    ...state.annotations.map(a => [a.id, a.coordinate_version]),
+    ...Object.values(layers).map(l => [l.id, l.coordinateVersion]),
+  ])), [draft.locations, frameVersion, isHistorical, state.annotations, layers]);
   useEffect(() => {
     const root = document.documentElement;
     const wasLocked = root.classList.contains("hani-tablet-drawing-active");
@@ -265,7 +273,17 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     const existing = draft.locations;
     const additions = locations.map(p => ({ ...p, annotation_id: layer.id })).filter(p => !existing.some(q => q.location_type === p.location_type && q.acupoint_code === p.acupoint_code && q.body_region === p.body_region && q.laterality === p.laterality && q.location_note === p.location_note && q.annotation_id === p.annotation_id));
     changeDraft({ locations: [...existing, ...additions] });
+    if (additions.length) setFocusedLocationIndex(existing.length);
     setPicker(null); setMessage(`현재 시술에 ${additions.length}개 위치 추가`);
+  }
+  function focusLocation(entry: SelectedLocationDisplay) {
+    if (busy || input.current.drawing) return;
+    setFocusedLocationIndex(entry.index);
+    setZoom(null); setPicker(null);
+    if (!entry.dots[view].length && entry.views.length) {
+      input.current.reset(); setView(entry.views[0]); setPicker(null); setReviewText(null);
+    }
+    if (entry.unavailable) { setRecordsOpen(true); setMessage(`${entry.location.label_ko || "선택 위치"} · ${entry.unavailable}`); }
   }
   async function save(confirmed = false) {
     if (isHistorical || input.current.drawing) return;
@@ -309,10 +327,10 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
     catch (err) { setMessage(err instanceof Error ? err.message : "검토 저장에 실패했습니다."); }
     finally { setBusy(false); }
   }
-  function switchTab(id: TabId) { if (busy || input.current.drawing) return; input.current.reset(); setTabId(id); setPicker(null); setZoom(null); setActiveInk([]); setEraserCursor(null); setReviewText(null); setMessage(""); }
+  function switchTab(id: TabId) { if (busy || input.current.drawing) return; input.current.reset(); setTabId(id); setFocusedLocationIndex(null); setPicker(null); setZoom(null); setActiveInk([]); setEraserCursor(null); setReviewText(null); setMessage(""); }
   function changeFrame(version: BodyMapVersion) {
     if (busy || input.current.drawing) return;
-    input.current.reset(); setFrameVersion(version); setShowFullCanvas(false); setPicker(null); setZoom(null); setRecordsOpen(false); setHistoryOpen(false); setReviewText(null); setActiveInk([]); setEraserCursor(null);
+    input.current.reset(); setFrameVersion(version); setFocusedLocationIndex(null); setShowFullCanvas(false); setPicker(null); setZoom(null); setRecordsOpen(false); setHistoryOpen(false); setReviewText(null); setActiveInk([]); setEraserCursor(null);
   }
   function dismissPanel() {
     if (picker) toMemo();
@@ -377,6 +395,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
             <defs><linearGradient id="tablet-body-fill" x1="0" x2="1"><stop offset="0" stopColor="#dcece9"/><stop offset=".48" stopColor="#eef6f3"/><stop offset="1" stopColor="#d8e9e7"/></linearGradient></defs>
             <BodyDiagram view={view} version={layer.coordinateVersion} />
             {!isHistorical && <AcupointReferenceDots view={view} version={layer.coordinateVersion} />}
+            {!isHistorical && <SelectedLocationOverlay entries={selectedDisplays} view={view} focusedIndex={focusedLocationIndex} viewport={canvasViewport}/>}
             {layer.strokes.map(stroke => <path key={stroke.id} data-ink-kind={stroke.kind} d={inkPath(stroke.points)} className={`tablet-ink ${stroke.kind === "check" ? "tablet-check-ink" : ""}`} />)}
             {activeInk.length > 0 && <path d={inkPath(activeInk)} className="tablet-ink" />}
             {eraserCursor && <circle className="tablet-eraser-cursor" cx={eraserCursor.x} cy={eraserCursor.y} r={eraserCursor.radius}/>}
@@ -387,6 +406,7 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
           <div className="tablet-canvas-corner"><PenLine size={14}/><span>{isHistorical ? `${layer.strokes.length}획 · 저장 당시 도해에 원본 표시` : toolHint}</span></div>
           <div className="tablet-zoom-controls"><button type="button" className="tablet-icon-button" aria-label={zoom ? "전체 인체 보기" : "선택 부위 확대"} disabled={!zoom && (!picker || picker.match.selectionSource === "catalog")} onClick={() => setZoom(zoom ? null : picker?.match || null)}>{zoom ? <ZoomOut size={19}/> : <ZoomIn size={19}/>}</button>{zoom && <button type="button" className="tablet-icon-button" aria-label="확대 초기화" onClick={() => setZoom(null)}><RotateCcw size={17}/></button>}</div>
         </div>
+        {!isHistorical && <SelectedLocationLegend entries={selectedDisplays} view={view} focusedIndex={focusedLocationIndex} procedure={tab.label} disabled={busy || strokeActive} onFocus={focusLocation}/>}
         <div className="tablet-drawing-tools">
           {!isHistorical && <><button type="button" className="tablet-manual-list" onClick={() => setPicker({ match: { region: "head", laterality: "not_applicable", anchor: { x: 500, y: 500 }, view, selectionSource: "catalog" } })} disabled={busy || strokeActive}>목록에서 선택</button><button type="button" className="tablet-undo" aria-label="필기 작업 되돌리기" disabled={(!layer.strokes.length && !layer.undoStack.length) || busy || strokeActive} onClick={undo}><Undo2 size={18}/><span>되돌리기</span></button></>}
           <button type="button" className="tablet-records-toggle" aria-expanded={recordsOpen} disabled={busy || strokeActive} onClick={() => setRecordsOpen(value => !value)}><NotebookPen size={18}/><span>기록</span>{draft.locations.length > 0 && <small>{draft.locations.length}</small>}</button>
@@ -401,8 +421,8 @@ function Workspace({ visitId, envelope, error, act, refresh }: {
           <div className="tablet-inspector-heading"><span className="tablet-eyebrow">{isHistorical ? "원본 보존 · 읽기 전용" : "오늘 시술"}</span><h2>{tab.detail}<span className={draft.confirmed ? "tablet-confirmed-badge" : "tablet-draft-badge"}>{isHistorical ? "이전 기록" : draft.confirmed ? "시행 확인" : "초안"}</span></h2><p>{isHistorical ? "이 도해에 연결된 필기와 위치를 확인하세요." : "선택한 위치를 확인하고 저장하세요."}</p></div>
           <div className="tablet-selected-locations">{visibleLocations.length ? visibleLocations.map(({ location, index }) => {
             const sourceFrame = state.annotations.find(a => a.id === location.annotation_id)?.coordinate_version;
-            return <div className="tablet-location-row" key={`${location.acupoint_code}-${index}`}><span className="tablet-location-check"><Check size={15}/></span><div><strong>{location.label_ko} <small>{location.acupoint_code}</small></strong><p>{SIDE_LABELS[location.laterality]} {REGION_LABELS[location.body_region as BodyRegion] || location.body_region}{!isHistorical && sourceFrame && sourceFrame !== preferredVersion ? " · 이전 도해 위치" : ""}</p>{location.location_note && <p>{location.location_note}</p>}</div>{!isHistorical && <button type="button" className="tablet-remove" aria-label={`${location.label_ko} 삭제`} onClick={() => changeDraft({ locations: draft.locations.filter((_, i) => i !== index) })} disabled={busy}>×</button>}</div>;
-          }) : <div className="tablet-empty-locations"><span>✓</span><strong>{isHistorical ? "이 도해에 연결된 위치가 없습니다" : "아직 선택한 위치가 없어요"}</strong><p>{isHistorical ? "원본 필기는 인체 화면에서 확인하세요." : "인체에 체크하거나 부위를 직접 선택해 주세요."}</p></div>}</div>
+            return <div className="tablet-location-row" key={`${location.acupoint_code}-${index}`}><span className="tablet-location-check">{isHistorical ? <Check size={15}/> : index + 1}</span><div><strong>{location.label_ko} <small>{location.acupoint_code}</small></strong><p>{SIDE_LABELS[location.laterality]} {REGION_LABELS[location.body_region as BodyRegion] || location.body_region}{!isHistorical && sourceFrame && sourceFrame !== preferredVersion ? " · 이전 도해 위치" : ""}</p>{location.location_note && <p>{location.location_note}</p>}</div>{!isHistorical && <button type="button" className="tablet-remove" aria-label={`${location.label_ko} 삭제`} onClick={() => { changeDraft({ locations: draft.locations.filter((_, i) => i !== index) }); setFocusedLocationIndex(null); }} disabled={busy}>×</button>}</div>;
+          }) : <div className="tablet-empty-locations"><span>✓</span><strong>{isHistorical ? "이 도해에 연결된 위치가 없습니다" : "아직 선택한 위치가 없어요"}</strong><p>{isHistorical ? "원본 필기는 인체 화면에서 확인하세요." : "부위 선택 모드로 인체를 눌러 주세요."}</p></div>}</div>
           {!isHistorical && <><label className="tablet-note-field tablet-treatment-note">시술 메모<textarea value={draft.notes} onChange={e => changeDraft({ notes: e.target.value })} placeholder="확인한 내용을 간단히 남겨주세요" rows={3} disabled={busy}/></label><div className="tablet-save-actions"><button type="button" className="tablet-secondary" onClick={() => void save(false)} disabled={busy}>초안 저장</button><button type="button" className="tablet-primary" onClick={() => void save(true)} disabled={busy || !draft.locations.length}><CheckCheck size={17}/>오늘 시행 확인</button></div><p className="tablet-field-help">위치 선택은 초안입니다. 실제 시행한 시술만 확인하세요.</p></>}
           <Disclosure className="tablet-memo-details"><summary><PenLine size={16}/>필기 원본 · {layer.strokes.filter(s => s.kind === "memo").length}획<ChevronDown size={15}/></summary><p className="tablet-field-help">{tab.detail} · {view === "front" ? "앞면" : "뒷면"} 필기 원본을 보존합니다.</p>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" onClick={() => void extractMemo()} disabled={busy || dirty || !layer.revision || !layer.strokes.some(s => s.kind === "memo")}>필기 텍스트 추출</button>}{annotation?.extracted_text != null && <><label className="tablet-note-field">{annotation.extraction_reviewed ? "검토한 텍스트" : "AI 텍스트 후보 · 검토 필요"}<textarea value={reviewText ?? annotation.extracted_text} readOnly={isHistorical} rows={4} onChange={e => setReviewText(e.target.value)} /></label>{!isHistorical && <button type="button" className="tablet-secondary tablet-wide" disabled={busy || dirty} onClick={() => void reviewMemo()}>필기 내용 검토 확인</button>}</>}</Disclosure>
         </>}
