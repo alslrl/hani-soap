@@ -8,5 +8,6 @@ it('distinguishes missing measurements from unknown speakers and questions',()=>
  const coverage=checkFactCoverage(facts,{sections:{s:'통증 8점',o:'좌측 43cm',a:'',p:''},evidence:[{section:'s',segment_id:'pain',quote:'8점 정도예요.'},{section:'o',segment_id:'measure',quote:'좌측은 43cm, 우측은 45cm입니다.'}]});
  expect(coverage.map(f=>[f.segment_id,f.covered])).toEqual([['measure',false],['pain',true],['unknown',false]]);
  expect(transcriptFacts([segment('identity','2002년 9월 17일 홍민주입니다.','patient')])).toEqual([]);
+ expect(transcriptFacts([segment('birth','2020년 1월 13일생 홍민지입니다.','guardian'),segment('plan','다음으로는 맥을 볼 텐데요.','clinician')])).toEqual([]);
  expect(checkFactCoverage([facts[1]],{sections:{s:'통증 18점',o:'',a:'',p:''},evidence:[{section:'s',segment_id:'pain',quote:'8점 정도예요.'}]} )[0].covered).toBe(false);
 });
