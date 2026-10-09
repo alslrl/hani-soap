@@ -74,12 +74,14 @@ HaniSOAP 문서 및 데모 자료
 - ../data/처방명_출처기록.json: 원자료 출처 기록
   용어 인식·차팅 참고용이며, 명칭 목록만으로 진단이나 처방을 결정하지 않습니다.
 
-[구현 계획 초안]
+[구현 계획과 현재 앱]
 - implementation-plan.md
   PC·아이패드 웹앱, Next.js·TypeScript·Supabase, PC 단일 수음의 전체 녹음·실시간 처리,
   별도 음성 파일 업로드, 사전·LLM 보정, SOAP 검토, 고객 케어의 전체 구현 계획입니다.
-  확정한 방향과 제안 중인 스키마·API·모델·UI를 구분합니다. 앱 구현 완료를 의미하지 않습니다.
+  상세 계획이며 실제 구현 범위와 검증은 implementation-status.md를 기준으로 봅니다.
   현재 대화에서 변경한 녹음 담당과 외부 서버 조건은 이 계획을 기준으로 봅니다.
+- implementation-status.md: 코드·DB·실제 AI·브라우저·배포와 남은 기기 검증 상태
+- ../README.md: 현재 앱 실행·화면·Supabase·검증 안내
 
 [시그마차트 원본 화면과 UI 초안]
 - reference/sigmachart/README.md: 공식 원본 화면 4장 관찰과 HaniSOAP 화면 배치 제안

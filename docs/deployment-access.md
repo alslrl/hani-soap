@@ -2,7 +2,7 @@
 
 결정일: 2026년 10월 9일 KST
 
-사용자 결정에 따라 Next.js 웹앱과 API를 Vercel에 배포한다. PC·아이패드는 같은 HTTPS 주소를 사용한다. 계정 가입·이메일 로그인은 만들지 않고 4자리 PIN으로 데모에 접근한다. 아래는 배포 설계이며 실제 앱 배포·PIN 설정 완료를 의미하지 않는다.
+사용자 결정에 따라 Next.js 웹앱과 API를 Vercel에 배포한다. PC·아이패드는 같은 HTTPS 주소를 사용한다. 계정 가입·이메일 로그인은 만들지 않고 4자리 PIN으로 데모에 접근한다. 2026년 10월 9일 앱과 PIN 보호를 구현하고 서버 환경을 설정했다. 배포 빌드·보호 API·Supabase 조회·실제 Workflow 브리핑 실행을 확인했다. 최종 배포와 실물 기기 검증 범위는 [구현 상태](implementation-status.md)에 기록한다.
 
 ## 4자리 PIN
 
@@ -30,6 +30,8 @@
 맥북의 상시 Node 워커 대신 Vercel Workflow로 전사·사전 보정·진료 분석·SOAP·안내 작업을 실행한다. API는 세션과 요청 상한을 검증하고 DB에 job을 등록한 뒤 Workflow run을 시작한다. 각 단계 결과와 입력 버전을 DB에 남긴다. 브라우저가 닫혀도 등록된 작업은 서버에서 처리한다. [Vercel Workflows](https://vercel.com/docs/workflows)
 
 Workflow에는 job ID만 넘기고 실제 파일·원문·API 자격은 서버 step에서 읽는다. 재시도와 실패 복구는 Workflow 실행부가 담당하고, 앱은 입력 해시·문서 revision·중복 저장 방지를 담당한다. 수동 승인 뒤 다음 작업은 새 run으로 시작해 오래된 입력을 계속 실행하지 않는다.
+
+P2 손글씨 추출은 현재 보호된 단일 API 요청으로 실행한다. 원본 필기 revision이 달라지면 결과 저장을 거절한다. 전사·SOAP·안내·브리핑과 달리 손글씨 추출에는 아직 durable Workflow를 적용하지 않았다.
 
 PIN 보호의 페이지 matcher에서는 Workflow 내부 경로를 별도로 취급한다. 내부 실행 경로를 일반 사용자에게 작업 시작 API로 노출하지 않고 SDK·플랫폼의 검증을 유지한다. 사용자용 작업 시작·결과 API는 PIN 세션을 항상 확인한다. [Workflow Next.js 설정](https://workflow-sdk.dev/docs/getting-started/next)
 

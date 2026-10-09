@@ -116,11 +116,11 @@
   "working_documents": [
     {
       "path": "implementation-plan.md",
-      "status": "draft",
+      "status": "implementation_baseline",
       "updated_on_kst": "2026-10-09",
-      "characters": 48766,
-      "sha256": "c79b184acca1d396daf87549b31284e95885b545b486f1791302c85d06157671",
-      "summary": "Detailed implementation draft and decisions from the current development discussion"
+      "characters": 48771,
+      "sha256": "5ad2efe0bd2468a132d4519c4fadc77f02331eea537523634305ae5b59cc12e5",
+      "summary": "Implementation baseline; current code and verification tracked separately"
     },
     {
       "path": "reference/sigmachart/README.md",
@@ -180,16 +180,16 @@
       "status": "confirmed_contract",
       "updated_on_kst": "2026-10-09",
       "summary": "Storage contract v1 and validated two-patient demo schema",
-      "characters": 4077,
-      "sha256": "6c0228d91544cd9019ab7ed32ae308c0263d47501e604b4b4024da60b26aeaab"
+      "characters": 4205,
+      "sha256": "331d34aefcae735fe20be5d9533d942df96d77d3ac50d74c9b2dc4e54da6b3d4"
     },
     {
       "path": "deployment-access.md",
-      "status": "planned",
+      "status": "implemented",
       "updated_on_kst": "2026-10-09",
-      "summary": "Vercel deployment and server-enforced four-digit PIN access",
-      "characters": 2782,
-      "sha256": "15d24fe7228846d21ea3f2fa6430203a8c0e808ed8fa3a4fb73613ea1a4303e4"
+      "summary": "Implemented Vercel deployment and server PIN protection; hardware acceptance separate",
+      "characters": 3025,
+      "sha256": "4e3f8d3542669e6858fd74a301af79730aec07e8564688a4ea210d2efa188f3d"
     },
     {
       "path": "reference/sigmachart/workflow.md",
@@ -198,6 +198,14 @@
       "summary": "Observed official reception, charting and payment state transitions",
       "characters": 1419,
       "sha256": "98c51a3dd4631a00aa20889436e4d568a420b665c34fe3a2fccff2a854f6e1ed"
+    },
+    {
+      "path": "implementation-status.md",
+      "status": "verified_implementation",
+      "updated_on_kst": "2026-10-09",
+      "characters": 1651,
+      "sha256": "01b6abcfe71f1a7a55a528f56ef837b2f238e36d322d9006b6a1710453df0a12",
+      "summary": "Implemented features and local, browser, API and deployment evidence; remaining hardware and Kakao checks"
     }
   ],
   "reference_collections": [
@@ -241,8 +249,23 @@
       "validated_on_kst": "2026-10-09",
       "validator_path": "../scripts/validate_demo_data.py",
       "negative_and_boundary_checks": 30,
-      "database_import_status": "not_run",
-      "schema_sha256": "9b7a6846d26721a6d5481383f8f684affafee07239844addd1c86c4b0cbdf654"
+      "database_import_status": "applied_and_verified",
+      "schema_sha256": "9b7a6846d26721a6d5481383f8f684affafee07239844addd1c86c4b0cbdf654",
+      "database_project_ref": "jolrgsvhgitoajuscdto",
+      "database_imported_on_kst": "2026-10-09"
     }
-  ]
+  ],
+  "implementation_verification": {
+    "verified_on_kst": "2026-10-09",
+    "unit_tests": 44,
+    "server_tests": 19,
+    "isolated_postgres_checks": 26,
+    "browser_e2e_tests": 6,
+    "actual_transcription": true,
+    "actual_webrtc_fake_capture": true,
+    "actual_care_generation": true,
+    "actual_briefing_workflow_on_vercel": true,
+    "physical_ipad_tested": false,
+    "kakao_real_send_tested": false
+  }
 }
