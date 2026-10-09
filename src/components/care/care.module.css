@@ -112,3 +112,21 @@
 .aiEvidence strong { font-size: 12px; color: var(--muted); line-height: 1.8; }
 .aiEvidence p { font-size: 12px; color: var(--muted); line-height: 1.85; }
 .aiEvidence > small { color: var(--muted); font-size: 12px; display: block; margin: 12px 0; }
+.careStrategy { margin: 20px 0; padding: 16px 0; border-top: 1px solid #e4e4e4; border-bottom: 1px solid #e4e4e4; }
+.careStrategy header { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.careStrategy h4 { margin: 0; color: var(--text); font-size: 13px; }
+.careStrategy header span { color: var(--muted); font-size: 11px; }
+.strategyAudience { margin: 9px 0 16px; color: var(--muted); font-size: 12px; line-height: 1.8; }
+.focusItem + .focusItem { margin-top: 16px; padding-top: 14px; border-top: 1px solid #ececec; }
+.focusItem > strong { color: var(--text); font-size: 13px; }
+.focusItem > p { margin: 8px 0; color: var(--muted); font-size: 12px; line-height: 1.85; }
+.contextEvidence { padding: 10px 0; }
+.evidenceMeta { display: flex; flex-wrap: wrap; gap: 6px 9px; color: var(--muted); font-size: 11px; line-height: 1.7; }
+.contextEvidence blockquote { margin: 10px 0; padding-left: 12px; border-left: 2px solid #d5d5d5; color: #5f5f5f; font-size: 12px; line-height: 1.85; white-space: pre-wrap; }
+.contextEvidence > small { display: block; color: var(--muted); font-size: 10px; line-height: 1.7; overflow-wrap: anywhere; }
+.contextEvidence details p { color: var(--muted); font-size: 12px; line-height: 1.85; }
+.contextReviewNotice { margin: 17px 0; padding: 12px 14px; background: #f7f7f7; border-left: 2px solid #a9a9a9; }
+.contextReviewNotice p { margin: 0 0 8px; font-size: 12px; line-height: 1.85; color: var(--muted); }
+.contextReviewNotice > small { display: block; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.aiEvidence > div > small { display: block; margin-top: 7px; color: var(--muted); font-size: 11px; }
+.sourceVisitLink { display: inline-flex; min-height: 44px; align-items: center; color: var(--accent); font-size: 12px; text-decoration: none; }
