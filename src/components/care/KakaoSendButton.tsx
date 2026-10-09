@@ -26,7 +26,7 @@ export function KakaoSendButton({ message, busy, onBusyChange, onComplete }: { m
   return <section style={{ marginTop: 16 }} aria-label="카카오톡 발송">
     {!blocked && <button type="button" disabled={busy || pending || !connection?.connected} onClick={send} style={{ background: '#FEE500', color: '#191919', border: 0, borderRadius: 8, padding: '12px 16px' }}>{pending ? '카카오톡 발송 중…' : message.status === 'failed' ? '카카오톡 발송 다시 시도' : '카카오톡으로 발송하기'}</button>}
     <p style={{ fontSize: 12, color: 'var(--muted)' }}>{connection?.connected ? connection.accountLabel : connection ? '설정에서 카카오 계정을 연결해 주세요.' : '카카오 연결 상태 확인 중…'}</p>
-    <Disclosure><summary>카카오톡 전송 미리보기</summary><p style={{ whiteSpace: 'pre-wrap' }}>{kakaoPreview(message.approved_body ?? '')}</p><small>긴 안내는 200자 미리보기로 보내고, 링크에서 승인 문안 전체를 보여줍니다.</small></Disclosure>
+    <Disclosure><summary>카카오톡 전송 미리보기</summary><p style={{ whiteSpace: 'pre-wrap' }}>{kakaoPreview(message.approved_body ?? '')}</p><small>긴 안내는 200자 미리보기로 보내고, 링크에서 승인된 내용 전체를 보여줍니다.</small></Disclosure>
     {connection && !connection.connected && <p><Link href="/settings">카카오 연결 설정 <ActionArrow /></Link></p>}
     {message.status === 'unknown' && <p role="status">전송 결과 확인 필요 · 자동 재발송하지 않습니다.</p>}
     {message.status === 'sent' && <p>카카오톡 발송 완료</p>}

@@ -21,7 +21,7 @@ test('Kakao connection, approved self-send, public response and PC contact form 
   await page.getByLabel('안내문 초안').fill(body);
   await page.getByRole('button', { name: '초안 저장', exact: true }).click();
   await expect.poll(async () => (await readState(page.request)).state.care_messages.some((v) => v.draft_body === body)).toBe(true);
-  await page.getByRole('button', { name: '문안 승인', exact: true }).click();
+  await page.getByRole('button', { name: '내용 승인', exact: true }).click();
   await expect(page.getByRole('button', { name: '카카오톡으로 발송하기' })).toBeEnabled();
   await expect(page.getByRole('button', { name: '카카오톡으로 발송하기' })).toHaveCount(1);
   await expect(page.getByRole('button', { name: '승인 문안 모의 발송' })).toHaveCount(0);
