@@ -1963,6 +1963,93 @@
         }
       ],
       "origin": "provided_case"
+    },
+    {
+      "id": "21d12f4d-9970-5626-8242-b9051f2c306e",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
+      "followup_answer_id": null,
+      "instrument": "APP_FUNCTION_DISCOMFORT",
+      "metric_key": "stair_ascent_discomfort",
+      "body_region": "ankle",
+      "laterality": "right",
+      "activity_key": "stairs_up",
+      "measurement_context": "stair_ascent_discomfort",
+      "unit": "score",
+      "scale_min": 0,
+      "scale_max": 10,
+      "series_key": "A:stair_ascent_discomfort:APP_FUNCTION_DISCOMFORT:ankle:right:stairs_up:stair_ascent_discomfort:v1",
+      "value": 8,
+      "measured_at": "2026-10-02T00:32:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "demo-stair-history-v1",
+          "quote": "데모용 합성 과거 이력: 2026-10-02 오른쪽 발목 계단 오르기 불편 8/10. 실제 측정 자료가 아닌 가상 점수입니다.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "82fb7c4b-a561-583e-85d3-c51595e87529",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
+      "followup_answer_id": null,
+      "instrument": "APP_FUNCTION_DISCOMFORT",
+      "metric_key": "stair_ascent_discomfort",
+      "body_region": "ankle",
+      "laterality": "right",
+      "activity_key": "stairs_up",
+      "measurement_context": "stair_ascent_discomfort",
+      "unit": "score",
+      "scale_min": 0,
+      "scale_max": 10,
+      "series_key": "A:stair_ascent_discomfort:APP_FUNCTION_DISCOMFORT:ankle:right:stairs_up:stair_ascent_discomfort:v1",
+      "value": 6,
+      "measured_at": "2026-10-04T01:02:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "demo-stair-history-v1",
+          "quote": "데모용 합성 과거 이력: 2026-10-04 오른쪽 발목 계단 오르기 불편 6/10. 실제 측정 자료가 아닌 가상 점수입니다.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "origin": "synthetic_history"
+    },
+    {
+      "id": "2744538c-3742-5d05-8d97-27af9a2a1829",
+      "clinic_id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
+      "patient_id": "073e30a6-829a-5d4e-afc7-ffe9806c67da",
+      "visit_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
+      "followup_answer_id": null,
+      "instrument": "APP_FUNCTION_DISCOMFORT",
+      "metric_key": "stair_ascent_discomfort",
+      "body_region": "ankle",
+      "laterality": "right",
+      "activity_key": "stairs_up",
+      "measurement_context": "stair_ascent_discomfort",
+      "unit": "score",
+      "scale_min": 0,
+      "scale_max": 10,
+      "series_key": "A:stair_ascent_discomfort:APP_FUNCTION_DISCOMFORT:ankle:right:stairs_up:stair_ascent_discomfort:v1",
+      "value": 4,
+      "measured_at": "2026-10-07T01:01:00Z",
+      "review_status": "reviewed",
+      "source_refs": [
+        {
+          "kind": "seed_snapshot",
+          "source_id": "demo-stair-history-v1",
+          "quote": "데모용 합성 과거 이력: 2026-10-07 오른쪽 발목 계단 오르기 불편 4/10. 실제 측정 자료가 아닌 가상 점수입니다.",
+          "origin": "synthetic_history"
+        }
+      ],
+      "origin": "synthetic_history"
     }
   ],
   "followup_items": [

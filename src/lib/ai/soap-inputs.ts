@@ -1,10 +1,11 @@
 import { createHash } from 'node:crypto';
 import type { AppState, Segment, SoapDocument, SoapInputSnapshot, SourceRef, Transcript } from '@/lib/types';
+import { isCurrentHandwritingDraft } from './handwriting-sources';
 import { AppError } from '@/lib/server/errors';
 
 export type ClinicalSoapSource = {
   id: string; record_id: string; kind: 'treatment' | 'treatment_finding' | 'handwriting' | 'followup_answer' | 'observation';
-  text: string; allowed_sections: ('s' | 'o' | 'a' | 'p')[]; revision: number | null;
+  text: string; review_status?: 'ai_draft'; allowed_sections: ('s' | 'o' | 'a' | 'p')[]; revision: number | null;
 };
 const digest = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
 const sides = { left: '좌측', right: '우측', bilateral: '양측', midline: '정중선', not_applicable: '좌우 해당 없음' };
@@ -28,8 +29,8 @@ export function collectClinicalSoapSources(state: AppState, visitId: string): Cl
     }
   }
   for (const row of state.annotations ?? []) {
-    if (row.visit_id !== visitId || row.clinic_id !== state.clinic.id || !row.extraction_reviewed || !row.extracted_text?.trim()) continue;
-    sources.push({ id: `handwriting:${row.id}`, record_id: row.id, kind: 'handwriting', text: row.extracted_text, allowed_sections: ['s', 'o', 'a', 'p'], revision: row.revision });
+    if (row.visit_id !== visitId || row.clinic_id !== state.clinic.id || !row.extracted_text?.trim() || !row.extraction_reviewed && !isCurrentHandwritingDraft(state,row)) continue;
+    sources.push({ id: `handwriting:${row.id}`, record_id: row.id, kind: 'handwriting', text: row.extraction_reviewed ? row.extracted_text : `AI 필기 추출 초안 · 판독 확인 전:\n${row.extracted_text}`, ...(!row.extraction_reviewed ? {review_status:'ai_draft' as const} : {}), allowed_sections: ['s', 'o', 'a', 'p'], revision: row.revision });
   }
   for (const row of state.followup_answers ?? []) {
     if (row.visit_id !== visitId || row.patient_id !== visit.patient_id || row.clinic_id !== state.clinic.id || row.review_status !== 'reviewed' || row.confirmation_status !== 'confirmed' || row.applicability !== 'applicable' || !row.answer_text?.trim()) continue;

@@ -4,6 +4,8 @@ import { STAIR_ASCENT_METRIC } from '../../src/lib/progress/stair-discomfort';
 
 test('stair progress link shows its empty state before a score is saved and returns to the originating visit',async({page})=>{
  const initial=await localDemo(page);const {current_visit_id:visitId,patient_id:patientId}=scenario(initial,'A');
+ const empty={...initial,state:{...initial.state,observations:initial.state.observations.filter(o=>o.metric_key!=='stair_ascent_discomfort')}};
+ await page.route('**/api/state',route=>route.fulfill({json:empty}));
  await page.goto(`/clinic/visits/${visitId}`);
  const panel=page.getByRole('region',{name:'계단 오를 때 불편함',exact:true});await expect(panel).toBeVisible();
  const before=await readState(page.request);
