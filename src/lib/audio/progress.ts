@@ -29,7 +29,7 @@ export function workStep(work: AudioWork) {
   if(job.status === 'failed' && !failedStage) return -1;
   const stage=job.status === 'failed' ? String(failedStage) : job.stage;
   if(stage === 'transcribing' || stage === 'queued') return 2;
-  if(['speaker_roles','dictionary_correction','correction_review_needed'].includes(stage)) return 3;
+  if(['alignment_review','speaker_roles','dictionary_correction','correction_review_needed'].includes(stage)) return 3;
   if(stage === 'soap_draft') return 4;
   if(['review_needed','stale_input'].includes(stage) || ['waiting_review','completed'].includes(job.status)) return 5;
   return job.kind === 'soap' ? 4 : 2;
@@ -39,12 +39,12 @@ export function workFailed(work: AudioWork) { return work.primary?.status === 'f
 export function workTitle(work: AudioWork) {
   if(workFailed(work)) return '음성 처리 중단';
   if(!work.primary) return work.recording?.status === 'uploading' ? '음성 파일 저장 중' : '음성 저장 완료 · 전사 준비';
-  const titles: Record<string,string>={queued:'전사 작업 대기 중',transcribing:'대화를 글자로 변환 중',speaker_roles:'누가 말했는지 정리 중',dictionary_correction:'진료 용어를 확인 중',correction_review_needed:'전사 용어 검토 대기',soap_draft:'SOAP 초안 작성 중',review_needed:'초안 생성 완료 · 검토 대기',stale_input:'입력 변경 · 다시 검토 필요'};
+  const titles: Record<string,string>={queued:'전사 작업 대기 중',transcribing:'대화를 글자로 변환 중',alignment_review:'전사 누락을 확인 중',speaker_roles:'누가 말했는지 정리 중',dictionary_correction:'진료 용어를 확인 중',correction_review_needed:'전사 용어 검토 대기',soap_draft:'SOAP 초안 작성 중',review_needed:'초안 생성 완료 · 검토 대기',stale_input:'입력 변경 · 다시 검토 필요'};
   return titles[work.primary.stage] || (work.primary.status === 'completed' ? '음성 처리 완료' : '작업 상태 확인 중');
 }
 export function workDescription(work: AudioWork) {
   if(workFailed(work)) return work.primary?.error || work.recording?.error || '이 녹음의 처리를 완료하지 못했습니다.';
-  const descriptions: Record<string,string>={queued:'파일은 저장됐어요. 전사 작업이 시작되기를 기다리고 있어요.',transcribing:'녹음한 대화의 내용과 화자 구간을 인식하고 있어요.',speaker_roles:'대화 문맥을 보고 의료진·환자·보호자 역할을 구분하고 있어요.',dictionary_correction:'전사에서 한의학 용어의 표기를 검토하고 있어요.',correction_review_needed:'전사와 용어 제안을 확인해 주세요.',soap_draft:'대화와 확인된 시술·기록을 바탕으로 진료 기록 초안을 작성하고 있어요.',review_needed:'전사와 SOAP 초안을 확인해 주세요. 아직 의료진 승인 전이에요.',stale_input:'처리 중 입력이 바뀌었어요. 최신 내용을 검토하고 다시 생성해 주세요.'};
+  const descriptions: Record<string,string>={queued:'파일은 저장됐어요. 전사 작업이 시작되기를 기다리고 있어요.',transcribing:'녹음한 대화의 내용과 화자 구간을 인식하고 있어요.',alignment_review:'두 전사를 대조하고 빠진 대화 구간이 없는지 확인하고 있어요.',speaker_roles:'대화 문맥을 보고 의료진·환자·보호자 역할을 구분하고 있어요.',dictionary_correction:'전사에서 한의학 용어의 표기를 검토하고 있어요.',correction_review_needed:'전사와 용어 제안을 확인해 주세요.',soap_draft:'대화와 확인된 시술·기록을 바탕으로 진료 기록 초안을 작성하고 있어요.',review_needed:'전사와 SOAP 초안을 확인해 주세요. 아직 의료진 승인 전이에요.',stale_input:'처리 중 입력이 바뀌었어요. 최신 내용을 검토하고 다시 생성해 주세요.'};
   return work.primary ? descriptions[work.primary.stage] || '해당 녹음의 작업 상태를 확인하고 있어요.' : '저장한 음성으로 전사를 시작할 수 있어요.';
 }
 export const durationLabel = (ms: number) => `${Math.floor(Math.max(0,ms)/60_000).toString().padStart(2,'0')}:${Math.floor(Math.max(0,ms)/1000%60).toString().padStart(2,'0')}`;
