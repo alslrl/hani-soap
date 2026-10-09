@@ -6,7 +6,7 @@ it('uses the requested content model, Korean hint and opaque filename without sc
  vi.stubGlobal('fetch',vi.fn(async(_url,init)=>{
   const form=init.body as FormData;
   expect(form.get('model')).toBe('gpt-transcribe'); expect(form.getAll('languages[]')).toEqual(['ko']);
-  expect(form.has('prompt')).toBe(false); expect(form.has('keywords[]')).toBe(false); expect(form.has('language')).toBe(false);
+  expect(String(form.get('prompt'))).toContain('한국어 진료'); expect(String(form.get('prompt'))).not.toMatch(/김서연|43|45|보중익기탕/); expect(form.has('keywords[]')).toBe(false); expect(form.has('language')).toBe(false);
   expect((form.get('file') as File).name).toMatch(/^audio-[a-f\d-]{36}\.wav$/);
   return Response.json({text:'  김서연입니다. 발을 높여 주세요.\n',languages:[{code:'ko'}]});
  }));

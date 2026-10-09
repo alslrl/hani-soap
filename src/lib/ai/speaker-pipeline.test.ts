@@ -3,6 +3,7 @@ import { normalizeDiarizedTranscript } from './transcribe';
 const mocks = vi.hoisted(() => ({ state: {} as any, infer: vi.fn(), soap: vi.fn(), transcribe: vi.fn(), content: vi.fn() }));
 vi.mock('@/lib/server/store', () => ({ readState: async () => ({ state: mocks.state }), updateState: async (fn: any) => fn(mocks.state) }));
 vi.mock('./clinical-analysis-jobs', () => ({ ensureClinicalAnalysis: vi.fn().mockResolvedValue({}) }));
+vi.mock('@/lib/audio/crop', () => ({ normalizeAudio: async (blob: Blob) => blob, cropAudio: async (blob: Blob) => blob }));
 vi.mock('@/lib/audio/storage', () => ({ readAudio: async () => new Blob(['fake']) }));
 vi.mock('./transcribe', async importOriginal => ({ ...await importOriginal(), transcribeAudio: mocks.transcribe, transcribeContentAudio: mocks.content }));
 vi.mock('./provider', () => ({ inferSpeakerRoles: mocks.infer, generateSoap: mocks.soap, proposeCorrections: vi.fn() }));

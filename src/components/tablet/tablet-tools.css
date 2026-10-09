@@ -4,6 +4,8 @@
 .tablet-tool-selector button { display:flex; align-items:center; justify-content:center; gap:6px; min-height:44px; min-width:60px; border:0; border-radius:7px; background:transparent; color:#626262; padding:0 12px; font-size:12px; white-space:nowrap; }
 .tablet-tool-selector button[aria-checked="true"] { background:#242424; color:#fff; }
 .tablet-tool-selector button:disabled { opacity:.45; }
+/* A contact temporarily locks navigation; keep its visual state steady between strokes. */
+.tablet-app .tablet-canvas-navigation[data-stroke-active="true"] button:disabled { opacity:1; }
 .tablet-canvas[data-tool="select"] { cursor:cell; }
 .tablet-canvas[data-tool="pen"] { cursor:crosshair; }
 .tablet-canvas[data-tool="eraser"] { cursor:crosshair; }

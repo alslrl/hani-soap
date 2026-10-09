@@ -59,6 +59,7 @@ export function CareWorkspace() {
   const [sourceVisitId, setSourceVisitId] = useState("");
   const [courseId, setCourseId] = useState("");
   const [dirty, setDirty] = useState(false);
+  const [bodyDirty, setBodyDirty] = useState(false);
   const [busy, setBusy] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [failed, setFailed] = useState(false);
@@ -103,7 +104,7 @@ export function CareWorkspace() {
     setSourceVisitId(message?.visit_id ?? approvedVisit?.id ?? "");
     setCourseId(message?.medication_course_id ?? state.medication_courses.find((course) => course.patient_id === patientId)?.id ?? "");
     setResponseOption(message ? optionsForStage(message.stage)[0] : "taking_well");
-    setResponseDetail(null); setDirty(Boolean(loadedClone)); setFeedback(""); setFailed(false);
+    setResponseDetail(null); setDirty(Boolean(loadedClone)); setBodyDirty(Boolean(loadedClone)); setFeedback(""); setFailed(false);
     hydratedEditor.current = key;
   }, [state, patientId, messageId, message]);
   useEffect(() => {
@@ -137,13 +138,13 @@ export function CareWorkspace() {
   ].sort((a, b) => b.date.localeCompare(a.date));
 
   function applyDestination(destination: Destination) {
-    setPendingDestination(null); setDirty(false); setFeedback("");
+    setPendingDestination(null); setDirty(false); setBodyDirty(false); setFeedback("");
     if (destination.patientId) { setPatientId(destination.patientId); return; }
     if (destination.newDraft) {
       cloneText.current = destination.cloneBody ?? "";
       hydratedEditor.current = "";
       setMessageId("new");
-      if (messageId === "new") { setDraftBody(destination.cloneBody ?? ""); setStage("visit_summary"); setDirty(Boolean(destination.cloneBody)); }
+      if (messageId === "new") { setDraftBody(destination.cloneBody ?? ""); setStage("visit_summary"); setDirty(Boolean(destination.cloneBody)); setBodyDirty(Boolean(destination.cloneBody)); }
       return;
     }
     if (destination.messageId) setMessageId(destination.messageId);
@@ -159,6 +160,7 @@ export function CareWorkspace() {
     const saved = result.state.care_messages.find((item) => message?.status === "draft" ? item.id === message.id : !existingIds.has(item.id) && item.patient_id === patientId);
     if (saved) { hydratedEditor.current = `${patientId}:${saved.id}`; setMessageId(saved.id); }
     setDirty(false);
+    setBodyDirty(false);
     return result;
   }
   async function saveAndMove() {
@@ -174,13 +176,14 @@ export function CareWorkspace() {
     catch (error) { report(error); } finally { setBusy(false); }
   }
   async function generateAiDraft() {
-    if (busy || dirty || !sourceVisitId) return;
+    if (busy || bodyDirty || !sourceVisitId) return;
     setBusy(true); setFailed(false); setFeedback("");
     try {
       const response = await fetch("/api/care/generate", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ visitId: sourceVisitId, stage, medication_course_id: stage === "visit_summary" ? null : courseId || null }) });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "AI 안내 초안을 만들지 못했습니다.");
       setGenerationJobId(body.jobId);
+      setDirty(false);
       await refresh();
       setFeedback("승인 계획과 확인된 환자 맥락으로 안내 초안을 생성하고 있습니다.");
     } catch (error) { report(error); } finally { setBusy(false); }
@@ -225,18 +228,18 @@ export function CareWorkspace() {
             return <div className={styles.contactTask} key={contact.id} data-contact-id={contact.id}><div className={styles.eventTitle}><strong>{contact.status === "open" ? "연락 필요" : "연락 완료"}</strong>{response && <time>{formatClinicDate(response.received_at, true)}</time>}</div><p>{response ? `${RESPONSE_LABELS[response.option]}${response.detail ? ` · ${DETAIL_LABELS[response.detail]}` : ""}` : contact.reason}</p><Disclosure><summary>연락 사유와 원문</summary><p>{displayRecordText(contact.reason)}</p>{response && <button type="button" className={styles.textButton} onClick={() => navigate({ messageId: response.message_id })}>원래 보낸 안내 확인 <ActionArrow /></button>}</Disclosure>{contact.status === "open" ? <><label className={styles.fieldLabel}>연락 결과<textarea rows={3} placeholder="직접 확인한 내용과 후속 조치를 남겨 주세요." value={contactNotes[contact.id] ?? ""} onChange={(event) => setContactNotes((current) => ({ ...current, [contact.id]: event.target.value }))} /></label><button type="button" className={styles.primary} disabled={busy || !contactNotes[contact.id]?.trim()} onClick={() => perform("contact.close", { contactId: contact.id, resolution_note: contactNotes[contact.id].trim() }, "연락 결과를 남기고 완료 처리했습니다.")}>연락 완료 처리</button></> : <p className={styles.closedNote}>{contact.resolution_note}<small>{contact.closed_at ? formatClinicDate(contact.closed_at, true) : ""} 처리</small></p>}</div>;
           })}</section>}
           <section className={styles.composeSection}><div className={styles.sectionHeading}><h3>안내 검토</h3><button type="button" className={styles.textButton} onClick={() => navigate({ newDraft: true })}>＋ 새 안내</button></div>
-            <button type="button" className={styles.aiButton} disabled={busy || jobRunning || dirty || !data?.capabilities.ai || !sourceSoap || (stage !== "visit_summary" && !courseId) || (stage === "end_minus3" && !state.medication_courses.find((course) => course.id === courseId)?.end_date)} onClick={generateAiDraft}>{jobRunning ? "AI 안내 생성 중…" : "AI 맞춤 안내 초안 만들기"}</button>
+            <button type="button" className={styles.aiButton} disabled={busy || jobRunning || bodyDirty || !data?.capabilities.ai || !sourceSoap || (stage !== "visit_summary" && !courseId) || (stage === "end_minus3" && !state.medication_courses.find((course) => course.id === courseId)?.end_date)} onClick={generateAiDraft}>{jobRunning ? "AI 안내 생성 중…" : "AI 맞춤 안내 초안 만들기"}</button>
             {!data?.capabilities.ai && <small>AI 연결을 설정하면 승인 기록으로 초안을 생성할 수 있습니다.</small>}
             {careJob && <div className={styles.aiJob} role="status"><strong>{careJob.status === "queued" ? "AI 작업 대기 중" : careJob.status === "running" ? "승인 기록에서 안내 정리 중" : careJob.status === "waiting_review" ? "AI 초안 · 의료진 검토 필요" : careJob.status === "failed" ? "AI 생성 실패" : "AI 생성 완료"}</strong>{careJob.error && <p>{careJob.error}</p>}</div>}
             <label className={styles.fieldLabel}>확인할 안내<AppSelect value={messageId} onChange={(event) => navigate({ messageId: event.target.value })}>{messageId === "new" && <option value="new">새 안내 초안</option>}{patientMessages.map((item) => <option key={item.id} value={item.id}>{STAGE_LABELS[item.stage]} · {MESSAGE_LABELS[item.status]} · {formatClinicDate(item.scheduled_at)}</option>)}</AppSelect></label>
             <CareStrategyPanel result={messageGeneration?.result} />
-            {messageGeneration?.result?.care_context_version === "contextual-care-v1" && <div className={styles.contextReviewNotice}>{messageGeneration.result.stale_input === true ? <p role="alert">생성 중 환자 응답이나 확인 기록이 바뀌었습니다. 최신 맥락으로 다시 생성한 뒤 검토해 주세요.</p> : <p>안내 방향과 날짜별 근거를 대조하고 최종 문안을 편집·승인해 주세요.</p>}<button type="button" className={styles.textButton} disabled={busy || jobRunning || dirty || !data?.capabilities.ai} onClick={generateAiDraft}>최신 맥락으로 다시 생성</button>{dirty && <small>편집한 문안은 먼저 저장해 주세요. 재생성은 새 초안으로 남깁니다.</small>}</div>}
-            {editable ? <><div className={styles.twoFields}><label className={styles.fieldLabel}>안내 시점<AppSelect value={stage} onChange={(event) => { setStage(event.target.value as CareMessage["stage"]); setDirty(true); }} disabled={Boolean(message)}>{Object.entries(STAGE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AppSelect></label><label className={styles.fieldLabel}>기준 진료<AppSelect value={sourceVisitId} onChange={(event) => { setSourceVisitId(event.target.value); setDirty(true); }} disabled={Boolean(message)}><option value="">승인 기록 선택</option>{patientVisits.filter((visit) => approvedSoaps.some((soap) => soap.visit_id === visit.id)).map((visit) => <option key={visit.id} value={visit.id}>{formatClinicDate(visit.scheduled_at)} · {visit.visit_no}회차</option>)}</AppSelect></label></div>
-              {stage !== "visit_summary" && <label className={styles.fieldLabel}>기준 복약 과정<AppSelect value={courseId} onChange={(event) => { setCourseId(event.target.value); setDirty(true); }} disabled={Boolean(message)}><option value="">확인된 과정 선택</option>{state.medication_courses.filter((course) => course.patient_id === patientId).map((course) => <option key={course.id} value={course.id}>{course.medication_name ?? "처방명 미확인"} · {formatClinicDate(`${course.start_date}T00:00:00+09:00`)} 시작{!course.end_date ? " · 종료일 미확인" : ""}</option>)}</AppSelect>{stage === "end_minus3" && !state.medication_courses.find((course) => course.id === courseId)?.end_date && <small>종료일이 확인되어야 이 안내 일정을 만들 수 있습니다.</small>}</label>}
-              <label className={styles.fieldLabel}>안내문 초안<textarea rows={8} placeholder="승인된 진료에서 확인된 관리·복용·다음 방문 안내를 작성해 주세요." value={draftBody} onChange={(event) => { setDraftBody(event.target.value); setDirty(true); }} /></label>
+            {messageGeneration?.result?.care_context_version === "contextual-care-v1" && <div className={styles.contextReviewNotice}>{messageGeneration.result.stale_input === true ? <p role="alert">생성 중 환자 응답이나 확인 기록이 바뀌었습니다. 최신 맥락으로 다시 생성한 뒤 검토해 주세요.</p> : <p>안내 방향과 날짜별 근거를 대조하고 최종 문안을 편집·승인해 주세요.</p>}<button type="button" className={styles.textButton} disabled={busy || jobRunning || bodyDirty || !data?.capabilities.ai} onClick={generateAiDraft}>최신 맥락으로 다시 생성</button>{bodyDirty && <small>편집한 문안은 먼저 저장해 주세요. 재생성은 새 초안으로 남깁니다.</small>}</div>}
+            {editable ? <><div className={styles.twoFields}><label className={styles.fieldLabel}>안내 시점<AppSelect value={stage} onChange={(event) => { setStage(event.target.value as CareMessage["stage"]); setDirty(true); }} disabled={Boolean(message) || busy || jobRunning}>{Object.entries(STAGE_LABELS).map(([value, label]) => <option key={value} value={value}>{label}</option>)}</AppSelect></label><label className={styles.fieldLabel}>기준 진료<AppSelect value={sourceVisitId} onChange={(event) => { setSourceVisitId(event.target.value); setDirty(true); }} disabled={Boolean(message) || busy || jobRunning}><option value="">승인 기록 선택</option>{patientVisits.filter((visit) => approvedSoaps.some((soap) => soap.visit_id === visit.id)).map((visit) => <option key={visit.id} value={visit.id}>{formatClinicDate(visit.scheduled_at)} · {visit.visit_no}회차</option>)}</AppSelect></label></div>
+              {stage !== "visit_summary" && <label className={styles.fieldLabel}>기준 복약 과정<AppSelect value={courseId} onChange={(event) => { setCourseId(event.target.value); setDirty(true); }} disabled={Boolean(message) || busy || jobRunning}><option value="">확인된 과정 선택</option>{state.medication_courses.filter((course) => course.patient_id === patientId).map((course) => <option key={course.id} value={course.id}>{course.medication_name ?? "처방명 미확인"} · {formatClinicDate(`${course.start_date}T00:00:00+09:00`)} 시작{!course.end_date ? " · 종료일 미확인" : ""}</option>)}</AppSelect>{stage === "end_minus3" && !state.medication_courses.find((course) => course.id === courseId)?.end_date && <small>종료일이 확인되어야 이 안내 일정을 만들 수 있습니다.</small>}</label>}
+              <label className={styles.fieldLabel}>안내문 초안<textarea rows={8} disabled={busy} placeholder="승인된 진료에서 확인된 관리·복용·다음 방문 안내를 작성해 주세요." value={draftBody} onChange={(event) => { setDraftBody(event.target.value); setDirty(true); setBodyDirty(true); setGenerationJobId(null); }} /></label>
               {sourceSoap && <Disclosure className={styles.sourcePlan}><summary>기준 진료의 승인 계획 대조</summary><p>{sourceSoap.sections.p}</p></Disclosure>}
               <div className={styles.actionRow}><button type="button" disabled={busy || !dirty || !draftBody.trim() || !sourceVisitId || (stage !== "visit_summary" && !courseId) || (stage === "end_minus3" && !state.medication_courses.find((course) => course.id === courseId)?.end_date)} onClick={save}>초안 저장</button><button type="button" className={styles.primary} disabled={busy || dirty || !message || !draftBody.trim() || !sourceSoap} onClick={() => message && perform("care.approve", { messageId: message.id }, "내용을 승인했습니다. 카카오톡으로 발송할 수 있습니다.")}>내용 승인</button></div>
-              <small>{dirty ? "저장하지 않은 변경이 있습니다. 먼저 초안을 저장해 주세요." : "승인하기 전 기준 진료 기록과 안내 내용을 확인해 주세요."}</small>
+              <small>{bodyDirty ? "편집한 안내문을 먼저 저장해 주세요." : dirty ? "선택한 안내 설정으로 AI 초안을 생성할 수 있습니다." : "승인하기 전 기준 진료 기록과 안내 내용을 확인해 주세요."}</small>
             </> : message ? <><div className={styles.approvedPreview}><div className={styles.eventTitle}><strong>발송 안내문</strong><span className={styles.tag}>{MESSAGE_LABELS[message.status]}</span></div><p>{displayRecordText(message.approved_body ?? "안내문을 확인할 수 없습니다.")}</p><small>{message.approved_at ? `${formatClinicDate(message.approved_at, true)} 승인` : "승인 시각 미확인"}</small></div>{(message.status === "approved" || message.delivery_mode === "kakao_self") && <KakaoSendButton key={message.id} message={message} busy={busy} onBusyChange={setBusy} onComplete={refresh}/>}<div className={styles.actionRow}><button type="button" disabled={busy} onClick={() => navigate({ newDraft: true, cloneBody: displayRecordText(message.approved_body ?? message.draft_body) })}>새 초안으로 수정</button></div></> : null}
             {messageGeneration && <TextPrivacyNotice audit={messageGeneration.result?.text_privacy}/>}
             {messageGeneration && <details className={styles.aiEvidence}><summary>문장별 근거와 확인할 정보</summary>{Array.isArray(messageGeneration.result?.missing_information) && messageGeneration.result.missing_information.map((item, index) => <p key={`missing-${index}`}>확인 필요: {String(item)}</p>)}{Array.isArray(messageGeneration.result?.review_notes) && messageGeneration.result.review_notes.map((item, index) => <p key={`note-${index}`}>{String(item)}</p>)}{Array.isArray(messageGeneration.result?.evidence) && messageGeneration.result.evidence.map((item, index) => { const evidence = objectValue(item); return evidence ? <div key={index}><strong>{typeof evidence.text === "string" ? evidence.text : ""}</strong>{typeof evidence.purpose === "string" && <small>{CARE_PURPOSE_LABELS[evidence.purpose] ?? "검토할 문장"}</small>}<CareEvidenceItem value={evidence} /></div> : null; })}<small>지난 보고는 현재 상태나 약의 인과관계를 확정하지 않습니다. 승인 전 의료진이 문안과 원문을 대조합니다.</small></details>}
