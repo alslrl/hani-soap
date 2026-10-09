@@ -6,12 +6,12 @@ import { Mic, Square, Upload, RotateCcw, Check, FileText, Download } from 'lucid
 import type { RuntimeJob, RuntimeRecording, Transcript } from '@/lib/types';
 import { audioStore, closeRecoveredSession, commitLiveTurn, startRecording, stopRecording, startTranscriptionJob, uploadAudio } from '@/lib/audio/client';
 import { listRecoveries, readRecovery, removeRecovery, type RecoveryMetadata } from '@/lib/audio/recovery';
-import { applyAcceptedCorrections, type ValidatedCorrection } from '@/lib/ai/correction';
+import { applyAcceptedCorrections, type CorrectionSpan, type ValidatedCorrection } from '@/lib/ai/correction';
 import styles from './AudioControls.module.css';
 
 type Props = { visitId: string; onChanged?: () => void };
 type JobsResponse = { jobs: RuntimeJob[]; recordings: RuntimeRecording[]; transcripts: Transcript[] };
-const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '화자 분리 전사 중', dictionary_correction: '사전 용어 검토 중', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
+const stageLabels: Record<string, string> = { queued: '작업 대기', transcribing: '화자 분리 전사 중', dictionary_correction: '사전 용어 검토 중', correction_review_needed: '용어 제안 검토 대기', soap_draft: 'SOAP 초안 생성 중', review_needed: '의료진 검토 대기', stale_input: '이전 전사로 생성한 결과 보관', failed: '처리 실패' };
 const time = (milliseconds: number) => `${Math.floor(milliseconds / 60_000).toString().padStart(2, '0')}:${Math.floor(milliseconds / 1000 % 60).toString().padStart(2, '0')}`;
 async function api<T>(url: string, body?: unknown): Promise<T> {
   const response = await fetch(url, body ? { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) } : { cache: 'no-store' });
@@ -97,25 +97,41 @@ export function AudioControls({ visitId, onChanged }: Props) {
     {data.jobs.filter((job) => job.stage === 'stale_input').map((job) => <p className={styles.notice} key={job.id}>생성 중 전사가 변경되어 이전 입력의 SOAP는 별도로 보관했습니다. 최신 전사를 검토한 뒤 다시 생성해 주세요.</p>)}
     {retryableFiles.map((recording) => <div key={recording.id} className={styles.job}><span className={`${styles.jobName} ${styles.filename}`}>{recording.filename}</span><button className={styles.button} disabled={busy} onClick={() => void execute(async () => { await startTranscriptionJob(visitId, recording.id); })}><RotateCcw size={12} /> 전사 실행</button></div>)}
     {recoveries.filter((item) => item.visitId === visitId && item.id !== (active ? audio.audioSessionId : null)).length > 0 && <details className={styles.details}><summary>브라우저에 남은 녹음 복구본</summary>{recoveries.filter((item) => item.visitId === visitId).map((item) => <div className={styles.job} key={item.id}><span className={styles.jobName}>{new Date(item.createdAt).toLocaleString('ko-KR')}</span><button className={styles.button} disabled={busy || active} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); if (recovery.audioSessionId) await closeRecoveredSession(recovery.visitId, recovery.audioSessionId); await saveAndProcess(recovery.blob, recovery.filename, recovery.visitId, recovery.audioSessionId, undefined, recovery.id); })}><Upload size={12} /> 복구 후 처리</button><button className={styles.button} onClick={() => void execute(async () => { const recovery = await readRecovery(item.id); const url = URL.createObjectURL(recovery.blob); const a = document.createElement('a'); a.href = url; a.download = recovery.filename; a.click(); setTimeout(() => URL.revokeObjectURL(url), 1000); })}><Download size={12} /> 다운로드</button></div>)}</details>}
-    {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} onSaved={() => { void refresh(); callback.current?.(); }} />}
+    {latestJob && transcript && <TranscriptReview key={`${latestJob.id}:${latestJob.result?.reviewedTranscriptId || 'raw'}`} job={latestJob} transcript={transcript} reviewedTranscript={data.transcripts.find((item) => item.id === latestJob.result?.reviewedTranscriptId)} latestRevision={latestRevision} recheckEnabled={configured === true && !active && !data.jobs.some(item => ['queued', 'running'].includes(item.status))} onSaved={() => { void refresh(); callback.current?.(); }} />}
     <details className={styles.details} onToggle={(event) => {
       if (event.currentTarget.open && !reference) void api<typeof reference>(`/api/jobs/reference?visitId=${encodeURIComponent(visitId)}`).then(setReference).catch((failure: Error) => setError(failure.message));
     }}><summary>초진 사례 검수 자료 미리보기 · 읽기 전용</summary>{reference && <><p className={styles.notice}>{reference.notice}</p><div className={styles.preview}>{Object.entries(reference.sections || {}).map(([key, value]) => <span key={key} style={{ display: 'contents' }}><strong>{key.toUpperCase()}</strong><span>{value}</span></span>)}</div></>}</details>
   </section>;
 }
 
-export function TranscriptReview({ job, transcript, reviewedTranscript, latestRevision, onSaved }: { job: RuntimeJob; transcript: Transcript; reviewedTranscript?: Transcript; latestRevision: number; onSaved: () => void }) {
+export function TranscriptReview({ job, transcript, reviewedTranscript, latestRevision, recheckEnabled = false, onSaved }: { job: RuntimeJob; transcript: Transcript; reviewedTranscript?: Transcript; latestRevision: number; recheckEnabled?: boolean; onSaved: () => void }) {
   const candidates = (job.result?.corrections || []) as ValidatedCorrection[];
+  const retrieved = (job.result?.correction_spans || []) as CorrectionSpan[];
   const [decisions, setDecisions] = useState<Record<string, 'accepted' | 'rejected'>>({});
+  const [selections, setSelections] = useState<Record<string, string>>({});
   const [manualText, setManualText] = useState<string | null>(reviewedTranscript?.text ?? null);
   const [speakers, setSpeakers] = useState<Record<string, string>>(() => reviewedTranscript?.segments.length === transcript.segments.length ? Object.fromEntries(transcript.segments.map((segment, index) => [segment.id, reviewedTranscript.segments[index].speaker])) : {});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const corrected = applyAcceptedCorrections(transcript.text, candidates.map((candidate) => ({ ...candidate, review_status: decisions[candidate.span_id] || candidate.review_status })));
+  const effectiveCorrections = candidates.map((candidate): ValidatedCorrection => {
+    const selected = retrieved.find(span => span.id === candidate.span_id)?.candidates.find(term => term.id === selections[candidate.span_id]);
+    return { ...candidate, ...(selected ? { decision: 'suggest' as const, candidate_id: selected.id, candidate: selected, replacement: selected.matched_form ?? selected.term } : {}), review_status: decisions[candidate.span_id] || (selections[candidate.span_id] !== undefined ? 'pending' : candidate.review_status) };
+  });
+  const corrected = applyAcceptedCorrections(transcript.text, effectiveCorrections);
+  const edited = Object.keys(decisions).length > 0 || Object.keys(selections).length > 0 || (manualText !== null && manualText !== (reviewedTranscript?.text ?? corrected)) || Object.entries(speakers).some(([id, role]) => {
+    const index = transcript.segments.findIndex(segment => segment.id === id);
+    return role !== (reviewedTranscript?.segments[index]?.speaker ?? transcript.segments[index]?.speaker);
+  });
+  const recheck = async () => {
+    setBusy(true); setError(null);
+    try { await api('/api/jobs', { visitId: transcript.visit_id, transcriptId: reviewedTranscript?.id ?? transcript.id, kind: 'correction' }); onSaved(); }
+    catch (failure) { setError(failure instanceof Error ? failure.message : '용어 재검사 실패'); }
+    finally { setBusy(false); }
+  };
   const save = async () => {
     setBusy(true); setError(null);
     try {
-      const result = await api<{ transcriptId: string }>('/api/jobs/review', { jobId: job.id, decisions: Object.entries(decisions).map(([span_id, status]) => ({ span_id, status })), ...(manualText !== null ? { manualText } : {}), speakers, expectedTranscriptRevision: latestRevision });
+      const result = await api<{ transcriptId: string }>('/api/jobs/review', { jobId: job.id, decisions: effectiveCorrections.map(item => ({ span_id: item.span_id, status: item.review_status === 'accepted' ? 'accepted' : 'rejected', ...(item.review_status === 'accepted' && selections[item.span_id] ? { candidate_id: selections[item.span_id] } : {}) })), ...(manualText !== null ? { manualText } : {}), speakers, expectedTranscriptRevision: latestRevision });
       await api('/api/jobs', { visitId: transcript.visit_id, transcriptId: result.transcriptId, kind: 'soap' });
       onSaved();
     } catch (failure) { setError(failure instanceof Error ? failure.message : '전사 검토 저장 실패'); }
@@ -123,9 +139,20 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
   };
   return <details className={styles.details}><summary><FileText size={12} style={{ display: 'inline', marginRight: 5 }} /> 전사 원문과 용어 제안 검토</summary><div className={styles.review}>
     <p className={styles.notice}>전사 원문을 보존합니다. 용어 후보는 개별 수락 후 새 전사 버전에 반영하며, 화자 A/B는 의료진·환자 역할을 자동 확정하지 않습니다.</p>
+    <button className={styles.button} disabled={busy || edited || !recheckEnabled} onClick={() => void recheck()}><RotateCcw size={12} /> 저장된 전사로 용어 다시 검사</button>
+    {edited && <p className={styles.notice}>편집·선택한 내용을 먼저 저장한 뒤 용어를 다시 검사해 주세요.</p>}
+    {typeof job.result?.correction_note === 'string' && <p className={styles.notice}>{job.result.correction_note}</p>}
     {Array.isArray(job.result?.warnings) && job.result.warnings.map((warning, index) => <p key={index} className={styles.notice}>검토할 내용: {String(warning)}</p>)}
     <details><summary>보존된 전사 원문</summary><p className={styles.notice} style={{ whiteSpace: 'pre-wrap' }}>{transcript.text}</p></details>
-    {candidates.map((candidate) => <div key={candidate.span_id} className={styles.correction}><strong>{candidate.original}</strong>{candidate.replacement && <> → <strong>{candidate.replacement}</strong> {candidate.candidate?.hanja}</>}<p>{candidate.reason}</p>{candidate.candidate && <p className={styles.notice}>사전 근거: {candidate.candidate.sources.map((source) => `${source.title} · ${source.original}`).join(' / ')}</p>}<div className={styles.controls}>{candidate.decision === 'suggest' && <button className={`${styles.button} ${decisions[candidate.span_id] === 'accepted' ? styles.selected : ''}`} disabled={manualText !== null && manualText !== corrected} onClick={() => { setDecisions((current) => ({ ...current, [candidate.span_id]: 'accepted' })); setManualText(null); }}>후보 수락</button>}<button className={`${styles.button} ${decisions[candidate.span_id] === 'rejected' ? styles.selected : ''}`} disabled={manualText !== null && manualText !== corrected} onClick={() => { setDecisions((current) => ({ ...current, [candidate.span_id]: 'rejected' })); setManualText(null); }}>원문 유지</button></div></div>)}
+    {candidates.map((candidate) => {
+      const options = retrieved.find(span => span.id === candidate.span_id)?.candidates ?? (candidate.candidate ? [candidate.candidate] : []);
+      const chosen = options.find(term => term.id === (selections[candidate.span_id] ?? candidate.candidate_id));
+      const form = chosen?.matched_form ?? chosen?.term;
+      return <div key={candidate.span_id} className={styles.correction}><strong>{candidate.original}</strong>{form && <> → <strong>{form}</strong> {chosen?.hanja}</>}<p>AI 검토: {candidate.reason}</p>
+        {options.length > 0 && <label>사전 후보<select className={styles.select} aria-label={`사전 후보 ${candidate.original}`} value={selections[candidate.span_id] ?? candidate.candidate_id ?? ''} disabled={manualText !== null && manualText !== corrected} onChange={event => { const value = event.target.value; setSelections(current => ({ ...current, [candidate.span_id]: value })); setDecisions(current => { const next = { ...current }; delete next[candidate.span_id]; return next; }); setManualText(null); }}><option value="">선택하지 않음</option>{options.map(term => <option key={term.id} value={term.id}>{term.matched_form ?? term.term}{term.hanja ? ` · ${term.hanja}` : ''}</option>)}</select></label>}
+        {chosen && <p className={styles.notice}>사전 명칭: {chosen.term} · 근거: {chosen.sources.map(source => `${source.title} · ${source.original}`).join(' / ')}</p>}
+        <div className={styles.controls}>{chosen && <button className={`${styles.button} ${decisions[candidate.span_id] === 'accepted' ? styles.selected : ''}`} disabled={manualText !== null && manualText !== corrected} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'accepted' })); setManualText(null); }}>선택 후보 수락</button>}<button className={`${styles.button} ${decisions[candidate.span_id] === 'rejected' ? styles.selected : ''}`} disabled={manualText !== null && manualText !== corrected} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'rejected' })); setManualText(null); }}>원문 유지</button></div></div>;
+    })}
     {transcript.segments.map((segment, index) => <div className={styles.speaker} key={segment.id}><span>구간 {index + 1}</span><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={speakers[segment.id] || segment.speaker} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select><p>{segment.text}</p></div>)}
     <label>검토 전사<textarea className={styles.text} value={manualText ?? corrected} onChange={(event) => setManualText(event.target.value)} /></label>
     {job.result?.reviewedTranscriptId ? <p className={styles.notice}>검토 버전이 저장되어 있습니다. 다시 저장하면 새 버전을 추가합니다.</p> : null}

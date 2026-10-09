@@ -3,7 +3,7 @@ import { readState, updateState } from '@/lib/server/store';
 import { AppError } from '@/lib/server/errors';
 import { readAudio } from '@/lib/audio/storage';
 import { transcribeAudio } from './transcribe';
-import { loadDictionary, retrieveCorrectionSpans } from './dictionary';
+import { DICTIONARY_RETRIEVAL_VERSION, loadDictionary, retrieveCorrectionSpans } from './dictionary';
 import { validateCorrections } from './correction';
 import { generateSoap, proposeCorrections } from './provider';
 import { AI_MODELS } from './config';
@@ -49,7 +49,7 @@ export async function correctionStep(jobId: string) {
   await patchJob(jobId, { stage: 'dictionary_correction' });
   const spans = retrieveCorrectionSpans(transcript.text, await loadDictionary());
   const corrections = validateCorrections(transcript.text, spans, await proposeCorrections(transcript.text, spans));
-  await patchJob(jobId, { result: { corrections, correction_spans: spans, correction_model: spans.length ? AI_MODELS.correction : null, correction_note: spans.length ? '용어 제안은 의료진 검토 전이며 SOAP에는 아직 적용하지 않았습니다.' : '로컬 검색에서 교정 후보 구간이 없어 원문을 유지했습니다.' } });
+  await patchJob(jobId, { result: { corrections, correction_spans: spans, correction_version: DICTIONARY_RETRIEVAL_VERSION, correction_model: spans.length ? AI_MODELS.correction : null, correction_note: spans.length ? '용어 제안은 의료진 검토 전이며 SOAP에는 아직 적용하지 않았습니다.' : '로컬 검색에서 교정 후보 구간이 없어 원문을 유지했습니다.' } });
 }
 
 export async function soapStep(jobId: string) {
