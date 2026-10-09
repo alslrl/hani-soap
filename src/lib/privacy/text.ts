@@ -55,9 +55,10 @@ export class AiTextPrivacy {
       if (name.length < 2 || seen.has(name)) continue;
       seen.add(name);
       // Two-character names can be ordinary clinical words; require an honorific.
+      const honorific = '(?:님|씨)(?=$|[^\\p{L}\\p{N}]|(?:에게|한테|께서|께|은|는|이|가|을|를|의|과|와|도|만))';
       const suffix = [...name.replace(/\s/g, '')].length <= 2
-        ? '(?=(?:님|씨)(?:[\\s.,!?]|$|[은는이가께]))'
-        : '(?=$|[^\\p{L}\\p{N}]|(?:입니다|이에요|예요|이라고|이란|이라는|님|씨|은|는|이|가|을|를|의|에게|한테|께|과|와)(?=$|[^\\p{L}\\p{N}]|[은는이가께]))';
+        ? `(?=${honorific})`
+        : `(?=$|[^\\p{L}\\p{N}]|${honorific}|(?:입니다|이에요|예요|이라고|이란|이라는|은|는|이|가|을|를|의|에게|한테|께서|께|과|와)(?=$|[^\\p{L}\\p{N}]|[은는이가께]))`;
       const spelling = /^[가-힣]{3,}$/.test(name) ? [...name].map(escaped).join('[ \\t]*') : escaped(name);
       add(new RegExp(`(?<![\\p{L}\\p{N}])${spelling}${suffix}`, 'gu'), identity.kind, 3);
     }
