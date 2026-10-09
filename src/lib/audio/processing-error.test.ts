@@ -2,7 +2,7 @@ import { describe,expect,it,vi } from 'vitest';
 import { AppError } from '@/lib/server/errors';
 import { audioFailure,encodeAudioFailure } from './processing-error';
 const mocks=vi.hoisted(()=>({transcribe:vi.fn(),correct:vi.fn(),soap:vi.fn(),fail:vi.fn()}));
-vi.mock('@/lib/ai/pipeline',()=>({transcribeStep:mocks.transcribe,correctionStep:mocks.correct,soapStep:mocks.soap,failJob:mocks.fail}));
+vi.mock('@/lib/ai/pipeline',()=>({transcribeStep:mocks.transcribe,transcribeSourcesStep:mocks.transcribe,correctionStep:mocks.correct,soapStep:mocks.soap,failJob:mocks.fail}));
 import { processAudioWorkflow } from '../../../workflows/process-audio';
 describe('audio errors through Workflow boundaries',()=>{
  it('preserves empty speech and its actual failure stage after Error serialization',()=>{

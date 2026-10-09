@@ -4,6 +4,20 @@ import { privacyCount } from './summary';
 const identities = [{ value: '김서연', kind: 'patient_name' as const }, { value: '이윤정', kind: 'guardian_name' as const }];
 
 describe('bounded text identifiers', () => {
+  it('masks explicit spoken identities and birth dates even when the chart identity differs', () => {
+    const privacy = new AiTextPrivacy(identities);
+    const raw = { transcript: '학생의사 박지훈입니다. 성함과 생년월일 말씀해 주세요. 2002년 9월 17일 홍민지입니다. 좌측 43cm, 우측 45cm.', segments: [{text:'홍민지입니다.'},{text:'2002년 9월 17일'}] };
+    const masked=privacy.mask(raw);
+    expect(JSON.stringify(masked)).not.toMatch(/박지훈|홍민지|2002년 9월 17일/);
+    expect(masked.transcript).toContain('좌측 43cm, 우측 45cm');
+    expect(privacy.restore(masked)).toEqual(raw);
+    expect(privacy.summary().categories.birth_date).toBe(2);
+    expect(privacy.mask('2026-10-09 방문. 2주 뒤 내원. 검사 이상 없음.')).toBe('2026-10-09 방문. 2주 뒤 내원. 검사 이상 없음.');
+    for (const text of ['2020년 1월 13일생 홍민지입니다.', '2020년 1월 13일생홍민지입니다.']) {
+      const fresh = new AiTextPrivacy([]); const masked = fresh.mask({ segments: [{ text }] });
+      expect(JSON.stringify(masked)).not.toMatch(/2020|홍민지/); expect(fresh.restore(masked)).toEqual({segments:[{text}]});
+    }
+  });
   it('masks honorific recipient particles and restores exact case endings', () => {
     const privacy = new AiTextPrivacy([...identities, { value: '이상', kind: 'patient_name' }]);
     for (const raw of ['김서연님에게 설명합니다.', '김서연님한테 알려 주세요.', '김서연님께서도 답했습니다.', '김서연님의 기록.', '이상님에게 안내합니다.']) {

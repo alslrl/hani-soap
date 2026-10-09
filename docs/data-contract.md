@@ -90,3 +90,5 @@ JSON Schema의 형식·필수값·enum 검증 뒤 관계·시간·상태 검증�
 ## 두 경로 전사와 원문 보존
 
 작업의 `diarizedTranscriptId`·`contentTranscriptId`·`transcriptId`는 화자 모델 원본·본문 모델 원본·결합 전사의 별도 revision을 가리킨다. Segment의 선택 필드 `source_segment_ids`는 원래 화자 구간들, `alignment_status`는 자동 대응/검토 필요, `transcription_changed`는 모델별 표현 차이를 기록한다. 결합 구간을 이어 붙인 문자열은 본문 모델 원문과 정확히 같아야 한다. 기존 승인 문서와 전사 revision은 수정하지 않는다.
+
+전사 v2는 구간의 선택적 alignment_method(sentence/model_review/audio_recheck)를 보존한다. 원음 재전사로 확인한 추가 응답은 최초 본문 원문을 수정하지 않고 새 결합 revision에 provenance와 함께 들어간다.
