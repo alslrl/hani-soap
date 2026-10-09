@@ -18,7 +18,7 @@ export function identitiesForVisit(state: AppState, visitId: string): KnownIdent
 }
 const escaped = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const emailPattern = /(?<![\w.+-])[\w.!#$%&'*+/=?^`{|}~-]+@[a-z\d](?:[a-z\d-]*[a-z\d])?(?:\.[a-z\d](?:[a-z\d-]*[a-z\d])?)+(?![\w.-])/gi;
-const phonePattern = /(?<!\d)(?:0(?:1[016789]|2|[3-6][1-5]|70)|\+82[ .-]?(?:1[016789]|2|[3-6][1-5]|70))[ .-]?\d{3,4}[ .-]?\d{4}(?!\d)/g;
+const phonePattern = /(?<!\d)(?:0(?:1[016789]|2|[3-6][1-5]|70)|\+82[ .-]*(?:1[016789]|2|[3-6][1-5]|70))[ .-]*\d{3,4}[ .-]*\d{4}(?!\d)/g;
 const residentPattern = /(?<!\d)\d{6}[ -]?[1-8]\d{6}(?!\d)/g;
 function plausibleResidentNumber(value: string) {
   const digits = value.replace(/\D/g, '');
@@ -57,7 +57,7 @@ export class AiTextPrivacy {
       // Two-character names can be ordinary clinical words; require an honorific.
       const suffix = [...name.replace(/\s/g, '')].length <= 2
         ? '(?=(?:님|씨)(?:[\\s.,!?]|$|[은는이가께]))'
-        : '(?=$|[^\\p{L}\\p{N}]|(?:입니다|이에요|예요|이라고|이란|이라는|님|씨|은|는|이|가|을|를|의|에게|한테|께|과|와)(?=$|[^\\p{L}\\p{N}]|[은는이가께]))';
+        : '(?=$|[^\\p{L}\\p{N}]|(?:입니다|이에요|예요|이라고|이란|이라는|님|씨|은|는|이|가|을|를|의|에게|한테|께|과|와|으로|로|이랑|랑)(?=$|[^\\p{L}\\p{N}]|[은는이가께]))';
       const spelling = /^[가-힣]{3,}$/.test(name) ? [...name].map(escaped).join('[ \\t]*') : escaped(name);
       add(new RegExp(`(?<![\\p{L}\\p{N}])${spelling}${suffix}`, 'gu'), identity.kind, 3);
     }
