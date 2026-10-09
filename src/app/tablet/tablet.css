@@ -258,3 +258,285 @@
 @media(max-width:560px) and (orientation:portrait) { .tablet-app.is-portrait .tablet-patient strong>.tablet-patient-demographics { display:block; margin:0; font-size:9px; line-height:1.4; } .tablet-app.is-portrait .tablet-patient p { margin:0; font-size:9px; } }
 @keyframes tablet-sheet-in { from { opacity:0; transform:translate(-50%,8px); } to { opacity:1; transform:translate(-50%,0); } }
 .tablet-app.is-portrait .tablet-inspector.is-sheet-open { animation:tablet-sheet-in .18s ease-out; }
+
+/* EMR visual system; registered anatomy/ink geometry stays unchanged. */
+.tablet-app {
+  --tablet-border: #cedbe5;
+  background: #f1f5f8;
+  color: #1f3d54;
+}
+.tablet-header {
+  border-bottom: 2px solid #bfd5e5;
+}
+.tablet-brand {
+  color: #155f8e;
+}
+.tablet-brand > small {
+  color: #5f7b91;
+}
+.tablet-patient strong {
+  color: #1e3d55;
+}
+.tablet-patient p {
+  color: #506f86;
+}
+.tablet-patient strong span {
+  color: #57758b;
+}
+.tablet-change-visit {
+  color: #436f8d;
+  font-size: 13px;
+}
+.tablet-statusbar {
+  background: #e8eff5;
+  color: #476c87;
+  font-size: 11px;
+}
+.tablet-tabs {
+  border-color: #cbdbe7;
+}
+.tablet-tabs > button {
+  color: #526e83;
+}
+.tablet-tabs > button[aria-selected="true"] {
+  color: #115f92;
+  border-color: #126fa8;
+  background: #f6faff;
+}
+.tablet-tabs small {
+  background: #e2edf6;
+  color: #32678a;
+}
+.tablet-canvas-header h1 {
+  color: #263f54;
+  font-weight: 650;
+}
+.tablet-eyebrow {
+  color: #56778e;
+}
+.tablet-view-toggle {
+  background: #e0e9f1;
+  border: 1px solid #cbd9e4;
+  border-radius: 5px;
+}
+.tablet-view-toggle button {
+  min-height: 40px;
+  color: #4d6b80;
+  border-radius: 3px;
+  font-size: 13px;
+}
+.tablet-view-toggle button[aria-pressed="true"] {
+  color: #126fa8;
+}
+.tablet-canvas-guide strong,
+.tablet-canvas-guide > span:last-child {
+  color: #52748c;
+}
+.tablet-canvas-corner {
+  color: #5b7b92;
+  font-size: 11px;
+}
+.tablet-side-label,
+.tablet-body-anatomy .tablet-side-label {
+  fill: #4d728d;
+}
+.tablet-ink {
+  stroke: #244b68;
+}
+.tablet-check-ink {
+  stroke: #0879b4;
+}
+.tablet-selection-ring {
+  stroke: #126fa8;
+  fill: #126fa80e;
+}
+.tablet-icon-button {
+  min-width: 44px;
+  min-height: 44px;
+  border-color: #bfd1df;
+  color: #466f8d;
+  border-radius: 5px;
+  background: #fff;
+}
+.tablet-drawing-tools {
+  background: #fff;
+  border-color: #c9d9e5;
+}
+.tablet-drawing-tools button {
+  min-height: 44px;
+  border-radius: 4px;
+  border-color: #c0d2df;
+  color: #375f7b;
+  font-size: 12px;
+}
+.tablet-drawing-tools button[aria-pressed="true"] {
+  color: #0f6396;
+  background: #e3eff8;
+  border-color: #83b1d0;
+}
+.tablet-inspector {
+  border-color: #ccdae5;
+}
+.tablet-inspector-heading h2 {
+  font-size: 23px;
+  color: #243f55;
+}
+.tablet-inspector-heading p {
+  color: #55758c;
+  font-size: 13px;
+}
+.tablet-empty-locations strong {
+  font-size: 13px;
+  color: #506f85;
+}
+.tablet-empty-locations p {
+  font-size: 12px;
+  color: #5f7c90;
+}
+.tablet-location-row strong {
+  font-size: 14px;
+  color: #284a63;
+}
+.tablet-location-row strong small {
+  font-size: 11px;
+  color: #5c7b92;
+}
+.tablet-location-row p {
+  font-size: 12px;
+  color: #53768f;
+}
+.tablet-note-field {
+  font-size: 13px;
+  color: #385e7a;
+}
+.tablet-note-field textarea {
+  font-size: 14px;
+  border-color: #bfcedc;
+  color: #294b64;
+  background: white;
+  border-radius: 4px;
+}
+.tablet-note-field textarea::placeholder {
+  color: #6c8396;
+}
+.tablet-primary,
+.tablet-secondary {
+  font-size: 13px;
+  min-height: 44px;
+  border-radius: 4px;
+}
+.tablet-primary {
+  background: #126fa8;
+  border-color: #126fa8;
+}
+.tablet-primary:hover:not(:disabled) {
+  background: #095987;
+}
+.tablet-secondary {
+  color: #376e94;
+  border-color: #b8cfdf;
+}
+.tablet-field-help {
+  font-size: 12px;
+  color: #5d7a8f;
+}
+.tablet-confirmed-badge {
+  color: #236847;
+  background: #e6f2eb;
+}
+.tablet-draft-badge {
+  color: #556f83;
+  background: #ecf1f5;
+}
+.tablet-picker-heading h2 {
+  color: #244e6a;
+}
+.tablet-picker-fields label {
+  font-size: 12px;
+  color: #4f7089;
+}
+.tablet-picker-fields select {
+  font-size: 13px;
+  min-height: 44px;
+  border-color: #c0d0dd;
+  color: #345d7b;
+  background: white;
+}
+.tablet-point-option {
+  font-size: 14px;
+  min-height: 46px;
+  color: #2f536d;
+}
+.tablet-point-option small,
+.tablet-point-area {
+  font-size: 11px;
+  color: #58768d;
+}
+.tablet-location-types button {
+  font-size: 13px;
+  color: #536f86;
+}
+.tablet-location-types button[aria-selected="true"] {
+  color: #126fa8;
+  border-color: #126fa8;
+}
+.tablet-memo-details summary {
+  font-size: 12px;
+  color: #426b88;
+}
+.tablet-footer {
+  color: #5e7a91;
+  font-size: 10px;
+  background: #f6f9fb;
+}
+.tablet-history-notice {
+  background: #e8f0f7;
+  color: #4a6e88;
+}
+.tablet-history-notice button {
+  color: #26648d;
+}
+.tablet-history-toggle {
+  color: #406e8e;
+}
+.tablet-visit-list h1 {
+  color: #233f56;
+}
+.tablet-visit-list > p,
+.tablet-visit-rows span,
+.tablet-visit-rows small {
+  color: #59778e;
+}
+.tablet-live-candidates p {
+  font-size: 12px;
+  color: #385f7b;
+}
+.tablet-live-candidates small {
+  font-size: 11px;
+  color: #5e7d93;
+}
+.tablet-live-candidates button {
+  font-size: 12px;
+  min-height: 38px;
+  color: #365f7b;
+  border-color: #bfd0dd;
+}
+.tablet-app.is-portrait .tablet-header {
+  border-bottom-width: 2px;
+}
+.tablet-app.is-portrait .tablet-canvas-header h1 {
+  color: #243f55;
+}
+.tablet-app.is-portrait .tablet-drawing-tools {
+  border-top: 1px solid #bbcfdf;
+}
+.tablet-app.is-portrait .tablet-view-toggle button {
+  min-height: 44px;
+}
+.tablet-sheet-heading {
+  color: #294e69;
+}
+.tablet-sheet-footer {
+  font-size: 11px;
+  color: #567990;
+}

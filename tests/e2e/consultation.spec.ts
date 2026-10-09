@@ -51,6 +51,7 @@ test("opening a patient is read-only, and SOAP approval is separate from finishi
   await page.reload();
   await waitForVisit(page, visitId, "completed", "approved");
   await page.goto("/clinic");
-  const completedColumn = page.locator("section").filter({ has: page.getByRole("heading", { name: "진료 완료", exact: true }) });
-  await expect(completedColumn.getByRole("link").filter({ hasText: patient.display_name })).toBeVisible();
+  await page.getByRole("button", { name: /^진료 완료/ }).click();
+  const completedRow = page.getByRole("row").filter({ has: page.getByRole("link", { name: patient.display_name, exact: true }) });
+  await expect(completedRow.getByText("진료 완료", { exact: true })).toBeVisible();
 });

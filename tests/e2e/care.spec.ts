@@ -9,7 +9,7 @@ test("reviewed mock instructions lead to responses and contact work that needs e
   const existingOpenContacts = initial.state.contact_tasks.filter((item) => item.status === "open").map((item) => item.id);
 
   await page.goto("/clinic/care");
-  await expect(page.getByRole("heading", { name: "고객 케어", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "후속 관리", exact: true })).toBeVisible();
   await page.getByRole("button").filter({ hasText: patient.display_name }).first().click();
   await page.getByRole("button", { name: "＋ 새 안내", exact: true }).click();
   const body = `진료 후 상태를 살펴보고 불편한 점을 알려주세요. 모의 안내 ${Date.now()}`;

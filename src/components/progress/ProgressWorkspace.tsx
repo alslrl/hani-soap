@@ -47,14 +47,14 @@ function MetricChart({ values, visits, state }: { values: Observation[]; visits:
     <header className={styles.chartHeader}><div><h2>{metricLabel(first)}</h2><p>{[sideLabels[first.laterality ?? ""], regionLabels[first.body_region ?? ""] ?? first.body_region].filter(Boolean).join(" ") || (first.measurement_context === "nightly_wetting_reported_after_waking" ? "보호자 보고 · 야뇨 뒤 각성" : "같은 측정 조건의 방문 기록")}</p></div><div className={styles.latestScore}><strong>{latest.value}</strong><span>{first.instrument === "FREQUENCY" ? "회/밤" : "점"}<small>{formatClinicDate(latest.measured_at)}</small></span></div></header>
     <p className={styles.scaleLabel}>{metricScale(first)}</p>
     <div className={styles.chartScroll}><svg viewBox={`0 0 ${width} ${height}`} className={styles.chart} role="group" aria-label={`${metricLabel(first)} 방문별 그래프. 점을 선택하면 해당 기록을 확인합니다.`}>
-      {ticks.map((tick) => <g key={tick}><line x1={left} y1={y(tick)} x2={width - right} y2={y(tick)} stroke="#e5ecea" /><text x={left - 14} y={y(tick) + 5} textAnchor="end" className={styles.axisText}>{tick}</text></g>)}
-      {paths.map((value, index) => <path key={index} d={value} fill="none" stroke="#147d73" strokeWidth="3" />)}
+      {ticks.map((tick) => <g key={tick}><line x1={left} y1={y(tick)} x2={width - right} y2={y(tick)} stroke="#d9e4ed" /><text x={left - 14} y={y(tick) + 5} textAnchor="end" className={styles.axisText}>{tick}</text></g>)}
+      {paths.map((value, index) => <path key={index} d={value} fill="none" stroke="var(--accent)" strokeWidth="3" />)}
       {visits.map((visit, index) => {
         const value = byVisit.get(visit.id);
         return <g key={visit.id}><text x={x(index)} y={height - 22} textAnchor="middle" className={styles.axisText}>{new Intl.DateTimeFormat("ko-KR", { timeZone: "Asia/Seoul", month: "numeric", day: "numeric" }).format(new Date(visit.scheduled_at))}</text>
           {value ? <g role="button" tabIndex={0} aria-label={`${formatClinicDate(visit.scheduled_at)} ${value.value}${first.instrument === "FREQUENCY" ? "회/밤" : "점"} 기록 보기`} aria-pressed={value.id === selected.id} className={styles.chartPoint} onClick={() => setSelectedId(value.id)} onKeyDown={(event) => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); setSelectedId(value.id); } }}>
             <circle cx={x(index)} cy={y(value.value)} r="24" fill="transparent" />
-            <circle cx={x(index)} cy={y(value.value)} r={value.id === selected.id ? 8 : 6} fill={value.id === selected.id ? "#147d73" : "white"} stroke="#147d73" strokeWidth="3" />
+            <circle cx={x(index)} cy={y(value.value)} r={value.id === selected.id ? 8 : 6} fill={value.id === selected.id ? "var(--accent)" : "white"} stroke="var(--accent)" strokeWidth="3" />
             <text x={x(index)} y={y(value.value) - 17} textAnchor="middle" className={styles.pointValue}>{value.value}</text>
           </g> : <g><line x1={x(index)} y1={top + 16} x2={x(index)} y2={height - bottom} stroke="#d4ddda" strokeDasharray="4 5" /><text x={x(index)} y={top + 5} textAnchor="middle" className={styles.missingLabel}>미확인</text></g>}
         </g>;

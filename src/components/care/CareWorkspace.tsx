@@ -160,7 +160,7 @@ export function CareWorkspace() {
   }
 
   return <main className={styles.workspace}>
-    <header className={styles.pageHeader}><div><h1>고객 케어</h1><p>진료 후 안내와 환자 응답을 이어 확인합니다.</p></div><span className={styles.demoBadge}>가상 환자 · 모의 발송</span></header>
+    <header className={styles.pageHeader}><div><h1>후속 관리</h1><p>진료 후 안내와 환자 응답을 이어 확인합니다.</p></div><span className={styles.demoBadge}>가상 환자 · 모의 발송</span></header>
     <nav className={styles.tabs} aria-label="후속 관리 분류">{([["contact", "연락 필요"], ["review", "안내 발송 검토"], ["medication", "복약 관리"]] as const).map(([key, label]) => <button type="button" key={key} aria-current={tab === key ? "page" : undefined} onClick={() => setTab(key)}>{label}<span>{tabCounts[key]}</span></button>)}</nav>
     {error && <p className={styles.error} role="alert">{error}</p>}
     {pendingDestination && <div className={styles.unsaved} role="alert"><div><strong>저장하지 않은 안내가 있습니다.</strong><p>이동하기 전에 변경 내용을 처리해 주세요.</p></div><button type="button" onClick={saveAndMove} disabled={busy}>저장 후 이동</button><button type="button" onClick={() => applyDestination(pendingDestination)} disabled={busy}>변경 버리고 이동</button><button type="button" onClick={() => setPendingDestination(null)}>계속 편집</button></div>}
