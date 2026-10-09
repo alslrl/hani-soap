@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { displayRecordText } from "@/lib/presentation";
 import { useState } from "react";
 import { useAppState } from "@/lib/client";
 import {
@@ -113,7 +114,6 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
               <div>
                 <strong>{patient.display_name}</strong>
                 <span>차트 {patient.demo_key}</span>
-                <Badge>가상 환자</Badge>
               </div>
             </div>
             <dl className="hs-patient-details">
@@ -214,8 +214,8 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                 <span>
                   버전 {document.revision} ·{" "}
                   {document.origin === "synthetic_history"
-                    ? "합성 과거 이력"
-                    : "제공 사례 기반 데모 기록"}
+                    ? "이전 진료 기록"
+                    : "진료 기록"}
                 </span>
                 <Link
                   href={`/clinic/visits/${selected.id}`}
@@ -285,14 +285,10 @@ export default function PatientHistory({ patientId }: { patientId: string }) {
                     <div>
                       <span>{shortDate(message.scheduled_at)}</span>
                       <Badge>
-                        {message.delivery_mode === "mock"
-                          ? "모의 발송"
-                          : message.status === "sent"
-                            ? "발송됨"
-                            : "안내 초안"}
+                        {message.status === "sent" ? "발송 이력" : "안내 초안"}
                       </Badge>
                     </div>
-                    <p>{message.approved_body || message.draft_body}</p>
+                    <p>{displayRecordText(message.approved_body || message.draft_body)}</p>
                     {response && (
                       <div className="hs-history-care-response">
                         <span>↳</span>

@@ -37,9 +37,9 @@ export function KakaoConnectionPanel() {
     } catch (error) { setFeedback(error instanceof Error ? error.message : '카카오 연결을 확인해 주세요.'); setBusy(false); }
   }
   return <section style={{ borderTop: '1px solid var(--line)', marginTop: 28, paddingTop: 20 }} aria-label="카카오 연결">
-    <h2 style={{ fontSize: 16 }}>카카오톡 나에게 보내기</h2>
+    <h2 style={{ fontSize: 16 }}>카카오톡 연결</h2>
     <p>{connection?.connected ? `연결됨 · ${connection.accountLabel}` : connection?.configured ? '본인 카카오 계정 연결이 필요해요.' : connection ? '서버의 카카오 앱 설정이 필요해요.' : '연결 상태 확인 중…'}</p>
-    <p style={{ color: 'var(--muted)', fontSize: 13 }}>승인한 가상 환자 안내를 연결한 본인의 ‘나와의 채팅’에 보냅니다.</p>
+    <p style={{ color: 'var(--muted)', fontSize: 13 }}>확인한 안내문을 연결된 본인의 ‘나와의 채팅’에 보냅니다.</p>
     <div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}>
       <button type="button" disabled={busy || !connection?.configured} onClick={() => change()} style={{ background: '#FEE500', color: '#191919', border: 0, borderRadius: 8, padding: '12px 20px', cursor: 'pointer' }}>{connection?.connected ? '카카오 계정 다시 연결' : '카카오로 연결'}</button>
       {connection?.connected && <><button type="button" disabled={busy} onClick={() => change(true)}>연결 해제</button><Link href="/clinic/care">승인 안내 보내기 →</Link></>}

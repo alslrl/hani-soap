@@ -12,7 +12,7 @@ export function responseOptions(stage: CareMessage['stage']): CareResponse['opti
 }
 /** Kakao text templates allow 200 characters; the link always opens the full approved text. */
 export function kakaoPreview(body: string) {
-  const prefix = '[HaniSOAP 데모 · 가상 환자]\n';
+  const prefix = '[HaniSOAP]\n';
   const complete = prefix + body;
   if ([...complete].length <= 200) return complete;
   const suffix = '\n…전체 안내는 링크에서 확인해 주세요.';

@@ -31,3 +31,7 @@ button { color:var(--ink); }
 .app-logo { border-radius:9px; background:var(--accent-fill); }
 .app-rail a.rail-link { border-radius:7px; }
 ::selection { background:#dedede; color:var(--ink); }
+
+/* Hide fixture-only captions while retaining anatomy attribution links. */
+.tablet-index > .tablet-field-help,
+.tablet-footer-source > span { display: none; }
