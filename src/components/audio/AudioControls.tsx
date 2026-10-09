@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import Link from 'next/link';
-import { Mic, Square, Upload, RotateCcw, Check, FileText, Download } from 'lucide-react';
+import { Mic, Square, Upload, RotateCcw, Check, FileText, Download, ArrowRight } from 'lucide-react';
 import type { RuntimeJob, RuntimeRecording, Transcript } from '@/lib/types';
 import { audioStore, closeRecoveredSession, commitLiveTurn, startRecording, stopRecording, startTranscriptionJob, uploadAudio } from '@/lib/audio/client';
 import { listRecoveries, readRecovery, removeRecovery, type RecoveryMetadata } from '@/lib/audio/recovery';
@@ -92,7 +92,7 @@ export function AudioControls({ visitId, onChanged }: Props) {
     {active && <p className={styles.notice}>로컬 복구본: {({ ready: '준비 중', saved: '브라우저에 저장됨', failed: '저장 실패' })[audio.recoveryStatus]} · 아이패드는 별도로 녹음하지 않습니다.</p>}
     {configured === false && <p className={styles.notice}>AI가 아직 연결되지 않았습니다. 파일은 저장할 수 있고, 연결 후 전사할 수 있습니다. <Link href="/settings">연결 설정</Link></p>}
     {(error || (active && audio.error)) && <div role="alert" className={styles.error}>{error || audio.error}</div>}
-    {ownerHere && (audio.liveText || audio.partialText) && <div className={styles.live} aria-live="polite">{audio.liveText}{audio.partialText && <span className={styles.partial}>{'\n'}{audio.partialText}</span>}</div>}
+    {ownerHere && (audio.liveText || audio.partialText) && <section className={styles.liveSection} aria-label="실시간 전사"><header><strong>실시간 전사</strong><span>발화 순서대로 표시됩니다.</span></header><div className={styles.live} aria-live="polite">{audio.liveText.split('\n').filter(Boolean).map((line, index) => <p key={index}>{line}</p>)}{audio.partialText && <p className={styles.partial}><span>인식 중</span>{audio.partialText}</p>}</div></section>}
     {pending.map((job) => <div key={job.id} className={styles.job}><span className={styles.jobName}>{stageLabels[job.stage] || job.stage}</span><span>{job.status === 'failed' ? job.error : '실제 AI 작업'}</span></div>)}
     {data.jobs.filter((job) => job.stage === 'stale_input').map((job) => <p className={styles.notice} key={job.id}>생성 중 전사가 변경되어 이전 입력의 SOAP는 별도로 보관했습니다. 최신 전사를 검토한 뒤 다시 생성해 주세요.</p>)}
     {retryableFiles.map((recording) => <div key={recording.id} className={styles.job}><span className={`${styles.jobName} ${styles.filename}`}>{recording.filename}</span><button className={styles.button} disabled={busy} onClick={() => void execute(async () => { await startTranscriptionJob(visitId, recording.id); })}><RotateCcw size={12} /> 전사 실행</button></div>)}
@@ -113,6 +113,7 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
   const [speakers, setSpeakers] = useState<Record<string, string>>(() => reviewedTranscript?.segments.length === transcript.segments.length ? Object.fromEntries(transcript.segments.map((segment, index) => [segment.id, reviewedTranscript.segments[index].speaker])) : {});
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [reviewTab, setReviewTab] = useState<'terms' | 'speakers' | 'text'>(() => candidates.length ? 'terms' : transcript.segments.length ? 'speakers' : 'text');
   const effectiveCorrections = candidates.map((candidate): ValidatedCorrection => {
     const selected = retrieved.find(span => span.id === candidate.span_id)?.candidates.find(term => term.id === selections[candidate.span_id]);
     return { ...candidate, ...(selected ? { decision: 'suggest' as const, candidate_id: selected.id, candidate: selected, replacement: selected.matched_form ?? selected.term } : {}), review_status: decisions[candidate.span_id] || (selections[candidate.span_id] !== undefined ? 'pending' : candidate.review_status) };
@@ -137,28 +138,55 @@ export function TranscriptReview({ job, transcript, reviewedTranscript, latestRe
     } catch (failure) { setError(failure instanceof Error ? failure.message : '전사 검토 저장 실패'); }
     finally { setBusy(false); }
   };
-  return <details className={styles.details}><summary><FileText size={12} style={{ display: 'inline', marginRight: 5 }} /> 전사 원문과 용어 제안 검토</summary><div className={styles.review}>
-    <p className={styles.notice}>전사 원문을 보존합니다. 용어 후보는 개별 수락 후 새 전사 버전에 반영하며, 화자 A/B는 의료진·환자 역할을 자동 확정하지 않습니다.</p>
-    <button className={styles.button} disabled={busy || edited || !recheckEnabled} onClick={() => void recheck()}><RotateCcw size={12} /> 저장된 전사로 용어 다시 검사</button>
-    {edited && <p className={styles.notice}>편집·선택한 내용을 먼저 저장한 뒤 용어를 다시 검사해 주세요.</p>}
-    {typeof job.result?.correction_note === 'string' && <p className={styles.notice}>{job.result.correction_note}</p>}
-    {Array.isArray(job.result?.warnings) && job.result.warnings.map((warning, index) => <p key={index} className={styles.notice}>검토할 내용: {String(warning)}</p>)}
-    <details><summary>보존된 전사 원문</summary><p className={styles.notice} style={{ whiteSpace: 'pre-wrap' }}>{transcript.text}</p></details>
-    {candidates.map((candidate) => {
-      const options = retrieved.find(span => span.id === candidate.span_id)?.candidates ?? (candidate.candidate ? [candidate.candidate] : []);
-      const chosen = options.find(term => term.id === (selections[candidate.span_id] ?? candidate.candidate_id));
-      const form = chosen?.matched_form ?? chosen?.term;
-      return <div key={candidate.span_id} className={styles.correction}><strong>{candidate.original}</strong>{form && <> → <strong>{form}</strong> {chosen?.hanja}</>}<p>AI 검토: {candidate.reason}</p>
-        {options.length > 0 && <label>사전 후보<select className={styles.select} aria-label={`사전 후보 ${candidate.original}`} value={selections[candidate.span_id] ?? candidate.candidate_id ?? ''} disabled={manualText !== null && manualText !== corrected} onChange={event => { const value = event.target.value; setSelections(current => ({ ...current, [candidate.span_id]: value })); setDecisions(current => { const next = { ...current }; delete next[candidate.span_id]; return next; }); setManualText(null); }}><option value="">선택하지 않음</option>{options.map(term => <option key={term.id} value={term.id}>{term.matched_form ?? term.term}{term.hanja ? ` · ${term.hanja}` : ''}</option>)}</select></label>}
-        {chosen && <p className={styles.notice}>사전 명칭: {chosen.term} · 근거: {chosen.sources.map(source => `${source.title} · ${source.original}`).join(' / ')}</p>}
-        <div className={styles.controls}>{chosen && <button className={`${styles.button} ${decisions[candidate.span_id] === 'accepted' ? styles.selected : ''}`} disabled={manualText !== null && manualText !== corrected} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'accepted' })); setManualText(null); }}>선택 후보 수락</button>}<button className={`${styles.button} ${decisions[candidate.span_id] === 'rejected' ? styles.selected : ''}`} disabled={manualText !== null && manualText !== corrected} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'rejected' })); setManualText(null); }}>원문 유지</button></div></div>;
-    })}
-    {transcript.segments.map((segment, index) => <div className={styles.speaker} key={segment.id}><span>구간 {index + 1}</span><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={speakers[segment.id] || segment.speaker} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select><p>{segment.text}</p></div>)}
-    <label>검토 전사<textarea className={styles.text} value={manualText ?? corrected} onChange={(event) => setManualText(event.target.value)} /></label>
-    {job.result?.reviewedTranscriptId ? <p className={styles.notice}>검토 버전이 저장되어 있습니다. 다시 저장하면 새 버전을 추가합니다.</p> : null}
-    {error && <div role="alert" className={styles.error}>{error}</div>}
-    <div><button className={`${styles.button} ${styles.primary}`} disabled={busy} onClick={() => void save()}><Check size={13} /> {busy ? '저장과 생성 중' : '전사 검토 저장 · SOAP 다시 생성'}</button></div>
-  </div></details>;
+  const acceptedCount = effectiveCorrections.filter(item => item.review_status === 'accepted').length;
+  const pendingCount = effectiveCorrections.filter(item => item.review_status === 'pending').length;
+  return <details className={`${styles.details} ${styles.reviewDisclosure}`}>
+    <summary><FileText size={15} /> <span>전사 원문과 용어 제안 검토</span><span className={styles.summaryCount}>{candidates.length ? `용어 ${candidates.length}건` : '전사 확인'}</span></summary>
+    <div className={styles.review}>
+      <header className={styles.reviewHeader}>
+        <div><h2>전사 검토</h2><p>원문을 확인하고 용어와 화자 역할을 검토해 주세요.</p></div>
+        <button className={styles.button} disabled={busy || edited || !recheckEnabled} onClick={() => void recheck()}><RotateCcw size={14} /> 저장된 전사로 용어 다시 검사</button>
+      </header>
+      {edited && <p className={styles.notice}>편집·선택한 내용을 먼저 저장한 뒤 용어를 다시 검사해 주세요.</p>}
+      {typeof job.result?.correction_note === 'string' && <p className={styles.notice}>{job.result.correction_note}</p>}
+      {Array.isArray(job.result?.warnings) && job.result.warnings.map((warning, index) => <p key={index} className={styles.reviewWarning}>검토할 내용: {String(warning)}</p>)}
+      <div className={styles.reviewTabs} role="group" aria-label="전사 검토 단계">
+        <button type="button" aria-pressed={reviewTab === 'terms'} onClick={() => setReviewTab('terms')}>용어 검토 <span>{candidates.length}</span></button>
+        <button type="button" aria-pressed={reviewTab === 'speakers'} onClick={() => setReviewTab('speakers')}>화자 확인 <span>{transcript.segments.length}</span></button>
+        <button type="button" aria-pressed={reviewTab === 'text'} onClick={() => setReviewTab('text')}>전사 편집</button>
+      </div>
+      {reviewTab === 'terms' && <section className={styles.reviewPanel} aria-label="용어 검토">
+        <div className={styles.panelIntro}><p>수락한 후보만 검토 전사에 반영됩니다.</p><span>수락 {acceptedCount} · 검토 필요 {pendingCount}</span></div>
+        {candidates.length ? <div className={styles.corrections}>{candidates.map((candidate, index) => {
+          const options = retrieved.find(span => span.id === candidate.span_id)?.candidates ?? (candidate.candidate ? [candidate.candidate] : []);
+          const chosen = options.find(term => term.id === (selections[candidate.span_id] ?? candidate.candidate_id));
+          const form = chosen?.matched_form ?? chosen?.term;
+          const status = effectiveCorrections[index].review_status;
+          const manuallyEdited = manualText !== null && manualText !== corrected;
+          return <article key={candidate.span_id} className={styles.correction}>
+            <header className={styles.correctionHeader}><div><span className={styles.originalTerm}>{candidate.original}</span>{form && <><ArrowRight size={15} /><strong>{form}</strong>{chosen?.hanja && <small>{chosen.hanja}</small>}</>}</div><span className={styles.decisionState}>{status === 'accepted' ? '수락' : status === 'rejected' ? '원문 유지' : '검토 필요'}</span></header>
+            <p className={styles.correctionReason}>{candidate.reason}</p>
+            <div className={styles.correctionActions}>
+              {options.length > 0 && <label>사전 후보<select className={styles.select} aria-label={`사전 후보 ${candidate.original}`} value={selections[candidate.span_id] ?? candidate.candidate_id ?? ''} disabled={manuallyEdited} onChange={event => { const value = event.target.value; setSelections(current => ({ ...current, [candidate.span_id]: value })); setDecisions(current => { const next = { ...current }; delete next[candidate.span_id]; return next; }); setManualText(null); }}><option value="">선택하지 않음</option>{options.map(term => <option key={term.id} value={term.id}>{term.matched_form ?? term.term}{term.hanja ? ` · ${term.hanja}` : ''}</option>)}</select></label>}
+              <div className={styles.controls}>{chosen && <button className={`${styles.button} ${status === 'accepted' ? styles.selected : ''}`} aria-pressed={status === 'accepted'} disabled={manuallyEdited} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'accepted' })); setManualText(null); }}>선택 후보 수락</button>}<button className={`${styles.button} ${status === 'rejected' ? styles.selected : ''}`} aria-pressed={status === 'rejected'} disabled={manuallyEdited} onClick={() => { setDecisions(current => ({ ...current, [candidate.span_id]: 'rejected' })); setManualText(null); }}>원문 유지</button></div>
+            </div>
+            {chosen && <details className={styles.source}><summary>사전 명칭·출처 확인</summary><strong>{chosen.term}</strong>{chosen.sources.map((source, sourceIndex) => <p key={sourceIndex}>{source.title} · {source.original}</p>)}</details>}
+          </article>;
+        })}</div> : <p className={styles.empty}>검토할 용어 제안이 없습니다. 화자와 전사 내용을 확인해 주세요.</p>}
+      </section>}
+      {reviewTab === 'speakers' && <section className={styles.reviewPanel} aria-label="화자 확인">
+        <div className={styles.panelIntro}><p>발화를 읽고 화자 역할을 확인해 주세요. A/B 표시는 역할을 자동 확정하지 않습니다.</p></div>
+        <div className={styles.speakerList}>{transcript.segments.length ? transcript.segments.map((segment, index) => <article className={styles.speaker} key={segment.id}>
+          <header><div><strong>구간 {String(index + 1).padStart(2, '0')}</strong>{segment.start_ms !== null && <time>{time(segment.start_ms)}</time>}</div><select className={styles.select} aria-label={`구간 ${index + 1} 화자 역할`} value={speakers[segment.id] || segment.speaker} onChange={(event) => setSpeakers((current) => ({ ...current, [segment.id]: event.target.value }))}><option value="unknown">역할 미확인</option><option value="clinician">의료진</option><option value="patient">환자</option><option value="guardian">보호자</option></select></header>
+          <p>{segment.text}</p>
+        </article>) : <p className={styles.empty}>화자별 구간이 없는 전사입니다. 전사 편집에서 전체 내용을 확인해 주세요.</p>}</div>
+      </section>}
+      {reviewTab === 'text' && <section className={styles.reviewPanel} aria-label="전사 편집"><div className={styles.panelIntro}><p>수락한 용어가 반영된 내용입니다. 필요한 부분을 직접 수정할 수 있습니다.</p></div><label className={styles.editorLabel}>검토 전사<textarea className={styles.text} aria-label="검토 전사" value={manualText ?? corrected} onChange={(event) => setManualText(event.target.value)} /></label></section>}
+      <details className={styles.original}><summary>보존된 전사 원문</summary><div>{transcript.text.split(/\n+/).filter(Boolean).map((paragraph, index) => <p key={index}>{paragraph}</p>)}</div></details>
+      {error && <div role="alert" className={styles.error}>{error}</div>}
+      <footer className={styles.reviewFooter}><p>{job.result?.reviewedTranscriptId ? '저장하면 새 검토 버전을 추가합니다.' : '전사 원문은 보존되며, 검토 결과를 새 버전으로 저장합니다.'}</p><button className={`${styles.button} ${styles.primary}`} disabled={busy} onClick={() => void save()}><Check size={14} /> {busy ? '저장과 생성 중' : '전사 검토 저장 · SOAP 다시 생성'}</button></footer>
+    </div>
+  </details>;
 }
 
 export default AudioControls;
