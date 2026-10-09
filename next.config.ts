@@ -7,9 +7,10 @@ const config: NextConfig = {
   devIndicators: false,
   turbopack: { root: process.cwd() },
   poweredByHeader: false,
+  serverExternalPackages: ["ffmpeg-static"],
   reactStrictMode: true,
   outputFileTracingIncludes: {
-    "/*": ["./data/demo/patients.seed.json", "./data/demo/demo.schema.json", "./data/*_출처기록.json"],
+    "/*": ["./data/demo/patients.seed.json", "./data/demo/demo.schema.json", "./data/*_출처기록.json", "./node_modules/ffmpeg-static/ffmpeg"],
     "/api/**/*": ["./data/**/*.jsonl", "./data/**/*.txt"],
   },
   async headers() {

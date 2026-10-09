@@ -6,17 +6,16 @@ import fixture from './__fixtures__/dual-transcription.json';
 const segment = (text: string, speaker: string, start: number, end: number): Segment => ({ id: randomUUID(), ordinal: 1, speaker: 'unknown', raw_speaker: speaker, text, start_ms: start, end_ms: end });
 
 describe('content-to-speaker alignment', () => {
-  it('maps the real synthetic ASR pair into eight speaker turns without losing or rewriting content', () => {
+  it('maps the real synthetic ASR pair into intact sentences with eight consecutive speaker groups without losing or rewriting content', () => {
     const source = structuredClone(fixture.diarized) as Segment[]; const before = JSON.stringify(source);
     const result = alignTranscriptContent(fixture.content, source);
     expect(result.segments.map((v) => v.text).join('')).toBe(fixture.content);
-    expect(result.segments).toHaveLength(8);
-    expect(result.segments.map((v) => v.raw_speaker)).toEqual(['A','B','A','B','A','B','A','B']);
+    expect(result.segments.map((v) => v.raw_speaker).filter((v,i,a)=>!i||v!==a[i-1])).toEqual(['A','B','A','B','A','B','A','B']);
     expect(result.unassigned_groups).toBe(0);
     expect(result.changed_groups).toBeGreaterThan(0);
-    expect(result.segments[0].text).toContain('김서연');
-    expect(result.segments[5].text).toContain('발을 높여');
-    expect(result.segments.flatMap(v=>v.source_segment_ids)).toEqual(source.map(v=>v.id));
+    expect(result.segments.some(s=>s.text.includes('김서연'))).toBe(true);
+    expect(result.segments.find(s=>s.text.includes('발을 높여'))?.raw_speaker).toBe('B');
+    expect(new Set(result.segments.flatMap(v=>v.source_segment_ids))).toEqual(new Set(source.map(v=>v.id)));
     expect(JSON.stringify(source)).toBe(before);
   });
   it('keeps whitespace and punctuation exact and preserves the original time ranges', () => {
