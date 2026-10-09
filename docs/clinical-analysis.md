@@ -24,3 +24,13 @@ ensureClinicalAnalysis(visitId: string, transcriptId?: string, sessionId?: strin
 UI는 FollowupEditor에만 연결했다. 편집 중인 직접 답변이 있으면 먼저 저장해야 후보를 반영할 수 있다. 확인·제외·직접 수정·충돌 교체가 명시적이며, 미확인 항목은 질문 목록으로 남는다.
 
 검증은 합성 전사/격리 로컬 저장소만 사용했다. 과거8/현재5·현재0·미응답 질문·보호자 야뇨2·직접 걱정/이해/실천 어려움, exact source/quote, 후보 확인·편집·중복·충돌·stale/PIN/Origin/환자 범위, 원문/승인 기록 보존, outbound 개인정보 가림과 audit count, Vercel Workflow dispatch 및 nonfatal 실패를 테스트한다. 실제 provider 호출은 합성 샘플3건으로 제한했다. 운영 배포와 초기 자동 hook 통합은 부모 작업에서 수행한다.
+
+## 전사 근거 답변 초안과 단일 NRS 입력
+
+답변 후보는 질문의 실제 상세 답변 입력칸에도 `전사 기반 AI 초안 · 검토 전`으로 채운다. 미응답 항목은 빈 값/미확인 상태를 유지한다. 저장된 의료진 답변이나 로컬에서 편집 중인 답변·측정값은 자동으로 바꾸지 않는다. 현재는 FollowupEditor 전체 dirty guard를 사용한다. 후보 도착도 hydration signature에 반영하므로, 화면 새로고침 없이 빈 답변에 초안이 표시된다. 모델은 화면 polling에서 호출하지 않는다.
+
+미확인 초안 저장은 `POST /api/clinical-analysis/answers`로 처리한다. visitId/patientId/answers/transcriptDrafts/expectedVersion을 받는다. transcriptDrafts는 candidateId/jobId/item_key/subitem_key/transcriptId/transcriptRevision/expectedTarget 연결 정보다. 서버는 저장 전에 같은 최신 전사와 정확한 원문 인용, 초안을 채울 때의 기존 답변 signature를 검증한다. 이후 기존 followup.save와 source_refs 부착을 같은 updateState 트랜잭션에서 수행한다. 초안은 review_status=draft이며 명시적인 confirmation_status=confirmed 선택이 있을 때만 reviewed로 바뀐다. 의료진 텍스트 수정에는 원래 음성 인용과 manual 출처를 함께 남기고 후보 검토 메타데이터에도 연결한다. 빈 답변은 확인 완료로 자동 승격하지 않는다. 기존 actions.ts는 수정하지 않는다.
+
+공유 순수 helper `getTranscriptNrsProposal(state,visitId,match)`는 `{jobId,candidate,transcriptRevision,patientId}` 또는 undefined를 반환한다. match는 metric_key/instrument/body_region/laterality/activity_key/measurement_context를 포함한다. 현재 pending NRS/score/0~10 정수와 실제 전사 인용만 사용하며, 부위가 null인 모호한 값·다른 부위·좌우·활동·측정 조건·과거 전사·FREQUENCY는 제외한다. 발목의 명시적인 한글/영문 표기만 안전하게 정규화한다. 오늘 같은 조건의 값이 이미 저장되어 있으면 제안을 반환하지 않는다. NrsPanel의 로컬 dirty/자동 초안 바인딩과 저장은 부모에서 담당한다.
+
+ClinicalAnalysisReview와 FollowupEditor의 선택적 nrsTarget은 기존 target의 metric_key/body_region/laterality/activity_key/measurement_context/inputId 형태와 호환된다. 일치하는 NRS 후보는 읽기 전용 제안/원문과 ‘통증 NRS 입력으로 이동’ 버튼만 표시하고 후보 숫자 편집·별도 값 확인 UI는 만들지 않는다. 다른 조건 측정과 소변 횟수는 기존 검토 카드로 유지한다. 이 변경에서 별도 NRS navigation 커밋 eb434는 cherry-pick하지 않았으며 부모의 기존 editableMetrics/openNrs 연동과 함께 통합한다.

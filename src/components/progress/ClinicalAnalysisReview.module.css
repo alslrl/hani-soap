@@ -16,3 +16,8 @@
 .conflict { padding:12px; border:1px solid #baa36f; border-radius:6px; margin:12px 0; }
 .measurement { font-size:16px; font-weight:600; }
 @media(max-width:650px) { .root header { display:block; }.root { padding:12px; }.heading { display:block; }.heading span { display:block; } }
+
+.draftBadge { padding:10px 12px; margin:12px 0; border:1px solid var(--border,#ddd); border-radius:6px; font-size:12px; font-weight:400; line-height:1.7; }
+.draftBadge strong { font-size:11px; font-weight:600; }
+.draftBadge summary { cursor:pointer; margin-top:6px; }
+.draftBadge blockquote { margin:10px 0 0; padding-left:10px; border-left:2px solid var(--border,#ddd); white-space:pre-wrap; font-size:13px; font-weight:400; }

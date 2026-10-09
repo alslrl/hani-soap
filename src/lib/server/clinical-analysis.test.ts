@@ -4,6 +4,8 @@ import { randomUUID } from 'node:crypto';
 import { mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { POST as saveDraftAnswers } from '../../app/api/clinical-analysis/answers/route';
+import { prefillTranscriptAnswerDrafts } from '../ai/clinical-analysis-drafts';
 import { POST as startAnalysis } from '../../app/api/clinical-analysis/route';
 import { applyAction } from './actions';
 import { prepareClinicalAnalysis } from '../ai/clinical-analysis-jobs';
@@ -101,4 +103,30 @@ test('measurement edits have manual provenance; conflicts protect existing value
   assert.equal((await review(request(edited))).status, 200); assert.equal((await review(request(edited))).status, 200);
   const { state } = await readState(); const current = state.observations.filter(o => o.visit_id === visitId);
   assert.deepEqual(current.map(o => o.value), [5,2]); assert.equal(current[1].source_refs.filter(ref => ref.kind === 'manual').length, 1); assert.equal(current[1].source_refs.filter(ref => ref.kind === 'provided_transcript').length, 1);
+});
+
+async function draftSaveBody() {
+  const {state}=await readState();
+  const prefilled=prefillTranscriptAnswerDrafts(state,visitId,{'pain:current_pain':{item_key:'pain' as const,subitem_key:'current_pain',answer_text:state.followup_answers.find(a=>a.visit_id===visitId&&a.item_key==='pain'&&a.subitem_key==='current_pain')?.answer_text ?? '',change:null,confirmation_status:'not_confirmed' as const,applicability:'unknown' as const}});
+  return {visitId,patientId:state.visits.find(v=>v.id===visitId)!.patient_id,answers:Object.values(prefilled.drafts),transcriptDrafts:Object.values(prefilled.bindings)};
+}
+test('questionnaire AI drafts save voice provenance while unconfirmed and preserve it through explicit edited confirmation',async()=>{
+  const before=await readState();const draft=await draftSaveBody();assert.equal(draft.transcriptDrafts.length,1);
+  assert.equal((await saveDraftAnswers(request(draft))).status,200);
+  let state=(await readState()).state;let saved=state.followup_answers.find(a=>a.visit_id===visitId&&a.item_key==='pain'&&a.subitem_key==='current_pain')!;
+  assert.equal(saved.answer_text,raw.text);assert.equal(saved.review_status,'draft');assert.equal(saved.confirmation_status,'not_confirmed');assert.equal(saved.source_refs[0].quote,raw.text);
+  assert.equal((state.jobs.find(j=>j.id===jobId)!.result!.candidates as {kind:string;status:string}[]).find(c=>c.kind==='answer')!.status,'pending');
+  const confirmed=await draftSaveBody();confirmed.answers[0]={...confirmed.answers[0],answer_text:'의료진 편집: 현재 통증 없음.',confirmation_status:'confirmed' as any,applicability:'applicable' as any};
+  assert.equal((await saveDraftAnswers(request(confirmed))).status,200);
+  state=(await readState()).state;saved=state.followup_answers.find(a=>a.visit_id===visitId&&a.item_key==='pain'&&a.subitem_key==='current_pain')!;
+  assert.equal(saved.review_status,'reviewed');assert.equal(saved.confirmation_status,'confirmed');assert.equal(saved.source_refs.filter(r=>r.kind==='provided_transcript').length,1);assert.equal(saved.source_refs.filter(r=>r.kind==='manual').length,1);
+  const duplicate=await review(request({...await bodyFor('answer'),edit:{text:'의료진 편집: 현재 통증 없음.'}}));assert.equal(duplicate.status,200);assert.equal((await duplicate.json()).reused,true);
+  assert.deepEqual(state.observations,before.state.observations);assert.deepEqual(state.contact_tasks,before.state.contact_tasks);assert.deepEqual(state.transcripts,before.state.transcripts);assert.deepEqual(state.soap_documents,before.state.soap_documents);
+});
+test('source-aware draft save protects concurrent clinician edits and rejects stale or cross-origin sources atomically',async()=>{
+  const draft=await draftSaveBody();
+  assert.equal((await saveDraftAnswers(request(draft,{cookie:''}))).status,401);assert.equal((await saveDraftAnswers(request(draft,{origin:'https://untrusted.example'}))).status,403);
+  await updateState(state=>{applyAction(state,{type:'followup.answer',payload:{visitId,item_key:'pain',subitem_key:'current_pain',answer_text:'의료진 입력 유지',confirmation_status:'confirmed'}});});
+  const before=await readState();assert.equal((await saveDraftAnswers(request(draft))).status,409);assert.deepEqual((await readState()).state.followup_answers,before.state.followup_answers);
+  await updateState(state=>{state.transcripts.push({...raw,id:randomUUID(),revision:2});});assert.equal((await saveDraftAnswers(request(draft))).status,409);
 });

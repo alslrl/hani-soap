@@ -28,6 +28,17 @@ test('analysis candidates require review, preserve zero, allow edits and explici
   });
   await page.goto(`/clinic/visits/${visitId}`);
   await page.getByRole('tab',{name:'재진 질문',exact:true}).click();
+  const questionNav=page.getByRole('navigation',{name:'재진 질문 항목'});
+  await questionNav.getByRole('button').nth(1).click();
+  const painField=page.getByRole('group',{name:'현재 통증',exact:true});
+  await expect(painField.locator('textarea')).toHaveValue(text);
+  await expect(painField.getByRole('note',{name:'전사 기반 AI 초안'})).toBeVisible();
+  await expect(painField.getByLabel('확인 상태')).toHaveValue('not_confirmed');
+  await questionNav.getByRole('button').nth(6).click();
+  const sleepField=page.getByRole('group',{name:'입면·각성·회복감',exact:true});
+  await expect(sleepField.locator('textarea')).toHaveValue('');
+  await expect(sleepField.getByRole('note',{name:'전사 기반 AI 초안'})).toHaveCount(0);
+  await questionNav.getByRole('button').nth(1).click();
   const region=page.locator('details').filter({has:page.locator('summary').filter({hasText:/^전사 기반 진료 분석/})}).first();
   await expect(region.getByText('현재 통증 NRS 0점',{exact:true})).toBeVisible();
   const answer=region.getByRole('article').filter({hasNot:page.getByText('현재 통증 NRS 0점',{exact:true})}).filter({has:page.getByText('통증 · 현재 통증',{exact:true})});
@@ -46,4 +57,57 @@ test('analysis candidates require review, preserve zero, allow edits and explici
   await expect(region.getByText(/아직 전사 답변이 없는 항목/)).toBeVisible();
   await page.waitForTimeout(1500);expect(modelRequests).toBe(0);
   if(process.env.HANI_VISUAL_OUTPUT_DIR) await page.screenshot({path:`${process.env.HANI_VISUAL_OUTPUT_DIR}/clinical-analysis-review.png`,fullPage:true});
+});
+
+
+test('AI answer form save carries bindings through unconfirmed draft and explicit edited confirmation',async({page})=>{
+  const envelope=await localDemo(page),{current_visit_id:visitId}=scenario(envelope,'A');
+  const patientId=envelope.state.visits.find(v=>v.id===visitId)!.patient_id;
+  const text='현재 오른쪽 발목 통증은 0점이에요.';
+  const transcript:Transcript={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,revision:91,status:'reviewed',source_asset_key:'manual_seed',origin:'manual_demo',text,segments:[{id:randomUUID(),ordinal:1,speaker:'patient',text,start_ms:0,end_ms:1000}]};
+  const result=validateClinicalAnalysis({answers:[{item_key:'pain',subitem_key:'current_pain',text,temporal:'current',change:null,evidence:[{segment_id:transcript.segments[0].id,quote:text}]}],measurements:[],signals:[],missing_questions:[]},transcript);
+  const job:RuntimeJob={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,kind:'analysis',status:'waiting_review',stage:'clinical_analysis_review',input_hash:'form-draft',created_at:'2026-10-09T02:00:00Z',updated_at:'2026-10-09T02:00:00Z',result:{task:'clinical_analysis',patientId,transcriptId:transcript.id,input_transcript_revision:91,stale_input:false,...result}};
+  envelope.state.transcripts.push(transcript);envelope.state.jobs.push(job);
+  const bodies:any[]=[];
+  await page.route('**/api/state',route=>route.fulfill({json:envelope}));
+  await page.route('**/api/clinical-analysis/answers',route=>{
+    const body=route.request().postDataJSON();bodies.push(body);
+    const answer=body.answers.find((a:any)=>a.item_key==='pain'&&a.subitem_key==='current_pain');
+    let stored=envelope.state.followup_answers.find(a=>a.visit_id===visitId&&a.item_key==='pain'&&a.subitem_key==='current_pain')!;
+    Object.assign(stored,answer,{review_status:answer.confirmation_status==='confirmed'?'reviewed':'draft',source_refs:result.candidates[0].source_refs});
+    if(answer.confirmation_status==='confirmed') result.candidates[0].status='confirmed';
+    envelope.version++;return route.fulfill({json:envelope});
+  });
+  await page.goto(`/clinic/visits/${visitId}`);await page.getByRole('tab',{name:'재진 질문',exact:true}).click();
+  await page.getByRole('navigation',{name:'재진 질문 항목'}).getByRole('button').nth(1).click();
+  const field=page.getByRole('group',{name:'현재 통증',exact:true});
+  await expect(field.locator('textarea')).toHaveValue(text);await expect(field.getByRole('note',{name:'전사 기반 AI 초안'})).toBeVisible();
+  await page.getByRole('button',{name:'오늘 답변 저장',exact:true}).click();
+  await expect.poll(()=>bodies[0]?.answers.find((a:any)=>a.item_key==='pain')).toMatchObject({answer_text:text,confirmation_status:'not_confirmed'});
+  await expect.poll(()=>bodies[0]?.transcriptDrafts[0]).toMatchObject({jobId:job.id,candidateId:result.candidates[0].id,transcriptId:transcript.id,transcriptRevision:91});
+  await expect(field.getByRole('note',{name:'전사 기반 AI 초안'})).toBeVisible();
+  await field.locator('textarea').fill('의료진 편집: 현재 통증 없음.');await field.getByLabel('확인 상태').selectOption('confirmed');
+  await page.getByRole('button',{name:'오늘 답변 저장',exact:true}).click();
+  await expect.poll(()=>bodies.at(-1)?.answers.find((a:any)=>a.item_key==='pain')).toMatchObject({answer_text:'의료진 편집: 현재 통증 없음.',confirmation_status:'confirmed'});
+  await expect(field.locator('textarea')).toHaveValue('의료진 편집: 현재 통증 없음.');await expect(field.getByRole('note',{name:'전사 기반 AI 초안'})).toHaveCount(0);
+});
+
+test('stored clinician answers and locally dirty text survive arriving AI candidates',async({page})=>{
+  const envelope=await localDemo(page),{current_visit_id:visitId}=scenario(envelope,'A');const patientId=envelope.state.visits.find(v=>v.id===visitId)!.patient_id;
+  const texts=['현재 통증은 0점이에요.','요즘 잠은 잘 자요.'];
+  const transcript:Transcript={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,revision:92,status:'reviewed',source_asset_key:'manual_seed',origin:'manual_demo',text:texts.join('\n'),segments:texts.map((text,i)=>({id:randomUUID(),ordinal:i+1,speaker:'patient',text,start_ms:i*1000,end_ms:(i+1)*1000}))};
+  const output:ClinicalAnalysisOutput={answers:[{item_key:'pain',subitem_key:'current_pain',text:texts[0],change:null,temporal:'current',evidence:[{segment_id:transcript.segments[0].id,quote:texts[0]}]}],measurements:[],signals:[],missing_questions:[]};
+  const result=validateClinicalAnalysis(output,transcript);
+  const job:RuntimeJob={id:randomUUID(),clinic_id:envelope.state.clinic.id,visit_id:visitId,kind:'analysis',status:'waiting_review',stage:'clinical_analysis_review',input_hash:'dirty-protection',created_at:'2026-10-09T03:00:00Z',updated_at:'2026-10-09T03:00:00Z',result:{task:'clinical_analysis',patientId,transcriptId:transcript.id,input_transcript_revision:92,...result}};
+  envelope.state.transcripts.push(transcript);envelope.state.jobs.push(job);
+  const stored=envelope.state.followup_answers.find(a=>a.visit_id===visitId&&a.item_key==='pain'&&a.subitem_key==='current_pain')!;stored.answer_text='의료진 직접 입력 3점';stored.confirmation_status='confirmed';stored.review_status='reviewed';
+  await page.route('**/api/state',route=>route.fulfill({json:envelope}));
+  await page.goto(`/clinic/visits/${visitId}`);await page.getByRole('tab',{name:'재진 질문',exact:true}).click();
+  const nav=page.getByRole('navigation',{name:'재진 질문 항목'});await nav.getByRole('button').nth(1).click();
+  const pain=page.getByRole('group',{name:'현재 통증',exact:true});await expect(pain.locator('textarea')).toHaveValue('의료진 직접 입력 3점');await expect(pain.getByRole('note',{name:'전사 기반 AI 초안'})).toHaveCount(0);
+  await nav.getByRole('button').nth(6).click();const sleep=page.getByRole('group',{name:'입면·각성·회복감',exact:true});await sleep.locator('textarea').fill('의료진 수면 답변 편집 중');
+  output.answers.push({item_key:'sleep',subitem_key:'sleep_quality',text:texts[1],change:null,temporal:'current',evidence:[{segment_id:transcript.segments[1].id,quote:texts[1]}]});
+  Object.assign(job.result!,validateClinicalAnalysis(output,transcript));envelope.version++;
+  await expect.poll(()=>page.getByText('수면 · 입면·각성·회복감',{exact:true}).count()).toBe(1);
+  await expect(sleep.locator('textarea')).toHaveValue('의료진 수면 답변 편집 중');await expect(sleep.getByRole('note',{name:'전사 기반 AI 초안'})).toHaveCount(0);
 });
