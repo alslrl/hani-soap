@@ -27,6 +27,16 @@ export async function readState(): Promise<StateEnvelope> {
   if (!data) throw new AppError(503, 'SEED_REQUIRED', '데모 데이터를 먼저 초기화해 주세요.');
   return envelope(data as Snapshot);
 }
+/** Only the version column crosses PostgREST on an unchanged poll.
+ * Local storage already reads the full JSON, so it always returns an envelope. */
+export async function readStateIfChanged(knownVersion: number): Promise<StateEnvelope | null> {
+  if (storageMode() === 'local') return readState();
+  const { data, error } = await getSupabase().from('demo_state').select('version').eq('clinic_id', FIXED_CLINIC_ID).maybeSingle();
+  if (error) databaseError(error);
+  if (!data) throw new AppError(503, 'SEED_REQUIRED', '데모 데이터를 먼저 초기화해 주세요.');
+  if (Number(data.version) === knownVersion) return null;
+  return readState();
+}
 function preserveVersions(before: AppState, after: AppState) {
   for (const previous of before.transcripts) {
     const next = after.transcripts.find((v) => v.id === previous.id);
