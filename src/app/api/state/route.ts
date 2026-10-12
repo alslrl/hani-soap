@@ -6,7 +6,8 @@ export const dynamic = 'force-dynamic';
 export async function GET(request: Request) {
   try {
     await requireSession(request);
-    const match = /^"state-(\d+)"$/.exec(request.headers.get('if-none-match') || '');
+    // Vercel may weaken the response ETag when applying compression.
+    const match = /^(?:W\/)?"state-(\d+)"$/.exec(request.headers.get('if-none-match') || '');
     const knownVersion = match ? Number(match[1]) : undefined;
     const value = knownVersion !== undefined && Number.isSafeInteger(knownVersion)
       ? await readStateIfChanged(knownVersion) : await readState();
