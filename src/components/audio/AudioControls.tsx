@@ -15,6 +15,7 @@ import { applyAcceptedCorrections, type CorrectionSpan, type ValidatedCorrection
 import { AudioProgress, type LocalAudioWork } from './AudioProgress';
 import { audioWorks, sourceLabel, workTitle } from '@/lib/audio/progress';
 import styles from './AudioControls.module.css';
+import { useAppState } from '@/lib/client';
 
 type Props = { visitId: string; onChanged?: () => void };
 type JobsResponse = { jobs: RuntimeJob[]; recordings: RuntimeRecording[]; transcripts: Transcript[] };
@@ -34,7 +35,14 @@ export function AudioControls({ visitId, onChanged }: Props) {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [configured, setConfigured] = useState<boolean | null>(null);
-  const [data, setData] = useState<JobsResponse>({ jobs: [], recordings: [], transcripts: [] });
+  const { data: envelope, refresh: refreshAppState } = useAppState();
+  // The shared state loop discovers jobs from other screens and all completions.
+  // Do not independently download the same full database row via /api/jobs.
+  const data: JobsResponse = {
+    jobs: envelope?.state.jobs.filter(item => item.visit_id === visitId) ?? [],
+    recordings: envelope?.state.recordings.filter(item => item.visit_id === visitId) ?? [],
+    transcripts: envelope?.state.transcripts.filter(item => item.visit_id === visitId) ?? [],
+  };
   const [recoveries, setRecoveries] = useState<RecoveryMetadata[]>([]);
   const [reviewDirty,setReviewDirty] = useState(false);
   const [localWork, setLocalWork] = useState<LocalAudioWork | null>(null);
@@ -47,19 +55,17 @@ export function AudioControls({ visitId, onChanged }: Props) {
   const active = audio.status !== 'idle';
   const ownerHere = audio.visitId === visitId;
   const refresh = useCallback(async () => {
-    try { setData(await api<JobsResponse>(`/api/jobs?visitId=${encodeURIComponent(visitId)}`)); }
-    catch (failure) { setError(failure instanceof Error ? failure.message : '작업 상태 조회 실패'); }
-  }, [visitId]);
+    await refreshAppState();
+  }, [refreshAppState]);
   const recover = useCallback(() => { if (typeof indexedDB !== 'undefined') void listRecoveries().then(setRecoveries).catch(() => {}); }, []);
   useEffect(() => {
     let cancelled = false;
-    void refresh(); recover();
+    recover();
     void api<{ configured: boolean }>('/api/audio/config').then((result) => { if (!cancelled) setConfigured(result.configured); }).catch(() => {});
     const enumerate = () => navigator.mediaDevices?.enumerateDevices().then((items) => { if (!cancelled) setDevices(items.filter((item) => item.kind === 'audioinput')); }).catch(() => {});
     void enumerate();
     navigator.mediaDevices?.addEventListener('devicechange', enumerate);
-    const interval = setInterval(() => { if (!document.hidden) void refresh(); }, 3000);
-    return () => { cancelled = true; clearInterval(interval); navigator.mediaDevices?.removeEventListener('devicechange', enumerate); };
+    return () => { cancelled = true; navigator.mediaDevices?.removeEventListener('devicechange', enumerate); };
   }, [visitId, refresh, recover]);
   const execute = async (action: () => Promise<void>) => {
     setBusy(true); setError(null);
