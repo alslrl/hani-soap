@@ -24,6 +24,12 @@ describe('conditional state egress', () => {
     expect(mocks.selects).toEqual(['version']); expect(response.headers.get('cache-control')).toContain('no-store');
     expect(response.headers.get('vary')).toBe('Cookie');
   });
+  it('a weak ETag returned by Vercel also avoids reading the full state', async () => {
+    const response = await GET(req('W/"state-7"'));
+    expect(response.status).toBe(304); expect(await response.text()).toBe('');
+    expect(mocks.selects).toEqual(['version']);
+    expect(response.headers.get('etag')).toBe('W/"state-7"');
+  });
   it('changed fetches full state and preserves the envelope', async () => {
     const response = await GET(req('"state-6"'));
     expect(response.status).toBe(200); expect(mocks.selects).toEqual(['version', 'state,version']);
