@@ -73,14 +73,14 @@ for p in source:
         x, y = int(xx[i]), int(yy[i])
     assert masks[view][y, x], p['code']
     points.append({'code': p['code'], 'name': p['name_ko'], 'region': p['body_region_hint']['name_ko'],
-                   'meridian': p['meridian_name_ko'], 'location': p['location_ko'],
+                   'meridian': p['meridian_name_ko'], 'location': p.get('location_en_atlas') or 'Location prose is not bundled. Use the external reference link.',
                    'reference': p['location_reference_url'], 'view': view, 'x': x, 'y': y,
                    'adjusted': (x, y) != initial or view != original['view'],
                    'original_coordinate': original, 'clinical_review_status': 'pending'})
 assert len(points) == len({p['code'] for p in points}) == 361
 meta = {'schema_version': 1, 'dataset': 'atlas361-display-review', 'clinical_approval': False,
         'ankle_sheet_visual_review': 'user_confirmed', 'note': 'Display candidates only. Original coordinates preserved; nearest interior projection does not validate clinical anatomy. No full left/right instances or invisible-surface diagrams.',
-        'source': 'https://acupointatlas.com/atlas/', 'license': 'CC BY 4.0', 'figures': figures, 'points': points}
+        'source': 'https://acupointatlas.com/atlas/', 'license': 'CC BY 4.0', 'location_text_source': 'AcuAtlas-authored CC BY 4.0 descriptions; not KMCRIC/WHO original wording', 'figures': figures, 'points': points}
 template = (ROOT / 'docs/verification/atlas-review-template.html').read_text()
 (OUT / 'index.html').write_text(template.replace('__DATA__', json.dumps(meta, ensure_ascii=False).replace('</', '<\\/')))
 (OUT / 'display-candidates.json').write_text(json.dumps({k: v for k, v in meta.items() if k != 'figures'}, ensure_ascii=False, indent=2) + '\n')

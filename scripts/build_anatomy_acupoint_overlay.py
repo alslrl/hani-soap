@@ -42,7 +42,6 @@ def build():
         # The separate head plate contains anterior and posterior scalp points.
         posterior_head = p['view'] == 'head' and (
             p['code'] in {'GV17', 'GV18', 'GV19', 'BL6', 'BL7', 'BL8', 'BL9'}
-            or '뒷머리' in p['location'][:30] or '뒤머리' in p['location'][:30]
         )
         usable.append({**p, 'region_id': region,
                        'target_view': 'back' if p['view'] == 'posterior' or posterior_head else 'front'})

@@ -1,0 +1,18 @@
+#!/bin/sh
+# Refuse pushes whose reachable history reintroduces excluded private materials.
+# This path check is not a complete credential, PHI, or license audit.
+set -eu
+inventory=$(mktemp "${TMPDIR:-/tmp}/hani-push-history.XXXXXX")
+trap 'rm -f "$inventory"' EXIT HUP INT TERM
+while read -r local_ref local_oid remote_ref remote_oid; do
+  case "$local_oid" in 0000000000000000000000000000000000000000) continue ;; esac
+  if ! perl -e 'alarm shift; exec @ARGV' 15 git rev-list --objects "$local_oid" > "$inventory"; then
+    echo 'HaniSOAP: history check failed or timed out. Push not allowed.' >&2
+    exit 1
+  fi
+  if LC_ALL=C grep -E ' (output(/|$)|docs/(audio|transcripts|codex-logs|notion)(/|$)|docs/reference/(sigmachart(/|$)|DevDay_Seoul_Participant_Guide\.)|docs/(README\.txt|manifest\.json|presentation-plan\.md|asr-refinement\.md)$|docs/verification/(audio-progress-ui\.md|데모_정답차팅_초안\.md)$|data/변증명_PDF(추출|파일별)\.txt$)' "$inventory" >/dev/null; then
+    echo 'HaniSOAP: excluded private/submission material exists in the pushed history.' >&2
+    echo 'Use a fresh clone or rebase onto the sanitized history. Do not merge old branches.' >&2
+    exit 1
+  fi
+done

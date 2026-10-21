@@ -36,3 +36,7 @@ docs/verification/데모_정답차팅_초안.md
 *.mp4
 *.mov
 *.pdf
+
+# Unverified private-PDF-derived terminology exports
+data/변증명_PDF추출.txt
+data/변증명_PDF파일별.txt

@@ -4,6 +4,14 @@ import { ACUPOINT_CATALOG, getCatalogPoint, resolvePointLaterality, searchAcupoi
 import { REGION_LABELS, regionCandidates, type BodyRegion } from "./regions";
 
 describe("whole-body catalog selection", () => {
+  it("omits copied upstream location prose from the public research snapshot", () => {
+    for (const point of raw.points) {
+      for (const key of ["location_ko", "location_ko_source", "location_en_source"]) {
+        expect(Object.hasOwn(point, key)).toBe(false);
+      }
+      expect(Object.hasOwn(point.body_region_hint, "source_phrase")).toBe(false);
+    }
+  });
   it("keeps every original code exactly once without adding approximate coordinates", () => {
     expect(ACUPOINT_CATALOG).toHaveLength(361);
     expect(new Set(ACUPOINT_CATALOG.map(point => point.code))).toEqual(new Set(raw.points.map(point => point.code)));

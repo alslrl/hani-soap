@@ -1,13 +1,14 @@
 HaniSOAP is a mixed-license repository.
 
-The MIT License in LICENSE applies only to original HaniSOAP application code
-and original technical documentation for which contributors hold the rights.
-It does not relicense third-party material or override existing notices.
+The MIT License in LICENSE covers original application code and original
+technical documentation that the HaniSOAP contributors have the right to license.
+It does not relicense third-party materials or replace existing notices.
 
-Excluded from the blanket MIT grant are data/, public/demo/, and external-derived
-Atlas review assets/templates under docs/verification/. Dependencies retain their
-own licenses. Some bundled reference data still requires upstream permission
-review or replacement; this notice does not grant missing rights.
+Anatomy assets retain CC BY 4.0 or CC BY-SA 4.0 conditions as specified per asset.
+AcuAtlas diagrams/data and review derivatives retain attribution requirements.
+Terminology names retain their original public-data usage terms and provenance.
+Unverified private-PDF/guideline name sources and copied upstream location prose
+were excluded from the public snapshot. Dependencies retain their own licenses.
 
-See THIRD_PARTY_NOTICES.md for paths, existing licenses, and release blockers.
-Do not describe the complete asset bundle as an all-MIT release.
+See THIRD_PARTY_NOTICES.md and each asset's attribution/license files.
+The complete repository is not a solely MIT-licensed asset bundle.

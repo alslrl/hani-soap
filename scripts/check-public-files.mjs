@@ -5,6 +5,7 @@ import assert from 'node:assert/strict';
 
 // Only inspect Git-tracked files. Never print a matched credential or patient text.
 const privatePaths = [
+  /^data\/변증명_PDF(?:추출|파일별)\.txt$/,
   /^(?:output|docs\/(?:audio|transcripts|codex-logs|notion))\//i,
   /^docs\/reference\/(?:sigmachart\/|DevDay_Seoul_Participant_Guide\.)/i,
   /^docs\/(?:manifest\.json|README\.txt|presentation-plan\.md|asr-refinement\.md)$/i,
