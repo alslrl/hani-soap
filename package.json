@@ -11,7 +11,8 @@
     "test:server": "tsx --test src/lib/server/*.test.ts",
     "test:e2e": "playwright test",
     "db:seed": "tsx scripts/seed-supabase.ts",
-    "assets:anatomy": "node scripts/render-anatomy.mjs"
+    "assets:anatomy": "node scripts/render-anatomy.mjs",
+    "check:public-files": "node scripts/check-public-files.mjs"
   },
   "engines": {
     "node": ">=22.14.0"

@@ -14,3 +14,25 @@ playwright-report/
 .DS_Store
 .vercel
 /.swc
+
+# Private working material and submission archives (never publish)
+output/
+docs/audio/
+docs/transcripts/
+docs/codex-logs/
+docs/notion/
+docs/reference/sigmachart/
+docs/reference/DevDay_Seoul_Participant_Guide.*
+docs/manifest.json
+docs/README.txt
+docs/presentation-plan.md
+docs/asr-refinement.md
+docs/verification/audio-progress-ui.md
+docs/verification/데모_정답차팅_초안.md
+*.zip
+*.mp3
+*.m4a
+*.wav
+*.mp4
+*.mov
+*.pdf

@@ -402,6 +402,8 @@ def validate(data, schema, root=ROOT):
         for row in data[table]:
             for source in row.get("source_refs", []):
                 sid = source["source_id"]
+                # Withheld private evidence must not acquire an unverifiable quote.
+                require(bool(sid) or not source["quote"], "evidence quote requires a source identifier")
                 if source["kind"] in {"seed_snapshot", "care_response", "demo_transcript"}:
                     require(sid in all_ids, f"unresolved seed evidence: {sid}")
                     if sid in owner and row["id"] in owner:
@@ -462,6 +464,7 @@ def self_test(data, schema):
         "preview mistaken for delivery": edit("care_messages", 0, "delivery_mode", "preview"),
         "enuresis mislabeled as nocturia": edit("observations", 3, "metric_key", "nighttime_toilet_visits"),
         "fabricated evidence quote": lambda changed: changed["soap_documents"][0]["source_refs"][0].__setitem__("quote", "원문에 없는 문자열"),
+        "withheld manual source cannot retain quote": lambda changed: changed["soap_documents"][0]["source_refs"][0].update(kind="manual", source_id=None, quote="출처 없는 합성 인용"),
     }
     for label, mutate in mutations.items():
         changed = deepcopy(data)

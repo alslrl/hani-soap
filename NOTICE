@@ -1,0 +1,13 @@
+HaniSOAP is a mixed-license repository.
+
+The MIT License in LICENSE applies only to original HaniSOAP application code
+and original technical documentation for which contributors hold the rights.
+It does not relicense third-party material or override existing notices.
+
+Excluded from the blanket MIT grant are data/, public/demo/, and external-derived
+Atlas review assets/templates under docs/verification/. Dependencies retain their
+own licenses. Some bundled reference data still requires upstream permission
+review or replacement; this notice does not grant missing rights.
+
+See THIRD_PARTY_NOTICES.md for paths, existing licenses, and release blockers.
+Do not describe the complete asset bundle as an all-MIT release.

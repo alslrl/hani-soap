@@ -7,7 +7,7 @@ describe('explicit fictional stair history',()=>{
  it('adds only the three past adult visits and preserves source records and today',()=>{
   const state=empty(),before=structuredClone(state);const ids=addDemoStairHistory(state);
   expect(ids).toHaveLength(3);const rows=state.observations.filter(row=>ids.includes(row.id));
-  expect(rows.map(row=>row.value)).toEqual([8,6,4]);expect(rows.every(row=>row.origin==='synthetic_history'&&row.source_refs[0].quote?.includes('가상 점수'))).toBe(true);
+  expect(rows.map(row=>row.value)).toEqual([8,6,4]);expect(rows.every(row=>row.source_refs[0].kind==='seed_snapshot'&&row.source_refs[0].source_id===row.visit_id)).toBe(true);expect(rows.every(row=>row.origin==='synthetic_history'&&row.source_refs[0].quote?.includes('가상 점수'))).toBe(true);
   expect(rows.some(row=>row.visit_id===state.scenario_inputs[0].current_visit_id)).toBe(false);
   expect(state.transcripts).toEqual(before.transcripts);expect(state.soap_documents).toEqual(before.soap_documents);
   expect(addDemoStairHistory(state)).toEqual([]);expect(state.observations.filter(row=>row.metric_key==='stair_ascent_discomfort')).toHaveLength(3);

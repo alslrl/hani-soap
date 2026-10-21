@@ -58,6 +58,7 @@ DB는 정규 테이블과 방문 스냅샷을 동일 트랜잭션에서 저장�
 ## 검증
 
 ```sh
+npm run check:public-files
 npm run typecheck
 npm test
 npm run test:server
@@ -69,7 +70,7 @@ npm run build
 
 ## 계획과 범위
 
-- [전체 구현 계획](implementation-plan.md)
+- [유지관리 계획](maintenance.md)
 - [저장 계약](data-contract.md)
 - [접근·배포 계약](deployment-access.md)
 - [검증 상태](implementation-status.md)

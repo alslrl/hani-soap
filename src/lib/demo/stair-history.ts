@@ -17,7 +17,7 @@ export function addDemoStairHistory(state: AppState): string[] {
   const hex=createHash('sha256').update(`hani-demo-stair-history-v1:${visit.id}`).digest('hex');
   const id=`${hex.slice(0,8)}-${hex.slice(8,12)}-5${hex.slice(13,16)}-8${hex.slice(17,20)}-${hex.slice(20,32)}`;
   const date=visit.scheduled_at.slice(0,10),value=scores[index];
-  state.observations.push({id,clinic_id:state.clinic.id,patient_id:scenario.patient_id,visit_id:visit.id,followup_answer_id:null,...STAIR_ASCENT_METRIC,series_key:series,value,measured_at:visit.started_at??visit.scheduled_at,review_status:'reviewed',source_refs:[{kind:'seed_snapshot',source_id:'demo-stair-history-v1',quote:`데모용 합성 과거 이력: ${date} 오른쪽 발목 계단 오르기 불편 ${value}/10. 실제 측정 자료가 아닌 가상 점수입니다.`,origin:'synthetic_history'}],origin:'synthetic_history'});
+  state.observations.push({id,clinic_id:state.clinic.id,patient_id:scenario.patient_id,visit_id:visit.id,followup_answer_id:null,...STAIR_ASCENT_METRIC,series_key:series,value,measured_at:visit.started_at??visit.scheduled_at,review_status:'reviewed',source_refs:[{kind:'seed_snapshot',source_id:visit.id,quote:`데모용 합성 과거 이력: ${date} 오른쪽 발목 계단 오르기 불편 ${value}/10. 실제 측정 자료가 아닌 가상 점수입니다.`,origin:'synthetic_history'}],origin:'synthetic_history'});
   added.push(id);
  });return added;
 }

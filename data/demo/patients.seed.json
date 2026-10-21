@@ -5,7 +5,7 @@
     "timezone": "Asia/Seoul",
     "demo_today": "2026-10-09",
     "generated_at": "2026-10-09T00:30:00Z",
-    "origin_note": "모든 인물·생년월일·진료일·연락 상태는 합성 데모이며 실명·실제 연락처를 사용하지 않았다. provided_case는 제공된 모의 진료 사례에 있는 내용, synthetic_history는 합성 과거 방문·시점, synthetic_response는 모의 버튼 응답, manual_demo는 초기 화면용 설정이다. 원음 전사·LLM 실행·실제 승인·실제 발송 결과가 아니다. A의 NRS 8→7→6만 과거 값으로 준비하고 오늘 5점과 이후 답변은 새 녹음/입력에서 생성한다. B의 호전 응답은 합성이며 야간 배뇨 횟수가 줄었다는 수치는 생성하지 않았다. A의 3일차 안내는 10/4에 모의 발송됐지만 환자는 10/8 20:15 KST에 늦게 응답한 합성 설정이다. 오늘 10/9 연락 필요 목록은 이 늦은 응답으로 구성한다. 두 초진 사례의 예상 SOAP와 제공 사례 근거는 2026-10-09 연화 검수 문서에 맞췄으며, 소아 사례의 과민성 방광염은 의료진 발화의 기록이고 감염성 방광염 확진을 뜻하지 않는다."
+    "origin_note": "모든 인물·생년월일·진료일·연락 상태는 합성 데모이며 실명·실제 연락처를 사용하지 않았다. provided_case는 제공된 모의 진료 사례에 있는 내용, synthetic_history는 합성 과거 방문·시점, synthetic_response는 모의 버튼 응답, manual_demo는 초기 화면용 설정이다. 원음 전사·LLM 실행·실제 승인·실제 발송 결과가 아니다. A의 NRS 8→7→6만 과거 값으로 준비하고 오늘 5점과 이후 답변은 새 녹음/입력에서 생성한다. B의 호전 응답은 합성이며 야간 배뇨 횟수가 줄었다는 수치는 생성하지 않았다. A의 3일차 안내는 10/4에 모의 발송됐지만 환자는 10/8 20:15 KST에 늦게 응답한 합성 설정이다. 오늘 10/9 연락 필요 목록은 이 늦은 응답으로 구성한다. 두 초진 사례의 예상 SOAP와 제공 사례 근거는 2026-10-09 연화 검수 문서에 맞췄으며, 소아 사례의 과민성 방광염은 의료진 발화의 기록이고 감염성 방광염 확진을 뜻하지 않는다. 공개 준비 과정에서 비공개 원문을 가리키던 source_id와 직접 인용 quote는 null로 가렸다. 해당 근거는 이 공개 사본에서 검증할 수 없으며 새 합성 원문을 만들어 검증한 것으로 간주하지 않는다. video1/video2/revisit_script는 역사적 시나리오 식별자이며 원음·대본 파일은 포함하지 않는다."
   },
   "clinic": {
     "id": "6c8ad2ac-7ed0-5688-9784-cd287f2a7b51",
@@ -157,44 +157,44 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "어제 계단을 내려가다 잘못 착지하면서 오른쪽 발목이 안쪽으로 꺾임.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "현재 통증 NRS 8/10.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "부종 측정값 좌 43cm, 우 45cm.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "저녁 걷기 운동을 계속해도 되는지 질문.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "걷기 질문에 체중 부하가 있는 무리한 운동과 당분간 걷기를 삼가고 누워서 가벼운 스트레칭을 하도록 답변함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "개별 검사 양성·음성 및 인대별 압통 결과는 현재 자료로 확정하지 않음.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -218,8 +218,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
-          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
@@ -249,8 +249,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
-          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
@@ -280,50 +280,50 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도를 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "의료진이 발화한 평가명: 과민성 방광염. 연화가 실제 영상 표현으로 확인함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "의료진이 설명한 한의학적 변증: 비폐기허.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "이침 치료 계획을 설명함. 실제 시행 여부·이침 부위는 확인되지 않음.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "발화된 평가의 기록이며 감염성 방광염 확진 또는 특정 진단의 임상적 타당성 검증을 의미하지 않음.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -393,14 +393,14 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "어제 계단을 내려가다 잘못 착지하면서 오른쪽 발목이 안쪽으로 꺾임.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "현재 통증 NRS 8/10.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -423,8 +423,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "현재 통증 NRS 8/10.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -447,8 +447,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "오른쪽 외측 복숭아뼈 통증으로 걷기 어려움을 호소. 현재 통증 NRS 8/10.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -488,8 +488,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -597,8 +597,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -621,8 +621,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "저녁 걷기 운동을 계속해도 되는지 질문.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -669,8 +669,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
-          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -908,8 +908,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
-          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1313,14 +1313,14 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1394,8 +1394,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도를 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1435,14 +1435,14 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "수면은 잘 자고 코골이는 없다고 답변.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1703,8 +1703,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1744,8 +1744,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1768,14 +1768,14 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1798,8 +1798,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1864,8 +1864,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "현재 통증 NRS 8/10.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1893,8 +1893,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
-          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1922,8 +1922,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/notion/05_재진_대화_녹음_대본.txt",
-          "quote": "2회차 VAS 7점, 3회차 6점.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1951,14 +1951,14 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         },
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "야뇨 후 잠에서 깨서 알게 된다고 답함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -1986,7 +1986,7 @@
       "source_refs": [
         {
           "kind": "seed_snapshot",
-          "source_id": "demo-stair-history-v1",
+          "source_id": "5818500b-3531-5f83-9ae5-3de2ebbc99a8",
           "quote": "데모용 합성 과거 이력: 2026-10-02 오른쪽 발목 계단 오르기 불편 8/10. 실제 측정 자료가 아닌 가상 점수입니다.",
           "origin": "synthetic_history"
         }
@@ -2015,7 +2015,7 @@
       "source_refs": [
         {
           "kind": "seed_snapshot",
-          "source_id": "demo-stair-history-v1",
+          "source_id": "ea4c5c69-c7a2-5da5-8c60-916a0b5eac38",
           "quote": "데모용 합성 과거 이력: 2026-10-04 오른쪽 발목 계단 오르기 불편 6/10. 실제 측정 자료가 아닌 가상 점수입니다.",
           "origin": "synthetic_history"
         }
@@ -2044,7 +2044,7 @@
       "source_refs": [
         {
           "kind": "seed_snapshot",
-          "source_id": "demo-stair-history-v1",
+          "source_id": "4e1f4879-2427-5aa9-a113-45e6102bf023",
           "quote": "데모용 합성 과거 이력: 2026-10-07 오른쪽 발목 계단 오르기 불편 4/10. 실제 측정 자료가 아닌 가상 점수입니다.",
           "origin": "synthetic_history"
         }
@@ -2065,8 +2065,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "현재 통증 NRS 8/10.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2084,8 +2084,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2103,8 +2103,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "저녁 걷기 운동을 계속해도 되는지 질문.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2122,8 +2122,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "주 3회 내원하여 침·약침·한약·뜸 치료를 병행할 계획을 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2160,8 +2160,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보호자 보고: 약 2개월 전부터 밤에 소변을 지림. 밤마다 약 2회, 주로 자정 이후이며 양은 적은 편.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2179,8 +2179,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2198,8 +2198,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2217,8 +2217,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "식욕 저하, 설사, 추위를 탐.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2236,8 +2236,8 @@
       "source_refs": [
         {
           "kind": "manual",
-          "source_id": "docs/verification/데모_정답차팅_초안.md",
-          "quote": "보중익기탕 처방 계획과 하루 3회 식후 30분 복용 지도를 설명함.",
+          "source_id": null,
+          "quote": null,
           "origin": "provided_case"
         }
       ],
@@ -2428,10 +2428,7 @@
       "provided_audio_key": "video1",
       "followup_script_key": "revisit_script",
       "source_documents": [
-        "docs/verification/데모_정답차팅_초안.md",
-        "docs/notion/02_HaniSOAP_기획서.txt",
-        "docs/reference/재진_질문_및_경과_기록.md",
-        "docs/notion/05_재진_대화_녹음_대본.txt"
+        "docs/demo-data-provenance.md"
       ]
     },
     {
@@ -2441,9 +2438,7 @@
       "provided_audio_key": "video2",
       "followup_script_key": null,
       "source_documents": [
-        "docs/verification/데모_정답차팅_초안.md",
-        "docs/notion/02_HaniSOAP_기획서.txt",
-        "docs/reference/재진_질문_및_경과_기록.md"
+        "docs/demo-data-provenance.md"
       ]
     }
   ]
